@@ -8,6 +8,11 @@ Add a public marketing site within the Next.js app (or as a separate build targe
 
 The monetization roadmap ranks landing page + pricing + docs site as priority #5 and states "zero web presence = zero credibility for enterprise buyers." Before anyone pays, they Google the product. A professional web presence converts MCP/GitHub App interest into trials and sales conversations.
 
+## Prep Work (Do Before Track Starts)
+
+- Add `vercel.json` with Next.js framework preset, pinned build/install commands, production region, and baseline security headers.
+- Add `.env.example` with placeholders for Ledgerful daemon, Supabase, Gemini, and ai-brains context variables.
+
 ## Requirements
 
 ### Must Have
