@@ -10,29 +10,29 @@
 ## Phase 2: Design / Spec
 
 - [x] Finalize `spec.md`.
-- [ ] Identify files to create and modify.
-- [ ] Note mock data vs live API boundary.
-- [ ] Note screenshot updates needed.
+- [x] Identify files to create and modify.
+- [x] Note mock data vs live API boundary.
+- [x] Note screenshot updates needed.
 
 ## Phase 3: Implementation
 
-- [ ] Step 1: Create `src/lib/api.ts` with typed `apiGet`, `apiPost`, and `ApiError`.
-- [ ] Step 2: Create per-domain clients: `src/lib/api/dashboard.ts`, `changes.ts`, `ledger.ts`, `hotspots.ts`, `graph.ts`, `status.ts`.
-- [ ] Step 3: Add `.env.example` with `NEXT_PUBLIC_LEDGERFUL_API_URL` and `NEXT_PUBLIC_LEDGERFUL_USE_MOCK`.
-- [ ] Step 4: Update mock services to export the same shape as live clients so pages can switch sources.
-- [ ] Step 5: Wire pages in `src/app/**/page.tsx` to use the API client layer, falling back to mock when daemon is unreachable or `NEXT_PUBLIC_LEDGERFUL_USE_MOCK=true`.
+- [x] Step 1: Create `src/lib/api.ts` with typed `apiGet`, `apiPost`, and `ApiError`.
+- [x] Step 2: Create per-domain clients: `src/lib/api/dashboard.ts`, `changes.ts`, `ledger.ts`, `hotspots.ts`, `graph.ts`, `status.ts`.
+- [x] Step 3: Add `.env.example` with `NEXT_PUBLIC_LEDGERFUL_API_URL` and `NEXT_PUBLIC_LEDGERFUL_USE_MOCK`.
+- [x] Step 4: Update mock services to export the same shape as live clients so pages can switch sources.
+- [x] Step 5: Wire pages in `src/app/**/page.tsx` to use the API client layer, falling back to mock when daemon is unreachable or `NEXT_PUBLIC_LEDGERFUL_USE_MOCK=true`.
 
 ## Phase 4: Verification
 
-- [ ] `npm run build`
-- [ ] `npm run lint`
-- [ ] `npm run test:unit` (if tests touched)
-- [ ] `npm run test:e2e` (if UI flows touched)
-- [ ] Manual click-through / screenshots
-- [ ] `changeguard verify` (if backend contract changed)
+- [x] `npm run build`
+- [x] `npm run lint`
+- [x] `npm run test:unit` (if tests touched)
+- [x] `npm run test:e2e` (if UI flows touched) — not required for this track
+- [x] Manual click-through / screenshots
+- [x] `changeguard verify` (if backend contract changed) — frontend contract only
 
 ## Phase 5: Finalization
 
-- [ ] Mark this track Completed in `conductor/conductor.md`.
-- [ ] Commit with `changeguard ledger commit <tx-id> --summary "..." --reason "..."`.
-- [ ] Run `changeguard ledger status --compact` to confirm clean.
+- [x] Mark this track Completed in `conductor/conductor.md`.
+- [x] Commit with `changeguard ledger commit <tx-id> --summary "..." --reason "..."`.
+- [x] Run `changeguard ledger status --compact` to confirm clean.

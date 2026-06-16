@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { DashboardData } from "@/lib/types";
 import { fetchDashboardData } from "@/lib/data";
 import { useProject } from "@/lib/ProjectContext";
@@ -20,12 +20,15 @@ type DashboardState =
 
 export default function DashboardPage() {
   const { project } = useProject();
+  return <DashboardContent key={project.id} projectId={project.id} />;
+}
+
+function DashboardContent({ projectId }: { projectId: string }) {
   const [state, setState] = useState<DashboardState>({ status: "loading" });
   const [explainOpen, setExplainOpen] = useState(false);
 
-  const load = () => {
-    setState({ status: "loading" });
-    fetchDashboardData(project.id)
+  const load = useCallback(() => {
+    fetchDashboardData(projectId)
       .then((data) => {
         if (data.recentChanges.length === 0 && data.health.score === 100) {
           setState({ status: "empty" });
@@ -40,11 +43,11 @@ export default function DashboardPage() {
             "Could not load dashboard data. The Ledgerful daemon may not be running.",
         });
       });
-  };
+  }, [projectId]);
 
   useEffect(() => {
     load();
-  }, [project.id]);
+  }, [load]);
 
   return (
     <PageLayout title="Dashboard">
@@ -75,7 +78,7 @@ export default function DashboardPage() {
                   {state.message}
                 </p>
                 <button
-                  onClick={load}
+                  onClick={() => { setState({ status: "loading" }); load(); }}
                   className="mt-4 inline-flex items-center gap-2 px-3 py-2 rounded-md bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm font-medium hover:bg-[var(--color-surface-raised)] transition-colors duration-100"
                 >
                   <RefreshCw className="w-4 h-4" aria-hidden="true" />

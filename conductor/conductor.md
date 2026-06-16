@@ -45,7 +45,7 @@ Add track-specific criteria (tests, backend contract alignment, accessibility ch
 
 | Track | Status | Owner | Summary |
 |---|---|---|---|
-| 0001-DaemonAPIClientLayer | In Progress | — | Daemon API client layer |
+| 0001-DaemonAPIClientLayer | Completed | — | Daemon API client layer |
 | 0002-HotspotsAndTrends | Planning | — | Real-time hotspots and 90-day trends |
 | 0003-UserMenu | Planning | — | User menu and session surface |
 | 0004-GraphVisualizationCanvas | Planning | — | Interactive knowledge-graph canvas |

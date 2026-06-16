@@ -13,8 +13,6 @@ interface HeroCardProps {
   onExplain?: () => void;
 }
 
-const riskOrder: RiskLevel[] = ["HIGH", "MEDIUM", "LOW", "TRIVIAL"];
-
 function riskColor(risk: RiskLevel) {
   switch (risk) {
     case "HIGH":

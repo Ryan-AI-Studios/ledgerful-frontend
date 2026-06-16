@@ -98,29 +98,33 @@ type RiskLevel = "HIGH" | "MEDIUM" | "LOW" | "TRIVIAL";
 
 ```ts
 interface LedgerEntry {
-  id: string;
   txId: string;
-  timestamp: string;
-  category: "ARCHITECTURE" | "FEATURE" | "INFRA" | "SECURITY" | "REFACTOR" | "BUGFIX" | "DOCS" | "CHORE";
-  entity: string;
+  category: string;
+  status: "COMMITTED" | "PENDING" | "ROLLED_BACK";
   summary: string;
-  riskLevel: RiskLevel;
-  status: "PENDING" | "COMMITTED" | "ROLLED_BACK";
-  signed: boolean;
+  reason: string;
+  author: string;
+  timeAgo: string;
+  files: { path: string; additions: number; deletions: number }[];
+  hotspotsCrossed: number;
+  testsRun: number;
+  flakes: number;
+  risk: RiskLevel;
+  signature: string;
+  publicKey: string;
 }
 ```
+
+**Desired backend additions:** The current `/api/ledger` and `/api/ledger/:txId` endpoints do not return `author`, `files`, `hotspotsCrossed`, `testsRun`, or `flakes`. The frontend currently synthesizes defaults for these so the UI renders, but richer live data requires backend support. The mock service in `src/lib/mock/ledger.ts` shows the intended shape.
 
 ### 3.3 Hotspot
 
 ```ts
 interface Hotspot {
-  id: string;
+  rank: number;
   filePath: string;
-  riskLevel: RiskLevel;
-  riskScore: number;
-  lastTouchedAt: string;
-  contributor?: string;
-  changeCount: number;
+  score: number;
+  trend: number[];
 }
 ```
 
@@ -129,18 +133,43 @@ interface Hotspot {
 ```ts
 interface GraphNode {
   id: string;
-  type: "file" | "change" | "ai";
-  label: string;
-  riskLevel?: RiskLevel;
-}
-
-interface GraphEdge {
-  id: string;
-  source: string;
-  target: string;
-  type: "depends" | "changed" | "ai-edited";
+  symbol: string;
+  filePath: string;
+  risk: RiskLevel;
+  edges: number;
+  complexity: number;
 }
 ```
+
+### 3.5 Status Response
+
+```ts
+interface StatusResponse {
+  indexReady: boolean;
+  graphReady: boolean;
+  pendingTransactions: number;
+  unauditedDrift: number;
+  embeddingModelReachable: boolean;
+  completionModelReachable: boolean;
+}
+```
+
+Backend returns snake_case keys; the frontend maps them to camelCase.
+
+### 3.6 Project
+
+```ts
+interface Project {
+  id: string;
+  name: string;
+  path: string;
+  status: "healthy" | "warning" | "critical";
+  lastScanAt: string;
+  healthScore: number;
+}
+```
+
+**Desired backend additions:** The current `/api/projects` endpoint returns only `id`, `name`, and `path`. The frontend currently defaults `status` to `"healthy"`, `lastScanAt` to `"now"`, and `healthScore` to `100`. Richer project switching requires backend support for status, last scan time, and health score.
 
 ## 4. CLI / UI Parity
 
@@ -195,3 +224,4 @@ interface GraphEdge {
 ## Changelog
 
 - **2026-06-16** — Reconciled with Track M3 implementation: changed base URL from `/api/v1/*` to `/api/*`, default port from `52000` to `52001`, added ephemeral `?token=` auth, documented snake_case response normalization, and added static-export route shape note (`/ledger/detail?txId=`).
+- **2026-06-16** — Updated data-shape examples to match `src/lib/types.ts` after Track 0001 API client layer; added StatusResponse and Project sections; documented desired backend fields for ledger entries and projects.

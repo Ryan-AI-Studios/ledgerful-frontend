@@ -6,7 +6,6 @@ import { DataTable, Column } from "@/components/DataTable";
 import { RiskBadge } from "@/components/RiskBadge";
 import { LedgerStatusBadge } from "@/components/LedgerStatusBadge";
 import { LedgerEntry, fetchLedger } from "@/lib/ledger-data";
-import Link from "next/link";
 import { Search } from "lucide-react";
 
 export default function LedgerPage() {

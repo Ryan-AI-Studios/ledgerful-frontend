@@ -20,21 +20,22 @@ export default function LedgerDetailPage() {
 function LedgerDetail() {
   const searchParams = useSearchParams();
   const txId = searchParams?.get("txId") ?? "";
+  return <LedgerDetailContent key={txId} txId={txId} />;
+}
+
+function LedgerDetailContent({ txId }: { txId: string }) {
   const [entry, setEntry] = useState<LedgerEntry | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(txId));
 
   useEffect(() => {
-    if (!txId) {
-      setLoading(false);
-      return;
-    }
+    if (!txId) return;
     fetchLedgerEntry(txId).then((data) => {
       setEntry(data || null);
       setLoading(false);
     });
   }, [txId]);
 
-  if (loading || !txId) {
+  if (loading) {
     return <DetailSkeleton />;
   }
 
