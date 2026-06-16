@@ -113,3 +113,28 @@ export interface UserSession {
   role?: "admin" | "member" | "viewer";
   avatarUrl?: string;
 }
+
+export interface ComplianceSummary {
+  totalSigned: number;
+  validCount: number;
+  invalidCount: number;
+  skippedCount: number;
+  validityPercent: number;
+  lastAuditAt?: string;
+  oldestUnaddressedAdr?: AdrEntry;
+  hotspotDeltaPercent: number;
+}
+
+export interface SignatureEntry {
+  txId: string;
+  timestamp: string;
+  signer: string;
+  status: "VALID" | "INVALID" | "SKIPPED";
+}
+
+export interface AdrEntry {
+  id: string;
+  title: string;
+  createdAt: string;
+  status: "PROPOSED" | "ACCEPTED" | "DEPRECATED" | "SUPERSEDED";
+}

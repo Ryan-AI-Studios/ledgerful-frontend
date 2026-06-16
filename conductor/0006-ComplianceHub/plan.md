@@ -28,15 +28,15 @@
 
 ## Phase 4: Verification
 
-- [ ] `npm run build`
-- [ ] `npm run lint`
-- [ ] `npm run test:unit` (if tests touched)
-- [ ] `npm run test:e2e` (if UI flows touched)
-- [ ] Manual click-through / screenshots
-- [ ] `changeguard verify` (if backend contract changed)
+- [x] `npm run build`
+- [x] `npm run lint`
+- [x] `npm run test:unit` (if tests touched)
+- [x] `npm run test:e2e` (if UI flows touched)
+- [x] Manual click-through / screenshots
+- [x] `changeguard verify` (if backend contract changed)
 
 ## Phase 5: Finalization
 
-- [ ] Mark this track Completed in `conductor/conductor.md`.
-- [ ] Commit with `changeguard ledger commit <tx-id> --summary "..." --reason "..."`.
-- [ ] Run `changeguard ledger status --compact` to confirm clean.
+- [x] Mark this track Completed in `conductor/conductor.md`.
+- [x] Commit with `changeguard ledger commit <tx-id> --summary "..." --reason "..."`.
+- [x] Run `changeguard ledger status --compact` to confirm clean.

@@ -10,6 +10,7 @@ import {
   Activity,
   FolderGit2,
   X,
+  Shield,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -25,6 +26,7 @@ const navItems = [
   { href: "/hotspots", label: "Hotspots", icon: BarChart3 },
   { href: "/trends", label: "Trends", icon: Activity },
   { href: "/graph", label: "Graph", icon: Share2 },
+  { href: "/compliance", label: "Compliance", icon: Shield },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
