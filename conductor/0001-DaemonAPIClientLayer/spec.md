@@ -27,18 +27,22 @@ Every v1 screen currently uses hardcoded mock data in `src/lib/*-data.ts`. The U
 
 ## API / Data Contracts
 
-All endpoints are assumed relative to `NEXT_PUBLIC_LEDGERFUL_API_URL` (default `http://localhost:52000`).
+All endpoints are relative to `NEXT_PUBLIC_LEDGERFUL_API_URL` (default `http://127.0.0.1:52001`). The Next.js dev server rewrites `/api/*` to the daemon; for static export the full URL is used.
+
+Every request must include the ephemeral session token from `sessionStorage` (key `ledgerful:token`) as a query parameter (`?token=...`). The token is initially read from the `?token=` query parameter on first load.
+
+The daemon returns **snake_case** keys (e.g., `tx_id`, `overall_risk`); the API client layer maps these to the camelCase types in `src/lib/types.ts`.
 
 ```ts
 // src/lib/api.ts
-export interface ApiError {
+export class ApiError extends Error {
   status: number;
   message: string;
+  constructor(status: number, message: string);
 }
 
-export async function apiGet<T>(path: string): Promise<T> {
-  // throws ApiError on failure
-}
+export async function apiGet<T>(path: string, params?: Record<string, string>): Promise<T>;
+export async function apiPost<T>(path: string, body: unknown, params?: Record<string, string>): Promise<T>;
 ```
 
 Existing types in `src/lib/types.ts` become the shared contract between mock and live services.

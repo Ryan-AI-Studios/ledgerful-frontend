@@ -4,8 +4,8 @@
 
 - [x] Read `conductor/conductor.md` for context.
 - [x] Read `AGENTS.md`, `docs/product.md`, `docs/design.md`.
-- [ ] Run `changeguard ledger status --compact`.
-- [ ] Run `npm run build` to confirm baseline compiles.
+- [x] Run `changeguard ledger status --compact`.
+- [x] Run `npm run build` to confirm baseline compiles.
 
 ## Phase 2: Design / Spec
 
