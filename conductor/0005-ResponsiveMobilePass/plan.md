@@ -24,14 +24,14 @@
 
 ## Phase 4: Verification
 
-- [ ] `npm run build`
-- [ ] `npm run lint`
-- [ ] Manual testing at 375px, 768px, 1024px, 1440px
-- [ ] Screenshot capture at each breakpoint
-- [ ] Keyboard/focus testing for mobile sidebar
+- [x] `npm run build`
+- [x] `npm run lint`
+- [x] Manual testing at 375px, 768px, 1024px, 1440px
+- [x] Screenshot capture at each breakpoint
+- [x] Keyboard/focus testing for mobile sidebar
 
 ## Phase 5: Finalization
 
-- [ ] Mark this track Completed in `conductor/conductor.md`.
-- [ ] Commit with `changeguard ledger commit <tx-id> --summary "..." --reason "..."`.
-- [ ] Run `changeguard ledger status --compact` to confirm clean.
+- [x] Mark this track Completed in `conductor/conductor.md`.
+- [x] Commit with `changeguard ledger commit <tx-id> --summary "..." --reason "..."`.
+- [x] Run `changeguard ledger status --compact` to confirm clean.

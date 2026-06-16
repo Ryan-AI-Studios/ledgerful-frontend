@@ -16,13 +16,13 @@ interface HeroCardProps {
 function riskColor(risk: RiskLevel) {
   switch (risk) {
     case "HIGH":
-      return "var(--color-risk-high)";
+      return "text-[var(--color-risk-high)]";
     case "MEDIUM":
-      return "var(--color-risk-medium)";
+      return "text-[var(--color-risk-medium)]";
     case "LOW":
-      return "var(--color-risk-low)";
+      return "text-[var(--color-risk-low)]";
     case "TRIVIAL":
-      return "var(--color-risk-trivial)";
+      return "text-[var(--color-risk-trivial)]";
   }
 }
 
@@ -44,8 +44,7 @@ export function HeroCard({ health, onExplain }: HeroCardProps) {
       <div className="flex items-start justify-between gap-6">
         <div className="flex items-baseline gap-3">
           <span
-            className="text-[2.25rem] font-semibold leading-none tracking-[-0.022em]"
-            style={{ color: scoreColor }}
+            className={`text-[2.25rem] font-semibold leading-none tracking-[-0.022em] ${scoreColor}`}
             aria-hidden={true}
           >
             {health.score}
@@ -63,7 +62,7 @@ export function HeroCard({ health, onExplain }: HeroCardProps) {
         </div>
 
         <button
-          className="text-[var(--color-primary)] text-sm font-medium hover:text-[var(--color-primary-muted)] transition-colors duration-100"
+          className="text-[var(--color-primary)] text-sm font-medium hover:text-[var(--color-primary-muted)] transition-colors duration-100 p-2 -mr-2"
           onClick={(e) => {
             e.stopPropagation();
             onExplain?.();
@@ -77,7 +76,7 @@ export function HeroCard({ health, onExplain }: HeroCardProps) {
         Project Health
       </h1>
 
-      <div className="mt-6 flex flex-wrap items-center gap-6">
+      <div className="mt-6 grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-x-4 gap-y-6 sm:gap-6">
         <Indicator
           icon={ShieldCheck}
           label="Verified"
@@ -121,25 +120,24 @@ interface IndicatorProps {
 }
 
 function Indicator({ icon: Icon, label, value, tone }: IndicatorProps) {
-  const toneColor =
+  const toneColorClass =
     tone === "success"
-      ? "var(--color-success)"
+      ? "text-[var(--color-success)]"
       : tone === "warning"
-      ? "var(--color-warning)"
-      : "var(--color-danger)";
+      ? "text-[var(--color-warning)]"
+      : "text-[var(--color-danger)]";
 
   return (
     <div className="flex items-center gap-2">
       <Icon
-        className="w-4 h-4"
-        style={{ color: toneColor }}
+        className={`w-4 h-4 ${toneColorClass}`}
         aria-hidden={true}
       />
       <div className="flex flex-col">
         <span className="text-[0.6875rem] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
           {label}
         </span>
-        <span className="text-sm font-medium" style={{ color: toneColor }}>
+        <span className={`text-sm font-medium ${toneColorClass}`}>
           {value}
         </span>
       </div>

@@ -26,8 +26,8 @@ export function DataTable<T>({
   getRowKey,
 }: DataTableProps<T>) {
   return (
-    <div className="overflow-x-auto -mx-6 px-6">
-      <table className="w-full border-collapse">
+    <div className="w-full overflow-x-auto border border-[var(--color-border)] rounded-lg">
+      <table className="w-full border-collapse min-w-[600px]">
         <thead>
           <tr className="border-b border-[var(--color-border)]">
             {columns.map((col) => (
