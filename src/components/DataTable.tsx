@@ -5,7 +5,7 @@ import { ReactNode } from "react";
 
 export interface Column<T> {
   key: string;
-  header: string;
+  header: ReactNode;
   width?: string;
   cell: (row: T) => ReactNode;
 }
