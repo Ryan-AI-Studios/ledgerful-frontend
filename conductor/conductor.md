@@ -51,7 +51,7 @@ Add track-specific criteria (tests, backend contract alignment, accessibility ch
 | 0004-GraphVisualizationCanvas | Completed | — | Interactive knowledge-graph canvas |
 | 0005-ResponsiveMobilePass | Completed | — | Responsive layout and mobile pass |
 | 0006-ComplianceHub | Completed | — | SOC2 evidence export and signature validation |
-| 0007-VerificationHistory | In Progress | — | Verification pass/fail trends and health |
+| 0007-VerificationHistory | Completed | — | Verification pass/fail trends and health |
 | 0008-MarketingSite | Planning | — | Landing, pricing, and docs shell |
 
 ## Completed Tracks

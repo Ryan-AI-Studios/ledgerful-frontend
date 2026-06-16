@@ -138,3 +138,29 @@ export interface AdrEntry {
   createdAt: string;
   status: "PROPOSED" | "ACCEPTED" | "DEPRECATED" | "SUPERSEDED";
 }
+
+export interface VerificationHealth {
+  status: "HEALTHY" | "DEGRADED" | "FAILING";
+  lastRunAt: string;
+  message?: string;
+}
+
+export interface VerificationTrendPoint {
+  date: string;
+  passed: number;
+  failed: number;
+}
+
+export interface VerificationStep {
+  id: string;
+  name: string;
+  lastRunAt: string;
+  averageDurationMs: number;
+  passRatePercent: number;
+  recentFailures: number;
+}
+
+export interface SlowCommand {
+  name: string;
+  averageDurationMs: number;
+}

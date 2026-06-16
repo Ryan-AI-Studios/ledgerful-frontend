@@ -11,6 +11,7 @@ import {
   FolderGit2,
   X,
   Shield,
+  CheckSquare,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -27,6 +28,7 @@ const navItems = [
   { href: "/trends", label: "Trends", icon: Activity },
   { href: "/graph", label: "Graph", icon: Share2 },
   { href: "/compliance", label: "Compliance", icon: Shield },
+  { href: "/verify", label: "Verify", icon: CheckSquare },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -110,7 +112,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             className="p-1.5 rounded-md text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-raised)]"
             aria-label="Close menu"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
