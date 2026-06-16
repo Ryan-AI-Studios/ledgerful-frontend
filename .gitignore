@@ -45,7 +45,7 @@ next-env.d.ts
 
 # local tooling state
 /.claude/
-/.agents/
 /.ai-brains/
-AGENTS.md 
-CLAUDE.md 
+
+# changeguard derived state
+/.changeguard/
