@@ -69,11 +69,23 @@ export interface TrendPoint {
 
 export interface GraphNode {
   id: string;
-  symbol: string;
-  filePath: string;
-  risk: RiskLevel;
-  edges: number;
-  complexity: number;
+  type: "file" | "change" | "ai";
+  label: string;
+  riskLevel?: RiskLevel;
+  x?: number;
+  y?: number;
+}
+
+export interface GraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  type: "depends" | "changed" | "ai-edited";
+}
+
+export interface GraphData {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
 }
 
 export interface Project {

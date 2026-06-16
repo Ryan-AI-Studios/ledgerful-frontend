@@ -2,109 +2,89 @@
 
 import { useEffect, useState } from "react";
 import { PageLayout } from "@/components/PageLayout";
-import { DataTable, Column } from "@/components/DataTable";
-import { RiskBadge } from "@/components/RiskBadge";
-import { GraphNode, fetchGraph } from "@/lib/graph-data";
-import { Search, Share2 } from "lucide-react";
+import { GraphData, GraphNode, fetchGraph } from "@/lib/graph-data";
+import { GraphCanvas } from "@/components/GraphCanvas";
+import { GraphDetailPanel } from "@/components/GraphDetailPanel";
+import { Search, Info } from "lucide-react";
 
 export default function GraphPage() {
-  const [nodes, setNodes] = useState<GraphNode[]>([]);
+  const [graphData, setGraphData] = useState<GraphData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
 
   useEffect(() => {
     fetchGraph().then((data) => {
-      setNodes(data);
+      setGraphData(data);
       setLoading(false);
     });
   }, []);
 
-  const columns: Column<GraphNode>[] = [
-    {
-      key: "symbol",
-      header: "Symbol",
-      cell: (row) => (
-        <span className="font-mono text-sm text-[var(--color-text-primary)]">
-          {row.symbol}
-        </span>
-      ),
-    },
-    {
-      key: "file",
-      header: "File",
-      cell: (row) => (
-        <span className="font-mono text-sm text-[var(--color-text-secondary)] truncate">
-          {row.filePath}
-        </span>
-      ),
-    },
-    {
-      key: "risk",
-      header: "Risk",
-      width: "90px",
-      cell: (row) => <RiskBadge risk={row.risk} />,
-    },
-    {
-      key: "edges",
-      header: "Edges",
-      width: "80px",
-      cell: (row) => (
-        <span className="text-sm text-[var(--color-text-muted)]">{row.edges}</span>
-      ),
-    },
-    {
-      key: "complexity",
-      header: "Complexity",
-      width: "110px",
-      cell: (row) => (
-        <span className="text-sm text-[var(--color-text-muted)]">{row.complexity}</span>
-      ),
-    },
-  ];
-
   return (
     <PageLayout title="Knowledge Graph">
-      <div className="bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg p-6">
+      <div className="flex flex-col h-[calc(100vh-140px)]">
         <div className="flex items-center justify-between gap-4 mb-4">
           <div className="flex items-center gap-4">
             <div className="text-sm text-[var(--color-text-muted)]">
-              {nodes.length} nodes · 132 edges
+              {graphData?.nodes.length ?? 0} nodes · {graphData?.edges.length ?? 0} edges
             </div>
             <div className="relative">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" aria-hidden="true" />
               <input
                 type="search"
+                aria-label="Search symbols"
                 placeholder="Search symbols..."
-                className="w-64 h-8 pl-8 pr-3 rounded-md bg-[var(--color-surface)] border border-[var(--color-border-muted)] text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)]"
+                className="w-64 h-8 pl-8 pr-3 rounded-md bg-[var(--color-surface)] border border-[var(--color-border-muted)] text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)] focus:outline-none"
               />
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm font-medium hover:bg-[var(--color-surface-raised)] transition-colors duration-100">
-              <Share2 className="w-4 h-4" aria-hidden="true" />
-              Export JSON
-            </button>
+            <div className="flex items-center gap-1 px-2 py-1 rounded bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-text-secondary)] text-xs">
+              <Info size={14} />
+              <span>Interactive View Beta</span>
+            </div>
           </div>
         </div>
 
-        {loading ? (
-          <div className="space-y-3 animate-pulse">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-12 rounded bg-[var(--color-surface-raised)]" />
-            ))}
-          </div>
-        ) : (
-          <DataTable
-            columns={columns}
-            rows={nodes}
-            getRowKey={(row) => row.id}
-            onRowClick={(row) => {
-              window.location.href = `/hotspots?focus=${encodeURIComponent(row.filePath)}`;
-            }}
-          />
-        )}
+        <div className="relative flex-1 bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+          {loading ? (
+            <div className="w-full h-full flex items-center justify-center bg-black/20 animate-pulse">
+              <div className="text-gray-500">Loading knowledge graph...</div>
+            </div>
+          ) : graphData ? (
+            <>
+              <GraphCanvas 
+                data={graphData} 
+                onSelectNode={setSelectedNode}
+                selectedNodeId={selectedNode?.id}
+              />
+              <GraphDetailPanel 
+                node={selectedNode} 
+                onClose={() => setSelectedNode(null)} 
+              />
+            </>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-500">
+              Failed to load graph data.
+            </div>
+          )}
+        </div>
 
-        <div className="mt-4 text-sm text-[var(--color-text-muted)]">
-          Table view is canonical. Graph visualization ships in v1.1.
+        <div className="mt-4 flex items-center gap-4 text-sm text-[var(--color-text-muted)]">
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-full bg-gray-700 border border-gray-600"></span>
+            <span>File</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded bg-gray-700 border border-gray-600"></span>
+            <span>Change</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-full bg-[var(--color-accent)]"></span>
+            <span>AI Attribution</span>
+          </div>
+          <div className="ml-auto">
+            Use mouse wheel to zoom, drag to pan. Click nodes to see details.
+          </div>
         </div>
       </div>
     </PageLayout>
