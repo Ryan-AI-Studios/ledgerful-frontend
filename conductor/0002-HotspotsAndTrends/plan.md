@@ -17,23 +17,23 @@
 
 ## Phase 3: Implementation
 
-- [ ] Step 1: Add `TrendPoint` and `Hotspot` types to `src/lib/types.ts`.
-- [ ] Step 2: Create `src/lib/api/hotspots.ts` and `src/lib/api/trends.ts` wired through `src/lib/api.ts`.
-- [ ] Step 3: Create or update `/hotspots` page to render the hotspots table with sorting.
-- [ ] Step 4: Create or update `/trends` page with a 90-day chart and range selector (7/30/90).
-- [ ] Step 5: Sync mock data services to produce realistic 90-day trend history.
+- [x] Step 1: Add `TrendPoint` and `Hotspot` types to `src/lib/types.ts`.
+- [x] Step 2: Create `src/lib/api/hotspots.ts` and `src/lib/api/trends.ts` wired through `src/lib/api.ts`.
+- [x] Step 3: Create or update `/hotspots` page to render the hotspots table with sorting.
+- [x] Step 4: Create or update `/trends` page with a 90-day chart and range selector (7/30/90).
+- [x] Step 5: Sync mock data services to produce realistic 90-day trend history.
 
 ## Phase 4: Verification
 
-- [ ] `npm run build`
-- [ ] `npm run lint`
-- [ ] `npm run test:unit` (if tests touched)
-- [ ] `npm run test:e2e` (if UI flows touched)
-- [ ] Manual click-through / screenshots
-- [ ] `changeguard verify` (if backend contract changed)
+- [x] `npm run build`
+- [x] `npm run lint`
+- [x] `npm run test:unit` (if tests touched)
+- [x] `npm run test:e2e` (if UI flows touched)
+- [x] Manual click-through / screenshots
+- [x] `changeguard verify` (if backend contract changed)
 
 ## Phase 5: Finalization
 
-- [ ] Mark this track Completed in `conductor/conductor.md`.
-- [ ] Commit with `changeguard ledger commit <tx-id> --summary "..." --reason "..."`.
-- [ ] Run `changeguard ledger status --compact` to confirm clean.
+- [x] Mark this track Completed in `conductor/conductor.md`.
+- [x] Commit with `changeguard ledger commit <tx-id> --summary "..." --reason "..."`.
+- [x] Run `changeguard ledger status --compact` to confirm clean.

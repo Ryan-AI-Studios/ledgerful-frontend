@@ -50,10 +50,21 @@ export interface LedgerEntry {
 }
 
 export interface Hotspot {
-  rank: number;
+  id: string;
   filePath: string;
-  score: number;
-  trend: number[];
+  riskLevel: RiskLevel;
+  riskScore: number;
+  lastTouchedAt: string;
+  contributor?: string;
+  changeCount: number;
+  rank: number;
+}
+
+export interface TrendPoint {
+  date: string; // ISO date, e.g. "2026-06-15"
+  score: number; // 0-100
+  changes: number;
+  highRiskCount: number;
 }
 
 export interface GraphNode {

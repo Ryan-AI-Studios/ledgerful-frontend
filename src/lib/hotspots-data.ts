@@ -4,6 +4,6 @@ import { withFallback } from "@/lib/fallback";
 
 export type { Hotspot } from "@/lib/types";
 
-export async function fetchHotspots(): Promise<import("@/lib/types").Hotspot[]> {
-  return withFallback(() => fetchLiveHotspots(), () => fetchMockHotspots());
+export async function fetchHotspots(days: number = 90): Promise<import("@/lib/types").Hotspot[]> {
+  return withFallback(() => fetchLiveHotspots(days), () => fetchMockHotspots(days));
 }

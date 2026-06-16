@@ -20,6 +20,7 @@ const navItems = [
   { href: "/changes", label: "Changes", icon: GitCommit },
   { href: "/ledger", label: "Ledger", icon: BookOpen },
   { href: "/hotspots", label: "Hotspots", icon: BarChart3 },
+  { href: "/trends", label: "Trends", icon: Activity },
   { href: "/graph", label: "Graph", icon: Share2 },
   { href: "/settings", label: "Settings", icon: Settings },
 ];

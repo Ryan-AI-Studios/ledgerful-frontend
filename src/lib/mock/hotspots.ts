@@ -1,24 +1,37 @@
 import { Hotspot } from "@/lib/types";
 
-export function fetchHotspots(): Promise<Hotspot[]> {
+export function fetchHotspots(_days: number = 90): Promise<Hotspot[]> {
+  // Simple mock data matching the new type
   return Promise.resolve([
     {
+      id: "h1",
       rank: 1,
       filePath: "src/lib/auth.ts",
-      score: 8.4,
-      trend: [6.1, 6.5, 7.0, 7.2, 7.8, 8.1, 8.4],
+      riskLevel: "HIGH",
+      riskScore: 84,
+      lastTouchedAt: new Date().toISOString(),
+      contributor: "Alice",
+      changeCount: 42,
     },
     {
+      id: "h2",
       rank: 2,
       filePath: "src/app/page.tsx",
-      score: 6.2,
-      trend: [4.0, 4.5, 5.1, 5.4, 5.8, 6.0, 6.2],
+      riskLevel: "MEDIUM",
+      riskScore: 62,
+      lastTouchedAt: new Date(Date.now() - 86400000).toISOString(),
+      contributor: "Bob",
+      changeCount: 15,
     },
     {
+      id: "h3",
       rank: 3,
       filePath: "src/components/DataTable.tsx",
-      score: 4.7,
-      trend: [3.0, 3.2, 3.5, 4.0, 4.2, 4.5, 4.7],
+      riskLevel: "LOW",
+      riskScore: 47,
+      lastTouchedAt: new Date(Date.now() - 172800000).toISOString(),
+      contributor: "Charlie",
+      changeCount: 8,
     },
   ]);
 }
