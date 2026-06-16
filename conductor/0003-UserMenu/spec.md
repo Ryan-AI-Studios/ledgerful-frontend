@@ -58,9 +58,15 @@ Mock fallback returns a single demo user.
 
 ## Definition of Done
 
+- [ ] No placeholders or stubs remain in the implementation.
 - [ ] `TopNav` user menu opens and closes correctly.
 - [ ] All menu items are keyboard navigable.
 - [ ] Focus returns to trigger on close.
+- [ ] Implementation reviewed by a subagent.
+- [ ] Review findings addressed and verified by a subagent.
+- [ ] `codex review` run on the uncommitted diff; findings addressed.
+- [ ] Second `codex review` confirms no new critical/high findings.
+- [ ] Manual end-to-end test of keyboard and mouse menu interactions passed.
 - [ ] `npm run build` passes.
 - [ ] `npm run lint` passes.
 - [ ] Screenshots updated.

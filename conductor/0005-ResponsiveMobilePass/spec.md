@@ -41,9 +41,15 @@ Managers screenshot the dashboard on laptops and tablets. Developers may check s
 
 ## Definition of Done
 
+- [ ] No placeholders or stubs remain in the implementation.
 - [ ] Dashboard is usable without horizontal scroll from 375px to 1440px.
 - [ ] Mobile sidebar opens/closes correctly with focus trap.
 - [ ] All tables remain readable on small screens.
+- [ ] Implementation reviewed by a subagent.
+- [ ] Review findings addressed and verified by a subagent.
+- [ ] `codex review` run on the uncommitted diff; findings addressed.
+- [ ] Second `codex review` confirms no new critical/high findings.
+- [ ] Manual end-to-end responsive test at 375px, 768px, 1024px, and 1440px passed.
 - [ ] `npm run build` passes.
 - [ ] `npm run lint` passes.
 - [ ] Responsive screenshots captured.

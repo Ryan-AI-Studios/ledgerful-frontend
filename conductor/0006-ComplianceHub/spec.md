@@ -80,10 +80,16 @@ Live endpoints:
 
 ## Definition of Done
 
+- [ ] No placeholders or stubs remain in the implementation.
 - [ ] `/compliance` page exists and is reachable from the sidebar.
 - [ ] Summary cards render live or mock data correctly.
 - [ ] Signature validation table renders with multi-cue status.
 - [ ] Export button triggers backend ZIP download.
+- [ ] Implementation reviewed by a subagent.
+- [ ] Review findings addressed and verified by a subagent.
+- [ ] `codex review` run on the uncommitted diff; findings addressed.
+- [ ] Second `codex review` confirms no new critical/high findings.
+- [ ] Manual end-to-end test of compliance summary and export passed.
 - [ ] `npm run build` passes.
 - [ ] `npm run lint` passes.
 - [ ] Screenshots captured.

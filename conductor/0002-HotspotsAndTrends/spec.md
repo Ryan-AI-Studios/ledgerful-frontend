@@ -65,8 +65,14 @@ Live endpoints (relative to `NEXT_PUBLIC_LEDGERFUL_API_URL`):
 
 ## Definition of Done
 
+- [ ] No placeholders or stubs remain in the implementation.
 - [ ] `/hotspots` renders live hotspots sorted by risk score.
 - [ ] Trend chart renders 90-day history and responds to range selector.
+- [ ] Implementation reviewed by a subagent.
+- [ ] Review findings addressed and verified by a subagent.
+- [ ] `codex review` run on the uncommitted diff; findings addressed.
+- [ ] Second `codex review` confirms no new critical/high findings.
+- [ ] Manual end-to-end test of hotspots and trends passed.
 - [ ] `npm run build` passes.
 - [ ] `npm run lint` passes.
 - [ ] Screenshots updated if visuals changed.

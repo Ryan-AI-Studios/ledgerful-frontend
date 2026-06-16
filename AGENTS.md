@@ -13,16 +13,18 @@ onboarding{
 }
 
 ledgerful{
-  before[5]:
+  before[6]:
     "changeguard doctor to verify the daemon/backend is healthy at session start"
     "changeguard audit at session start for project health"
     "changeguard ledger status --compact"
+    "read conductor/conductor.md for the active track and definition of done"
     "changeguard scan --impact for meaningful code/config/policy edits"
     "read .changeguard/reports/latest-impact.json if present"
-  edit[3]:
+  edit[4]:
     "do not edit .changeguard state files"
     "inspect hotspots surfaced by the backend"
     "inspect temporal couplings >70% reported by the backend"
+    "research current documentation and pins online before adding or upgrading outside dependencies"
   after[3]:
     "npm run build must pass after TypeScript/Next.js edits"
     "npm run lint or next lint must pass"
@@ -40,9 +42,32 @@ ledgerful{
   }
 }
 
+workflow{
+  mode:"conductor-driven multi-agent review"
+  summary:"Pick a track from conductor/conductor.md, implement it with subagents, review, codex review, test, and close the gate before moving on."
+  steps[10]:
+    "update conductor/conductor.md: set track status to In Progress, ensure spec.md and plan.md are current"
+    "push the conductor update so all agents see the same plan"
+    "implement the track: one subagent implements, another subagent reviews the implementation, a third addresses review findings"
+    "run codex review on the uncommitted diff; capture output to output/review.md"
+    "have a subagent address all codex findings"
+    "have a subagent review the fixes to confirm findings are properly addressed"
+    "run codex review again before the gate is cleared"
+    "manually test the feature end-to-end in the browser or with the appropriate test command"
+    "run the full verification gate: npm run build, npm run lint, npm run test:unit, npm run test:e2e if UI flows touched"
+    "update conductor/conductor.md to Completed, commit the ledger transaction, push; if no regression, proceed to the next track"
+  rules[4]:
+    "no placeholders or stubs ship in a Completed track"
+    "be persistent: keep iterating through review/codex/test cycles until the gate passes"
+    "research current documentation and dependency pins online before introducing or upgrading external packages"
+    "every gate failure must be resolved before moving to the next track"
+}
+
 ledger{
   start:"changeguard ledger start <entity> --category <CATEGORY> --message <intent>"
   commit:"changeguard ledger commit <tx-id> --summary <what> --reason <why>"
+  close_gate:"a track is not ledger-committed until implementation review, codex review, manual test, and npm build/lint/test all pass"
+  no_placeholders:"do not commit a track as Completed if it still contains TODOs, stubs, or placeholder components"
   hooks[2]:
     "pre-commit: changeguard ledger status --compact --exit-code"
     "pre-push: changeguard ledger status --compact --exit-code"
@@ -50,12 +75,17 @@ ledger{
 }
 
 verify{
-  scope:"targeted during work; full commands before commit"
+  scope:"targeted during work; full gates before a track is marked Completed"
   commands[4]:
     "npm run build"
     "npm run lint"
     "npm run test:unit (when test files are touched)"
     "npm run test:e2e (when page or interaction flows are touched)"
+  review[4]:
+    "subagent implementation review: one subagent reviews another's implementation"
+    "subagent fix verification: a third subagent confirms review findings are addressed"
+    "codex review before gate: codex review --uncommitted --title \"...\" 2>&1 | Out-File output/review.md"
+    "manual end-to-end test of the feature in the browser or appropriate test command"
   hygiene[2]:
     "no secrets or .env commits"
     "scratch and temporary review files belong in output/ and must be removed or gitignored before finish"

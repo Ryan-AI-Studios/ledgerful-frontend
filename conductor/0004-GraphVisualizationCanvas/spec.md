@@ -71,9 +71,15 @@ Live endpoint:
 
 ## Definition of Done
 
+- [ ] No placeholders or stubs remain in the implementation.
 - [ ] `/graph` renders an interactive canvas with nodes and edges.
 - [ ] Pan, zoom, fit, and node selection all work.
 - [ ] Detail panel opens on node selection.
+- [ ] Implementation reviewed by a subagent.
+- [ ] Review findings addressed and verified by a subagent.
+- [ ] `codex review` run on the uncommitted diff; findings addressed.
+- [ ] Second `codex review` confirms no new critical/high findings.
+- [ ] Manual end-to-end test of pan, zoom, and selection passed.
 - [ ] `npm run build` passes.
 - [ ] `npm run lint` passes.
 - [ ] Screenshots updated.

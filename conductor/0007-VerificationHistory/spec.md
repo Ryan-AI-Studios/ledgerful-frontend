@@ -76,8 +76,14 @@ Live endpoints:
 
 ## Definition of Done
 
+- [ ] No placeholders or stubs remain in the implementation.
 - [ ] `/verify` page exists and is reachable from the sidebar.
 - [ ] Health status, trend sparkline, and steps table render correctly.
+- [ ] Implementation reviewed by a subagent.
+- [ ] Review findings addressed and verified by a subagent.
+- [ ] `codex review` run on the uncommitted diff; findings addressed.
+- [ ] Second `codex review` confirms no new critical/high findings.
+- [ ] Manual end-to-end test of verification history page passed.
 - [ ] `npm run build` passes.
 - [ ] `npm run lint` passes.
 - [ ] Screenshots captured.

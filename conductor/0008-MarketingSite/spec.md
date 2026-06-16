@@ -57,10 +57,16 @@ Recommended: start with option 1. If marketing pages grow large or need a separa
 
 ## Definition of Done
 
+- [ ] No placeholders or stubs remain in the implementation.
 - [ ] Landing page exists and is reachable.
 - [ ] Pricing page shows Free/Pro/Enterprise tiers.
 - [ ] Docs shell has an index and quick-start page.
 - [ ] Marketing routes do not show dashboard sidebar.
+- [ ] Implementation reviewed by a subagent.
+- [ ] Review findings addressed and verified by a subagent.
+- [ ] `codex review` run on the uncommitted diff; findings addressed.
+- [ ] Second `codex review` confirms no new critical/high findings.
+- [ ] Manual end-to-end test of landing, pricing, and docs pages passed.
 - [ ] `npm run build` passes.
 - [ ] `npm run lint` passes.
 - [ ] Screenshots captured.

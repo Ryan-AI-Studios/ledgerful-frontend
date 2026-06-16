@@ -57,11 +57,18 @@ Existing types in `src/lib/types.ts` become the shared contract between mock and
 
 ## Definition of Done
 
+- [ ] No placeholders or stubs remain in the implementation.
 - [ ] `src/lib/api.ts` and all per-domain modules exist and are typed.
 - [ ] Dashboard can render from live or mock data.
+- [ ] Implementation reviewed by a subagent.
+- [ ] Review findings addressed and verified by a subagent.
+- [ ] `codex review` run on the uncommitted diff; findings addressed.
+- [ ] Second `codex review` confirms no new critical/high findings.
+- [ ] Manual end-to-end test of the API client layer passed.
 - [ ] `npm run build` passes.
 - [ ] `npm run lint` passes.
 - [ ] Tests pass (if added).
+- [ ] Screenshots updated (if UI changed).
 - [ ] `changeguard ledger status` clean.
 
 ## Related Documents

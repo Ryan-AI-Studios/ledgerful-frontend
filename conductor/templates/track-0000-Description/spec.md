@@ -50,7 +50,12 @@ export interface ExamplePayload {
 
 ## Definition of Done
 
-- [ ] All must-have requirements met.
+- [ ] All must-have requirements met; no placeholders or stubs remain.
+- [ ] Implementation reviewed by a subagent.
+- [ ] Review findings addressed and verified by a subagent.
+- [ ] `codex review` run on uncommitted diff; findings addressed.
+- [ ] Second `codex review` confirms no new critical/high findings.
+- [ ] Manual end-to-end test of the feature passed.
 - [ ] `npm run build` passes.
 - [ ] `npm run lint` passes.
 - [ ] Tests pass (if test files touched).

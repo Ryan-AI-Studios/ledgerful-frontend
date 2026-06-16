@@ -128,40 +128,50 @@ Use `// @ledgerful-tx: <tx_id>` comments to link complex logic back to backend l
 
 ### 1. Planning Phase
 
-1. Read `CLAUDE.md` and `AGENTS.md`.
+1. Read `AGENTS.md` and `conductor/conductor.md`.
 2. Run `changeguard doctor` and `changeguard ledger status`.
 3. If backend changes are needed, do them in the **backend repo** first.
-4. Start a transaction: `changeguard ledger start <feature> --category <CAT>`.
-5. Write a brief spec if the change is non-trivial.
+4. Update `conductor/conductor.md`: set the target track to **In Progress** and push.
+5. Start a transaction: `changeguard ledger start <feature> --category <CAT>`.
 
-### 2. Implementation Phase
+### 2. Implementation Phase (Multi-Agent)
 
-1. Make the smallest scoped change that satisfies the task.
-2. Prefer types-first: update `src/lib/types.ts` before components.
-3. Add or update mock data in `src/lib/*-data.ts` if the real API is not yet wired.
-4. Run `npm run build` after implementation.
+This project uses a conductor-driven, multi-agent review workflow:
+
+1. **Implement** — one subagent implements the track against its `spec.md` and `plan.md`.
+2. **Review** — a second subagent reviews the implementation for correctness, design system conformance, and type safety.
+3. **Address** — a third subagent addresses the review findings.
+4. Be persistent: no placeholders or stubs are allowed in a Completed track.
 
 ### 3. Verification Phase
 
-Pass before every commit:
+Run before any track gate is cleared:
 
 ```powershell
 npm run build
 npm run lint
 npm run test:unit      # if test files touched
+npm run test:e2e       # if UI flows touched
 ```
 
-Also run:
+Also required:
+- `codex review --uncommitted --title "..."` — captured to `output/review.md`.
+- Subagent addresses all codex findings.
+- Subagent verifies the codex fixes.
+- A second `codex review` confirms no new critical/high findings.
+- Manual end-to-end test of the feature in the browser.
 - `changeguard verify` if the backend contract changed.
 - Playwright smoke screenshots for UI changes.
 
-If any gate fails, fix before committing. Never use `--no-verify` unless the user explicitly requests it.
+If any gate fails, fix it before moving on. Never use `--no-verify` unless the user explicitly requests it.
 
 ### 4. Finalization Phase
 
-1. Update tests/screenshots if behavior changed.
-2. Commit with ledger: `changeguard ledger commit <tx-id> --summary "..." --reason "..."`.
-3. Run `changeguard ledger status` to confirm clean baseline.
+1. Mark track tasks `- [x]` in its `plan.md`.
+2. Update `conductor/conductor.md`: set the track to **Completed**.
+3. Commit with ledger: `changeguard ledger commit <tx-id> --summary "..." --reason "..."`.
+4. Push and confirm `changeguard ledger status` is clean.
+5. If there is no regression, proceed to the next track in `conductor/conductor.md`.
 
 ### Ledger Categories
 
