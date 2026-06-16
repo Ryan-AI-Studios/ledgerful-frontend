@@ -4,53 +4,71 @@ This document captures design decisions, data contracts, and constraints that th
 
 ## 1. Architecture Philosophy
 
-- **Local-first is the default.** The dashboard is primarily a view into the local ChangeGuard daemon (`http://127.0.0.1:52000` by default). Cloud or team features are layered on later, not assumed.
+- **Local-first is the default.** The dashboard is primarily a view into the local ChangeGuard daemon (`http://127.0.0.1:52001` by default). Cloud or team features are layered on later, not assumed.
 - **Frontend falls back to mock data** when the daemon is unreachable or `NEXT_PUBLIC_LEDGERFUL_USE_MOCK=true`. Live endpoints and mock services must return the same TypeScript shapes.
 - **No secrets in the browser.** Any key that could be abused (Gemini API key, Supabase service role, private Ed25519 keys) must stay server-side or in the daemon. The frontend only receives redacted config.
+- **Ephemeral session-token auth.** The daemon issues a short-lived token. The frontend reads it from the `?token=` query parameter on first load and stores it in `sessionStorage`. Subsequent API calls append `?token=<token>` to each request.
 
 ## 2. API Contract Principles
 
 ### 2.1 Base URL and Versioning
 
-- Default daemon URL: `http://127.0.0.1:52000`.
-- All endpoints live under `/api/v1/`.
-- The frontend will read `NEXT_PUBLIC_LEDGERFUL_API_URL` at runtime.
+- Default daemon URL: `http://127.0.0.1:52001`.
+- All endpoints live under `/api/*` (no `/api/v1` prefix in the current Track M3 implementation).
+- The frontend will read `NEXT_PUBLIC_LEDGERFUL_API_URL` at runtime, but the dev server rewrites `/api/*` to the daemon via `next.config.ts`.
 
-### 2.2 Required Endpoints
+### 2.2 Authentication
+
+Every API request must include the ephemeral session token as a query parameter:
+
+```
+GET /api/snapshot?token=<ephemeral-token>
+```
+
+The token is obtained from the daemon's login redirect (`?token=...`) and stored in `sessionStorage` under the key `ledgerful:token`. The frontend helper `buildApiUrl()` in `src/lib/utils.ts` appends it automatically.
+
+### 2.3 Required Endpoints
 
 The frontend currently expects these endpoints to exist or be mocked:
 
 | Endpoint | Purpose |
 |---|---|
-| `GET /api/v1/dashboard` | Summary metrics + recent change feed |
-| `GET /api/v1/changes` | Impact packet / change history, paginated |
-| `GET /api/v1/ledger/entries` | Transaction table, paginated and filterable |
-| `GET /api/v1/ledger/entries/:id` | Single transaction detail |
-| `GET /api/v1/ledger/adrs` | ADR list with supersession tree |
-| `GET /api/v1/hotspots` | Hotspot rankings |
-| `GET /api/v1/trends` | 90-day rolling risk score + change count |
-| `GET /api/v1/graph` | Knowledge graph nodes + edges |
-| `GET /api/v1/graph/search?q=` | Search graph nodes |
-| `GET /api/v1/status` | Overall daemon / project health |
-| `GET /api/v1/session` | Current user session |
-| `GET /api/v1/compliance/summary` | Audit summary cards |
-| `GET /api/v1/compliance/signatures` | Signature validation table |
-| `GET /api/v1/compliance/export` | SOC2 evidence ZIP download |
-| `GET /api/v1/verify/health` | Current verification health |
-| `GET /api/v1/verify/history` | Pass/fail trend over time |
-| `GET /api/v1/verify/steps` | Verification step metrics |
-| `GET /api/v1/settings/config` | Redacted config view |
+| `GET /api/snapshot` | Summary metrics + recent change feed |
+| `GET /api/changes` | Impact packet / change history |
+| `GET /api/ledger` | Transaction table, paginated |
+| `GET /api/ledger/:txId` | Single transaction detail |
+| `GET /api/hotspots` | Hotspot rankings |
+| `GET /api/graph` | Knowledge graph nodes + edges |
+| `GET /api/status` | Overall daemon / project health |
+| `GET /api/settings` | Daemon settings |
+| `GET /api/projects` | Project list |
+| `GET /api/project` | Active project state |
+| `GET /api/session` | Current user session |
+| `GET /api/trends` | 90-day rolling risk score + change count |
+| `GET /api/ledger/adrs` | ADR list with supersession tree |
+| `GET /api/graph/search?q=` | Search graph nodes |
+| `GET /api/compliance/summary` | Audit summary cards |
+| `GET /api/compliance/signatures` | Signature validation table |
+| `GET /api/compliance/export` | SOC2 evidence ZIP download |
+| `GET /api/verify/health` | Current verification health |
+| `GET /api/verify/history` | Pass/fail trend over time |
+| `GET /api/verify/steps` | Verification step metrics |
 
-Endpoints marked *future* (Compliance, Verify, Session) are used by Tracks 0003, 0006, and 0007.
+Endpoints marked *future* (Compliance, Verify, Session, Trends, ADRs, Graph search) are used by Tracks 0002, 0003, 0006, and 0007.
 
-### 2.3 Response Format
+### 2.4 Route Shape for Static Export
 
-- Return JSON with camelCase keys to match the frontend TypeScript types.
+Because `next.config.ts` uses `output: "export"`, dynamic route parameters cannot be used for detail pages. The ledger detail page is served at `/ledger/detail?txId=<txId>` instead of `/ledger/[txId]`. Backend links into the dashboard should use this query-based URL.
+
+### 2.5 Response Format
+
+- The shipped backend currently returns **snake_case** keys (e.g., `tx_id`, `project_id`, `overall_risk`). The frontend data services map these to camelCase TypeScript types.
+- Prefer camelCase for future endpoints to reduce frontend mapping code.
 - Dates as ISO 8601 strings (`2026-06-15T12:00:00Z`).
 - `txId`, `adrId`, and other identifiers as short alphanumeric strings, ideally matching the CLI display format.
 - Risk levels as uppercase strings: `HIGH`, `MEDIUM`, `LOW`, `TRIVIAL`. Do not use numeric-only risk.
 
-### 2.4 Error Handling
+### 2.6 Error Handling
 
 - Return standard HTTP status codes: `200`, `400`, `401`, `403`, `404`, `500`.
 - Error bodies should include:
@@ -138,8 +156,9 @@ interface GraphEdge {
 ## 5. CORS and Local Development
 
 - The daemon must allow CORS from `http://localhost:52001` in development mode.
-- Do not require authentication for local daemon endpoints in the free/local tier.
-- If auth is added for team/SaaS tiers, provide a clear local-auth fallback or dev token path.
+- The Next.js dev server rewrites `/api/*` to `http://127.0.0.1:52001/api/*` via `next.config.ts`, which avoids most CORS issues for local development.
+- Local daemon endpoints require the ephemeral session token (`?token=`) even in the free/local tier. The daemon issues this token on first contact/login and validates it per request.
+- If auth is added for team/SaaS tiers, preserve a clear local-auth fallback path.
 
 ## 6. Performance Expectations
 
@@ -149,9 +168,10 @@ interface GraphEdge {
 
 ## 7. Security and Redaction
 
-- `GET /api/v1/settings/config` must redact secrets, API keys, and private keys before returning JSON.
+- `GET /api/settings` must redact secrets, API keys, and private keys before returning JSON.
 - Never return raw `.env` contents or the Ed25519 private key.
-- Compliance export (`/api/v1/compliance/export`) should produce a ZIP with signed evidence, not raw database files.
+- Do not leak the ephemeral session token in responses or logs.
+- Compliance export (`/api/compliance/export`) should produce a ZIP with signed evidence, not raw database files.
 
 ## 8. Frontend-Backend Release Coordination
 
@@ -171,3 +191,7 @@ interface GraphEdge {
 - `docs/design.md` — visual design system
 - `conductor/0001-DaemonAPIClientLayer/spec.md` — API client layer track
 - `AGENTS.md` — agent constraints and verification gates
+
+## Changelog
+
+- **2026-06-16** — Reconciled with Track M3 implementation: changed base URL from `/api/v1/*` to `/api/*`, default port from `52000` to `52001`, added ephemeral `?token=` auth, documented snake_case response normalization, and added static-export route shape note (`/ledger/detail?txId=`).
