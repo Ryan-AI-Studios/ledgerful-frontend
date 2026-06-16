@@ -2,6 +2,7 @@
 
 import { Search, Power } from "lucide-react";
 import { ProjectSwitcher } from "./ProjectSwitcher";
+import { UserMenu } from "./UserMenu";
 import Link from "next/link";
 
 export function TopNav() {
@@ -20,16 +21,15 @@ export function TopNav() {
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" aria-hidden="true" />
           <input
             type="search"
+            aria-label="Search"
             placeholder="Search..."
-            className="w-80 h-8 pl-8 pr-3 rounded-md bg-[var(--color-surface)] border border-[var(--color-border-muted)] text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)]"
+            className="w-80 h-8 pl-8 pr-3 rounded-md bg-[var(--color-surface)] border border-[var(--color-border-muted)] text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
           />
         </div>
-        <button className="p-1.5 rounded-md text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-raised)] transition-colors duration-100">
+        <button aria-label="Disconnect" className="p-1.5 rounded-md text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-raised)] transition-colors duration-100">
           <Power className="w-4 h-4" />
         </button>
-        <div className="w-7 h-7 rounded-full bg-[var(--color-primary)] flex items-center justify-center text-[var(--color-text-inverse)] text-xs font-semibold">
-          Y
-        </div>
+        <UserMenu />
       </div>
     </header>
   );

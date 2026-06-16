@@ -93,3 +93,11 @@ export interface StatusResponse {
   embeddingModelReachable: boolean;
   completionModelReachable: boolean;
 }
+
+export interface UserSession {
+  id: string;
+  name: string;
+  email: string;
+  role?: "admin" | "member" | "viewer";
+  avatarUrl?: string;
+}

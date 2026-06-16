@@ -47,7 +47,7 @@ Add track-specific criteria (tests, backend contract alignment, accessibility ch
 |---|---|---|---|
 | 0001-DaemonAPIClientLayer | Completed | — | Daemon API client layer |
 | 0002-HotspotsAndTrends | Completed | — | Real-time hotspots and 90-day trends |
-| 0003-UserMenu | In Progress | — | User menu and session surface |
+| 0003-UserMenu | Completed | — | User menu and session surface |
 | 0004-GraphVisualizationCanvas | Planning | — | Interactive knowledge-graph canvas |
 | 0005-ResponsiveMobilePass | Planning | — | Responsive layout and mobile pass |
 | 0006-ComplianceHub | Planning | — | SOC2 evidence export and signature validation |
