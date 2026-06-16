@@ -8,7 +8,7 @@ import {
   useCallback,
   useEffect,
 } from "react";
-import { Project, projects, activeProject as defaultProject } from "./projects";
+import { Project, activeProject as defaultProject, fetchProjects } from "./projects";
 
 const STORAGE_KEY = "ledgerful:active-project";
 
@@ -20,22 +20,32 @@ interface ProjectContextType {
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
-function findProject(id: string | null): Project | undefined {
-  if (!id) return undefined;
-  return projects.find((p) => p.id === id);
-}
-
 export function ProjectProvider({ children }: { children: ReactNode }) {
   const [project, setProject] = useState<Project>(defaultProject);
+  const [allProjects, setAllProjects] = useState<Project[]>([defaultProject]);
 
   useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
-      const next = findProject(stored);
-      if (next) setProject(next);
-    } catch {
-      // localStorage unavailable (e.g., private mode) — fall back to default.
-    }
+    let cancelled = false;
+    fetchProjects()
+      .then((loaded) => {
+        if (cancelled) return;
+        const list = loaded.length > 0 ? loaded : [defaultProject];
+        setAllProjects(list);
+
+        try {
+          const stored = window.localStorage.getItem(STORAGE_KEY);
+          const next = stored ? list.find((p) => p.id === stored) : undefined;
+          if (next) setProject(next);
+        } catch {
+          // localStorage unavailable (e.g., private mode) — fall back to default.
+        }
+      })
+      .catch(() => {
+        // Keep the default project list on failure.
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleSetProject = useCallback((next: Project) => {
@@ -49,7 +59,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
 
   return (
     <ProjectContext.Provider
-      value={{ project, setProject: handleSetProject, allProjects: projects }}
+      value={{ project, setProject: handleSetProject, allProjects }}
     >
       {children}
     </ProjectContext.Provider>

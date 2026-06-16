@@ -106,7 +106,7 @@ export default function ChangesPage() {
             rows={changes}
             getRowKey={(row) => row.id}
             onRowClick={(row) => {
-              window.location.href = `/ledger/${row.id}`;
+              window.location.href = `/ledger/detail?txId=${encodeURIComponent(row.id)}`;
             }}
           />
         )}

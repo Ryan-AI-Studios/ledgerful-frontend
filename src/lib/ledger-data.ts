@@ -1,4 +1,5 @@
 import { RiskLevel } from "./types";
+import { buildApiUrl } from "./utils";
 
 export type LedgerStatus = "COMMITTED" | "PENDING" | "ROLLED_BACK";
 
@@ -19,92 +20,64 @@ export interface LedgerEntry {
   publicKey: string;
 }
 
-export const ledgerData: LedgerEntry[] = [
-  {
-    txId: "dbce9fe7",
-    category: "FEATURE",
-    status: "PENDING",
-    summary: "Add crash-safe write to apply.rs",
-    reason:
-      "Prevents partial-write on SIGTERM in production. Detected in incident #4217.",
-    author: "bob",
-    timeAgo: "3d ago",
-    files: [
-      { path: "src/ledger/apply.rs", additions: 127, deletions: 12 },
-      { path: "src/ledger/apply_test.rs", additions: 45, deletions: 0 },
-      { path: "src/ledger/mod.rs", additions: 8, deletions: 2 },
-    ],
-    hotspotsCrossed: 0,
-    testsRun: 47,
-    flakes: 0,
-    risk: "MEDIUM",
-    signature: "a7f3c9e2d4b5...",
-    publicKey: "5b2c88ef1a2d...",
-  },
-  {
-    txId: "a3f7c9e1",
-    category: "BUGFIX",
-    status: "COMMITTED",
-    summary: "Rate-limiter bypass in 2 paths",
-    reason:
-      "Fixes off-by-one in session token rotation that allowed double-spend of rate budget.",
-    author: "you",
-    timeAgo: "2d ago",
-    files: [
-      { path: "src/auth/session.rs", additions: 18, deletions: 3 },
-    ],
-    hotspotsCrossed: 1,
-    testsRun: 31,
-    flakes: 1,
-    risk: "MEDIUM",
-    signature: "b8e4d0f3c1a6...",
-    publicKey: "5b2c88ef1a2d...",
-  },
-  {
-    txId: "1e9d4a82",
-    category: "REFACTOR",
-    status: "PENDING",
-    summary: "Refactor WAL flush ordering",
-    reason: "Improves determinism of crash-recovery replay.",
-    author: "alice",
-    timeAgo: "4d ago",
-    files: [{ path: "src/ledger/apply.rs", additions: 45, deletions: 12 }],
-    hotspotsCrossed: 0,
-    testsRun: 52,
-    flakes: 0,
-    risk: "LOW",
-    signature: "c9f5e1g4h2i7...",
-    publicKey: "5b2c88ef1a2d...",
-  },
-  {
-    txId: "5b2c88ef",
-    category: "DOCS",
-    status: "COMMITTED",
-    summary: "Document ledgerful export formats",
-    reason: "Required for SOC2 auditor handoff.",
-    author: "you",
-    timeAgo: "5d ago",
-    files: [{ path: "docs/cli/reference.md", additions: 24, deletions: 0 }],
+interface LedgerApiEntry {
+  tx_id: string;
+  category: string;
+  entry_type: string;
+  summary: string;
+  reason: string;
+  committed_at: string;
+  risk?: string;
+  signature?: string;
+  public_key?: string;
+}
+
+function formatTimeAgo(committedAt: string): string {
+  const date = new Date(committedAt);
+  if (isNaN(date.getTime())) return committedAt;
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  return `${Math.floor(days / 30)}mo ago`;
+}
+
+function toLedgerEntry(item: LedgerApiEntry): LedgerEntry {
+  const status = item.entry_type === "PENDING" ? "PENDING" : "COMMITTED";
+  return {
+    txId: item.tx_id,
+    category: item.category,
+    status,
+    summary: item.summary,
+    reason: item.reason,
+    author: "unknown",
+    timeAgo: formatTimeAgo(item.committed_at),
+    files: [],
     hotspotsCrossed: 0,
     testsRun: 0,
     flakes: 0,
-    risk: "TRIVIAL",
-    signature: "d0g6f2h5j3k8...",
-    publicKey: "5b2c88ef1a2d...",
-  },
-];
-
-export function fetchLedger(): Promise<LedgerEntry[]> {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve([...ledgerData]), 500);
-  });
+    risk: (item.risk ?? "LOW").toUpperCase() as RiskLevel,
+    signature: item.signature ?? "",
+    publicKey: item.public_key ?? "",
+  };
 }
 
-export function fetchLedgerEntry(txId: string): Promise<LedgerEntry | undefined> {
-  return new Promise((resolve) => {
-    setTimeout(
-      () => resolve(ledgerData.find((entry) => entry.txId === txId)),
-      300
-    );
-  });
+export async function fetchLedger(): Promise<LedgerEntry[]> {
+  const res = await fetch(buildApiUrl("/ledger", { limit: "50" }));
+  if (!res.ok) throw new Error(`Ledger request failed: ${res.status}`);
+  const data: LedgerApiEntry[] = await res.json();
+  return data.map(toLedgerEntry);
 }
+
+export async function fetchLedgerEntry(txId: string): Promise<LedgerEntry | undefined> {
+  const res = await fetch(buildApiUrl(`/ledger/${encodeURIComponent(txId)}`));
+  if (res.status === 404) return undefined;
+  if (!res.ok) throw new Error(`Ledger entry request failed: ${res.status}`);
+  const data: LedgerApiEntry = await res.json();
+  return toLedgerEntry(data);
+}
+

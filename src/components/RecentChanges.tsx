@@ -30,7 +30,7 @@ export function RecentChanges({ changes }: RecentChangesProps) {
           {changes.map((change) => (
             <li key={change.id}>
               <Link
-                href={`/ledger/${change.id}`}
+                href={`/ledger/detail?txId=${encodeURIComponent(change.id)}`}
                 className="group flex items-start justify-between gap-4 py-3 transition-colors duration-100 hover:bg-[var(--color-surface-raised)] -mx-6 px-6"
               >
                 <div className="flex items-start gap-3 min-w-0">

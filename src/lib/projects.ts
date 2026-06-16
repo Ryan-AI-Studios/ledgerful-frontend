@@ -1,3 +1,5 @@
+import { buildApiUrl } from "./utils";
+
 export interface Project {
   id: string;
   name: string;
@@ -7,31 +9,34 @@ export interface Project {
   healthScore: number;
 }
 
-export const projects: Project[] = [
-  {
-    id: "changeguard",
-    name: "changeguard",
-    path: "C:/dev/changeguard",
-    status: "warning",
-    lastScanAt: "2d ago",
-    healthScore: 61,
-  },
-  {
-    id: "ledgerful-frontend",
-    name: "ledgerful-frontend",
-    path: "C:/dev/ledgerful-frontend",
-    status: "healthy",
-    lastScanAt: "5m ago",
-    healthScore: 94,
-  },
-  {
-    id: "internal-api",
-    name: "internal-api",
-    path: "C:/dev/internal-api",
-    status: "critical",
-    lastScanAt: "1w ago",
-    healthScore: 34,
-  },
-];
+interface ProjectApiItem {
+  id: string;
+  name: string;
+  path: string;
+}
 
-export const activeProject = projects[0];
+export const projects: Project[] = [];
+
+export async function fetchProjects(): Promise<Project[]> {
+  const res = await fetch(buildApiUrl("/projects"));
+  if (!res.ok) throw new Error(`Projects request failed: ${res.status}`);
+  const data: ProjectApiItem[] = await res.json();
+
+  return data.map((p) => ({
+    id: p.id,
+    name: p.name,
+    path: p.path,
+    status: "healthy",
+    lastScanAt: "now",
+    healthScore: 100,
+  }));
+}
+
+export const activeProject: Project = {
+  id: "changeguard",
+  name: "changeguard",
+  path: "C:/dev/changeguard",
+  status: "warning",
+  lastScanAt: "2d ago",
+  healthScore: 61,
+};

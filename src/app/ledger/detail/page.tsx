@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { PageLayout } from "@/components/PageLayout";
 import { RiskBadge } from "@/components/RiskBadge";
 import { LedgerStatusBadge } from "@/components/LedgerStatusBadge";
@@ -10,27 +10,32 @@ import { Copy, FileJson, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function LedgerDetailPage() {
-  const params = useParams();
-  const txId = params.txId as string;
+  return (
+    <Suspense fallback={<DetailSkeleton />}>
+      <LedgerDetail />
+    </Suspense>
+  );
+}
+
+function LedgerDetail() {
+  const searchParams = useSearchParams();
+  const txId = searchParams?.get("txId") ?? "";
   const [entry, setEntry] = useState<LedgerEntry | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!txId) {
+      setLoading(false);
+      return;
+    }
     fetchLedgerEntry(txId).then((data) => {
       setEntry(data || null);
       setLoading(false);
     });
   }, [txId]);
 
-  if (loading) {
-    return (
-      <PageLayout title="Transaction">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 rounded bg-[var(--color-surface-raised)]" />
-          <div className="h-32 rounded bg-[var(--color-surface-raised)]" />
-        </div>
-      </PageLayout>
-    );
+  if (loading || !txId) {
+    return <DetailSkeleton />;
   }
 
   if (!entry) {
@@ -39,7 +44,7 @@ export default function LedgerDetailPage() {
         <div className="bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg p-6">
           <p className="text-[var(--color-text-secondary)]">
             No transaction found for tx ID{" "}
-            <span className="font-mono text-[var(--color-text-primary)]">{txId}</span>.
+            <span className="font-mono text-[var(--color-text-primary)]">{txId || "missing"}</span>.
           </p>
           <Link
             href="/ledger"
@@ -138,6 +143,17 @@ export default function LedgerDetailPage() {
             View raw JSON
           </button>
         </div>
+      </div>
+    </PageLayout>
+  );
+}
+
+function DetailSkeleton() {
+  return (
+    <PageLayout title="Transaction">
+      <div className="animate-pulse space-y-4">
+        <div className="h-8 w-48 rounded bg-[var(--color-surface-raised)]" />
+        <div className="h-32 rounded bg-[var(--color-surface-raised)]" />
       </div>
     </PageLayout>
   );

@@ -1,20 +1,28 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { useProject } from "@/lib/ProjectContext";
 import { StatusDot } from "@/components/StatusDot";
 import { CheckCircle2, AlertTriangle, XCircle, RefreshCw } from "lucide-react";
+import { buildApiUrl } from "@/lib/utils";
 
 type Status = "ok" | "warning" | "error";
 
-const checks: { name: string; status: Status; detail: string }[] = [
-  { name: "Ledger database", status: "ok", detail: "sqlite · 2,847 entries" },
-  { name: "Graph database", status: "ok", detail: "cozo · 132 edges" },
-  { name: "Signing key", status: "ok", detail: "Ed25519 · verified" },
-  { name: "Git hook", status: "ok", detail: "commit-msg · active" },
-  { name: "LLM backend", status: "warning", detail: "llama-server · fallback to Ollama Cloud" },
-  { name: "Last scan", status: "ok", detail: "2d ago · 51 files" },
-];
+interface StatusCheck {
+  name: string;
+  status: Status;
+  detail: string;
+}
+
+interface StatusResponse {
+  index_ready: boolean;
+  graph_ready: boolean;
+  pending_transactions: number;
+  unaudited_drift: number;
+  embedding_model_reachable: boolean;
+  completion_model_reachable: boolean;
+}
 
 const statusIcon: Record<Status, typeof CheckCircle2> = {
   ok: CheckCircle2,
@@ -28,8 +36,53 @@ const statusColor: Record<Status, string> = {
   error: "var(--color-danger)",
 };
 
+function buildChecks(data: StatusResponse): StatusCheck[] {
+  return [
+    {
+      name: "Index database",
+      status: data.index_ready ? "ok" : "error",
+      detail: data.index_ready ? "tantivy · ready" : "tantivy · not initialized",
+    },
+    {
+      name: "Graph database",
+      status: data.graph_ready ? "ok" : "error",
+      detail: data.graph_ready ? "cozo · ready" : "cozo · not initialized",
+    },
+    {
+      name: "Ledger",
+      status: data.pending_transactions > 0 || data.unaudited_drift > 0 ? "warning" : "ok",
+      detail: `${data.pending_transactions} pending · ${data.unaudited_drift} unaudited drift`,
+    },
+    {
+      name: "Embedding model",
+      status: data.embedding_model_reachable ? "ok" : "warning",
+      detail: data.embedding_model_reachable ? "reachable" : "unreachable",
+    },
+    {
+      name: "Completion model",
+      status: data.completion_model_reachable ? "ok" : "warning",
+      detail: data.completion_model_reachable ? "reachable" : "unreachable",
+    },
+  ];
+}
+
 export default function StatusPage() {
   const { project } = useProject();
+  const [checks, setChecks] = useState<StatusCheck[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(buildApiUrl("/status"))
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data: StatusResponse) => {
+        setChecks(buildChecks(data));
+        setLoading(false);
+      })
+      .catch(() => {
+        setChecks([]);
+        setLoading(false);
+      });
+  }, []);
 
   return (
     <PageLayout title="Status">
@@ -54,7 +107,14 @@ export default function StatusPage() {
             System checks
           </h2>
 
-          <ul className="divide-y divide-[var(--color-border-muted)]" role="list">
+          {loading ? (
+            <div className="space-y-3 animate-pulse">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="h-12 rounded bg-[var(--color-surface-raised)]" />
+              ))}
+            </div>
+          ) : (
+            <ul className="divide-y divide-[var(--color-border-muted)]" role="list">
             {checks.map((check) => {
               const Icon = statusIcon[check.status];
               return (
@@ -87,6 +147,7 @@ export default function StatusPage() {
               );
             })}
           </ul>
+          )}
 
           <button className="mt-4 inline-flex items-center gap-2 px-3 py-2 rounded-md bg-[var(--color-primary)] text-[var(--color-text-inverse)] text-sm font-semibold hover:bg-[var(--color-primary-muted)] transition-colors duration-100">
             <RefreshCw className="w-4 h-4" aria-hidden="true" />

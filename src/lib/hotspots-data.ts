@@ -1,3 +1,5 @@
+import { buildApiUrl } from "./utils";
+
 export interface Hotspot {
   rank: number;
   filePath: string;
@@ -5,47 +7,36 @@ export interface Hotspot {
   trend: number[];
 }
 
-export const hotspotsData: Hotspot[] = [
-  {
-    rank: 1,
-    filePath: "src/crypto/key.rs",
-    score: 8.2,
-    trend: [1, 2, 3, 5, 6, 7, 8, 8, 8, 9, 9, 10],
-  },
-  {
-    rank: 2,
-    filePath: "src/auth/session.rs",
-    score: 6.4,
-    trend: [1, 1, 2, 3, 5, 6, 7, 7, 8, 8, 9, 9],
-  },
-  {
-    rank: 3,
-    filePath: "src/ledger/apply.rs",
-    score: 4.1,
-    trend: [2, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 6],
-  },
-  {
-    rank: 4,
-    filePath: "src/bridge/ipc.rs",
-    score: 3.7,
-    trend: [3, 3, 3, 3, 3, 3, 4, 4, 4, 5, 5, 5],
-  },
-  {
-    rank: 5,
-    filePath: "src/api/users.rs",
-    score: 3.2,
-    trend: [1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5],
-  },
-  {
-    rank: 6,
-    filePath: "src/state/storage.rs",
-    score: 2.8,
-    trend: [2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4],
-  },
-];
-
-export function fetchHotspots(): Promise<Hotspot[]> {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve([...hotspotsData]), 500);
-  });
+interface HotspotApiItem {
+  path: string;
+  score: number;
+  displayScore?: number;
 }
+
+interface HotspotTrendResponse {
+  labels: string[];
+  series: Array<{ path: string; scores: number[] }>;
+}
+
+export async function fetchHotspots(): Promise<Hotspot[]> {
+  const [hotspotsRes, trendRes] = await Promise.all([
+    fetch(buildApiUrl("/hotspots", { limit: "20" })),
+    fetch(buildApiUrl("/hotspots/trend", { days: "90", limit: "20" })),
+  ]);
+
+  if (!hotspotsRes.ok) throw new Error(`Hotspots request failed: ${hotspotsRes.status}`);
+  if (!trendRes.ok) throw new Error(`Hotspot trend request failed: ${trendRes.status}`);
+
+  const items: HotspotApiItem[] = await hotspotsRes.json();
+  const trend: HotspotTrendResponse = await trendRes.json();
+
+  const trendByPath = new Map(trend.series.map((s) => [s.path, s.scores]));
+
+  return items.map((item, index) => ({
+    rank: index + 1,
+    filePath: item.path,
+    score: item.displayScore ?? item.score,
+    trend: trendByPath.get(item.path) ?? trend.series[0]?.scores ?? [],
+  }));
+}
+

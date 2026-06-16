@@ -112,7 +112,7 @@ export default function LedgerPage() {
             rows={entries}
             getRowKey={(row) => row.txId}
             onRowClick={(row) => {
-              window.location.href = `/ledger/${row.txId}`;
+              window.location.href = `/ledger/detail?txId=${encodeURIComponent(row.txId)}`;
             }}
           />
         )}

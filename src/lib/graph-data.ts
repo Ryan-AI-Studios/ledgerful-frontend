@@ -1,4 +1,5 @@
 import { RiskLevel } from "./types";
+import { buildApiUrl } from "./utils";
 
 export interface GraphNode {
   id: string;
@@ -9,67 +10,45 @@ export interface GraphNode {
   complexity: number;
 }
 
-export const graphNodes: GraphNode[] = [
-  {
-    id: "n1",
-    symbol: "verify_hmac",
-    filePath: "src/crypto/key.rs",
-    risk: "HIGH",
-    edges: 14,
-    complexity: 42,
-  },
-  {
-    id: "n2",
-    symbol: "rate_limit_check",
-    filePath: "src/auth/session.rs",
-    risk: "HIGH",
-    edges: 11,
-    complexity: 35,
-  },
-  {
-    id: "n3",
-    symbol: "apply_wal_flush",
-    filePath: "src/ledger/apply.rs",
-    risk: "MEDIUM",
-    edges: 8,
-    complexity: 28,
-  },
-  {
-    id: "n4",
-    symbol: "bridge_connect",
-    filePath: "src/bridge/ipc.rs",
-    risk: "MEDIUM",
-    edges: 6,
-    complexity: 22,
-  },
-  {
-    id: "n5",
-    symbol: "user_cursor_next",
-    filePath: "src/api/users.rs",
-    risk: "MEDIUM",
-    edges: 5,
-    complexity: 18,
-  },
-  {
-    id: "n6",
-    symbol: "storage_index",
-    filePath: "src/state/storage.rs",
-    risk: "LOW",
-    edges: 4,
-    complexity: 14,
-  },
-  {
-    id: "n7",
-    symbol: "config_diff",
-    filePath: "src/config/schema.rs",
-    risk: "LOW",
-    edges: 3,
-    complexity: 10,
-  },
-];
-
-export function fetchGraph(): Promise<GraphNode[]> {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve([...graphNodes]), 500);
-  });
+interface KnowledgeGraphResponse {
+  nodes: Array<{
+    id: string;
+    label: string;
+    kind?: string;
+    risk_score?: number;
+    file_path?: string;
+    complexity?: number;
+  }>;
+  edges: Array<{ source: string; target: string }>;
+  truncated?: boolean;
 }
+
+function riskFromScore(score?: number): RiskLevel {
+  if (score === undefined) return "LOW";
+  if (score >= 7.0) return "HIGH";
+  if (score >= 4.0) return "MEDIUM";
+  if (score >= 1.0) return "LOW";
+  return "TRIVIAL";
+}
+
+export async function fetchGraph(): Promise<GraphNode[]> {
+  const res = await fetch(buildApiUrl("/knowledge-graph", { limit: "200" }));
+  if (!res.ok) throw new Error(`Knowledge graph request failed: ${res.status}`);
+  const data: KnowledgeGraphResponse = await res.json();
+
+  const edgeCounts = new Map<string, number>();
+  for (const edge of data.edges) {
+    edgeCounts.set(edge.source, (edgeCounts.get(edge.source) ?? 0) + 1);
+    edgeCounts.set(edge.target, (edgeCounts.get(edge.target) ?? 0) + 1);
+  }
+
+  return data.nodes.map((node) => ({
+    id: node.id,
+    symbol: node.label,
+    filePath: node.file_path ?? "",
+    risk: riskFromScore(node.risk_score),
+    edges: edgeCounts.get(node.id) ?? 0,
+    complexity: node.complexity ?? 0,
+  }));
+}
+

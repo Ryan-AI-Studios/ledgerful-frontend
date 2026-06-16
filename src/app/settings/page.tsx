@@ -1,24 +1,63 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { Copy, CheckCircle2 } from "lucide-react";
+import { buildApiUrl } from "@/lib/utils";
 
-const config = {
-  project: "changeguard",
-  repoPath: "C:/dev/changeguard",
-  ledgerPath: "C:/dev/changeguard/.changeguard/state/ledger.db",
-  graphPath: "C:/dev/changeguard/.changeguard/state/graph.db",
-  signingKey: "Ed25519 · 5b2c88ef1a2d...",
-  llmBackend: "local (llama-server)",
-  pollingInterval: "30s",
+interface ConfigResponse {
+  project: string;
+  repo_path: string;
+  ledger_path: string;
+  graph_path: string;
+  signing_key: string;
+  llm_backend: string;
+  polling_interval: string;
+  telemetry: string;
+  version: string;
+}
+
+const defaultConfig: ConfigResponse = {
+  project: "unknown",
+  repo_path: "",
+  ledger_path: "",
+  graph_path: "",
+  signing_key: "",
+  llm_backend: "none",
+  polling_interval: "30s",
   telemetry: "disabled",
-  version: "ledgerful 0.2.0-alpha",
+  version: "ledgerful",
 };
 
 export default function SettingsPage() {
+  const [config, setConfig] = useState<ConfigResponse>(defaultConfig);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(buildApiUrl("/config"))
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data: ConfigResponse) => {
+        setConfig(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
   const copyConfig = () => {
     navigator.clipboard.writeText(JSON.stringify(config, null, 2));
   };
+
+  if (loading) {
+    return (
+      <PageLayout title="Settings">
+        <div className="space-y-3 animate-pulse">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-20 rounded bg-[var(--color-surface-raised)]" />
+          ))}
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout title="Settings">
@@ -44,12 +83,12 @@ export default function SettingsPage() {
 
         <div className="grid grid-cols-2 gap-4">
           <Setting label="Project" value={config.project} />
-          <Setting label="Repository path" value={config.repoPath} />
-          <Setting label="Ledger database" value={config.ledgerPath} />
-          <Setting label="Graph database" value={config.graphPath} />
-          <Setting label="Signing key" value={config.signingKey} />
-          <Setting label="LLM backend" value={config.llmBackend} />
-          <Setting label="Dashboard polling" value={config.pollingInterval} />
+          <Setting label="Repository path" value={config.repo_path} />
+          <Setting label="Ledger database" value={config.ledger_path} />
+          <Setting label="Graph database" value={config.graph_path} />
+          <Setting label="Signing key" value={config.signing_key} />
+          <Setting label="LLM backend" value={config.llm_backend} />
+          <Setting label="Dashboard polling" value={config.polling_interval} />
           <Setting label="Telemetry" value={config.telemetry} />
         </div>
       </div>
