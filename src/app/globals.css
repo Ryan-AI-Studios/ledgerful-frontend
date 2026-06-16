@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+:root {
+  /* Brand */
+  --color-primary: #00e5a0;
+  --color-primary-muted: #00b87a;
+  --color-primary-deep: #007a4d;
+  --color-accent: #ff7b72;
+
+  /* Surfaces */
+  --color-surface: #0d1117;
+  --color-surface-alt: #161b22;
+  --color-surface-raised: #1c2333;
+  --color-surface-overlay: rgba(13, 17, 23, 0.72);
+
+  /* Borders */
+  --color-border: #30363d;
+  --color-border-muted: #21262d;
+  --color-border-strong: #484f58;
+
+  /* Text */
+  --color-text-primary: #e6edf3;
+  --color-text-secondary: #8b949e;
+  --color-text-muted: #7d8590;
+  --color-text-inverse: #0d1117;
+
+  /* Semantic risk */
+  --color-danger: #f85149;
+  --color-danger-muted: #da3633;
+  --color-warning: #d29922;
+  --color-warning-muted: #9e6a03;
+  --color-success: #3fb950;
+  --color-success-muted: #238636;
+  --color-info: #58a6ff;
+  --color-info-muted: #1f6feb;
+
+  /* Risk badges */
+  --color-risk-high: #f85149;
+  --color-risk-medium: #d29922;
+  --color-risk-low: #3fb950;
+  --color-risk-trivial: #8b949e;
+
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+
+  /* Radii */
+  --rounded-sm: 4px;
+  --rounded-md: 6px;
+  --rounded-lg: 8px;
+  --rounded-xl: 12px;
+  --rounded-full: 9999px;
+
+  /* Typography */
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains-mono), "Fira Code", "Cascadia Code", ui-monospace, monospace;
+}
+
+@theme inline {
+  --color-background: var(--color-surface);
+  --color-foreground: var(--color-text-primary);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --color-primary: var(--color-primary);
+  --color-primary-muted: var(--color-primary-muted);
+  --color-primary-deep: var(--color-primary-deep);
+  --color-accent: var(--color-accent);
+  --color-surface: var(--color-surface);
+  --color-surface-alt: var(--color-surface-alt);
+  --color-surface-raised: var(--color-surface-raised);
+  --color-border: var(--color-border);
+  --color-border-muted: var(--color-border-muted);
+  --color-border-strong: var(--color-border-strong);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-inverse: var(--color-text-inverse);
+  --color-danger: var(--color-danger);
+  --color-warning: var(--color-warning);
+  --color-success: var(--color-success);
+  --color-info: var(--color-info);
+  --color-risk-high: var(--color-risk-high);
+  --color-risk-medium: var(--color-risk-medium);
+  --color-risk-low: var(--color-risk-low);
+  --color-risk-trivial: var(--color-risk-trivial);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Focus rings: always visible, 3:1 contrast */
+:focus-visible {
+  outline: 2px solid var(--color-border-strong);
+  outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
