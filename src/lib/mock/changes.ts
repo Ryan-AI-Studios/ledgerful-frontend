@@ -14,6 +14,8 @@ export function fetchChanges(_days = 7): Promise<ChangeEntry[]> {
       additions: 45,
       deletions: 12,
       risk: "HIGH",
+      prNumber: 142,
+      prStatus: "Open",
     },
     {
       id: "chg-2",
@@ -26,6 +28,8 @@ export function fetchChanges(_days = 7): Promise<ChangeEntry[]> {
       additions: 120,
       deletions: 30,
       risk: "MEDIUM",
+      prNumber: 140,
+      prStatus: "Merged",
     },
     {
       id: "chg-3",

@@ -20,6 +20,8 @@ export function fetchLedger(): Promise<LedgerEntry[]> {
       risk: "HIGH",
       signature: "sig-001",
       publicKey: "pk-001",
+      prNumber: 142,
+      prStatus: "Merged",
     },
     {
       txId: "tx-002",
@@ -36,6 +38,8 @@ export function fetchLedger(): Promise<LedgerEntry[]> {
       risk: "MEDIUM",
       signature: "sig-002",
       publicKey: "pk-002",
+      prNumber: 140,
+      prStatus: "Merged",
     },
   ]);
 }

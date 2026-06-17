@@ -17,6 +17,8 @@ export interface RecentChange {
   timeAgo: string;
   fileCount: number;
   risk: RiskLevel;
+  prNumber?: number;
+  prStatus?: "Open" | "Merged" | "Closed";
 }
 
 export interface ChangeEntry extends RecentChange {
@@ -47,6 +49,8 @@ export interface LedgerEntry {
   risk: RiskLevel;
   signature: string;
   publicKey: string;
+  prNumber?: number;
+  prStatus?: "Open" | "Merged" | "Closed";
 }
 
 export interface Hotspot {
@@ -95,6 +99,8 @@ export interface Project {
   status: "healthy" | "warning" | "critical";
   lastScanAt: string;
   healthScore: number;
+  githubRepo?: string;
+  integrationStatus?: "CONNECTED" | "DISCONNECTED" | "PENDING";
 }
 
 export interface StatusResponse {

@@ -11,6 +11,7 @@ import { Search } from "lucide-react";
 export default function LedgerPage() {
   const [entries, setEntries] = useState<LedgerEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [authorFilter, setAuthorFilter] = useState("All authors");
 
   useEffect(() => {
     fetchLedger().then((data) => {
@@ -65,10 +66,32 @@ export default function LedgerPage() {
       cell: (row) => <RiskBadge risk={row.risk} />,
     },
     {
+      key: "pr",
+      header: "PR",
+      width: "90px",
+      cell: (row) => row.prNumber ? (
+        <span className="inline-flex items-center gap-1 text-xs font-mono px-2 py-0.5 rounded-full border border-[var(--color-border-muted)] bg-[var(--color-surface)]">
+          <span className={`w-1.5 h-1.5 rounded-full ${row.prStatus === "Merged" ? "bg-[var(--color-primary)]" : row.prStatus === "Closed" ? "bg-[var(--color-error)]" : "bg-[var(--color-success)]"}`} />
+          #{row.prNumber}
+        </span>
+      ) : (
+        <span className="text-xs text-[var(--color-text-muted)]">-</span>
+      ),
+    },
+    {
       key: "author",
       header: "Author",
-      width: "90px",
-      cell: (row) => <span className="text-sm text-[var(--color-text-secondary)]">{row.author}</span>,
+      width: "110px",
+      cell: (row) => (
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 rounded-full bg-[var(--color-surface-raised)] flex items-center justify-center text-[10px] font-bold text-[var(--color-text-primary)] uppercase">
+            {row.author.charAt(0)}
+          </div>
+          <span className="text-sm text-[var(--color-text-secondary)] truncate max-w-[70px]" title={row.author}>
+            {row.author}
+          </span>
+        </div>
+      ),
     },
     {
       key: "time",
@@ -97,6 +120,17 @@ export default function LedgerPage() {
             <option>REFACTOR</option>
             <option>DOCS</option>
           </select>
+          <select 
+            value={authorFilter}
+            onChange={(e) => setAuthorFilter(e.target.value)}
+            className="h-8 px-2 rounded-md bg-[var(--color-surface)] border border-[var(--color-border-muted)] text-sm text-[var(--color-text-primary)] min-w-[120px]"
+            aria-label="Filter by author"
+          >
+            <option>All authors</option>
+            {Array.from(new Set(entries.map(e => e.author))).map(author => (
+              <option key={author} value={author}>{author}</option>
+            ))}
+          </select>
         </div>
 
         {loading ? (
@@ -108,7 +142,7 @@ export default function LedgerPage() {
         ) : (
           <DataTable
             columns={columns}
-            rows={entries}
+            rows={entries.filter(e => authorFilter === "All authors" || e.author === authorFilter)}
             getRowKey={(row) => row.txId}
             onRowClick={(row) => {
               window.location.href = `/ledger/detail?txId=${encodeURIComponent(row.txId)}`;

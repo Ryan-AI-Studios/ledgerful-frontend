@@ -12,13 +12,17 @@ interface SignatureValidationTableProps {
 export function SignatureValidationTable({ entries }: SignatureValidationTableProps) {
   const [filter, setFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [authorFilter, setAuthorFilter] = useState<string>("ALL");
 
   const filteredEntries = entries.filter(entry => {
     const matchesSearch = entry.txId.toLowerCase().includes(filter.toLowerCase()) || 
                           entry.signer.toLowerCase().includes(filter.toLowerCase());
     const matchesStatus = statusFilter === "ALL" || entry.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesAuthor = authorFilter === "ALL" || entry.signer === authorFilter;
+    return matchesSearch && matchesStatus && matchesAuthor;
   });
+
+  const uniqueAuthors = Array.from(new Set(entries.map(e => e.signer)));
 
   const columns: Column<SignatureEntry>[] = [
     {
@@ -42,9 +46,17 @@ export function SignatureValidationTable({ entries }: SignatureValidationTablePr
     {
       key: "signer",
       header: "Signer",
-      cell: (row) => (
-        <span className="text-sm font-medium">{row.signer}</span>
-      ),
+      cell: (row) => {
+        const initial = row.signer ? row.signer.charAt(0) : "?";
+        return (
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full bg-[var(--color-surface-raised)] border border-[var(--color-border)] flex items-center justify-center text-[10px] font-bold text-[var(--color-text-primary)] uppercase">
+              {initial}
+            </div>
+            <span className="text-sm font-medium">{row.signer}</span>
+          </div>
+        );
+      },
     },
     {
       key: "status",
@@ -92,6 +104,17 @@ export function SignatureValidationTable({ entries }: SignatureValidationTablePr
             <option value="VALID">Valid</option>
             <option value="INVALID">Invalid</option>
             <option value="SKIPPED">Skipped</option>
+          </select>
+          <select
+            aria-label="Filter by signer"
+            className="px-3 py-1.5 text-sm bg-[var(--color-surface)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+            value={authorFilter}
+            onChange={(e) => setAuthorFilter(e.target.value)}
+          >
+            <option value="ALL">All Signers</option>
+            {uniqueAuthors.map(author => (
+              <option key={author} value={author}>{author}</option>
+            ))}
           </select>
         </div>
       </div>

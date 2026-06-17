@@ -42,9 +42,23 @@ export function RecentChanges({ changes }: RecentChangesProps) {
                     <div className="mt-0.5 text-sm text-[var(--color-text-secondary)]">
                       {change.summary}
                     </div>
-                    <div className="mt-1 text-xs text-[var(--color-text-muted)]">
-                      {change.author} · {change.timeAgo} · {change.fileCount}{" "}
-                      {change.fileCount === 1 ? "file" : "files"}
+                    <div className="mt-1 flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
+                      <div className="flex items-center gap-1">
+                        <div className="w-4 h-4 rounded-full bg-[var(--color-surface-raised)] flex items-center justify-center text-[8px] font-bold text-[var(--color-text-primary)] uppercase">
+                          {change.author.charAt(0)}
+                        </div>
+                        {change.author}
+                      </div>
+                      · {change.timeAgo} · {change.fileCount} {change.fileCount === 1 ? "file" : "files"}
+                      {change.prNumber && (
+                        <>
+                          {' '}·{' '}
+                          <span className="inline-flex items-center gap-1 font-mono">
+                            <span className={`w-1 h-1 rounded-full ${change.prStatus === "Merged" ? "bg-[var(--color-primary)]" : change.prStatus === "Closed" ? "bg-[var(--color-error)]" : "bg-[var(--color-success)]"}`} />
+                            #{change.prNumber}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
