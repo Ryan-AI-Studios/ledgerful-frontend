@@ -23,7 +23,7 @@ export function TopNav({ onToggleMenu, isOpen }: TopNavProps) {
         >
           <Menu className="w-5 h-5" />
         </button>
-        <Link href="/" className="font-semibold text-[var(--color-text-primary)] hover:text-[var(--color-primary)] transition-colors duration-100 p-2">
+        <Link href="/dashboard" className="font-semibold text-[var(--color-text-primary)] hover:text-[var(--color-primary)] transition-colors duration-100 p-2">
           Ledgerful
         </Link>
         <span className="hidden md:inline text-[var(--color-text-muted)]" aria-hidden="true">/</span>

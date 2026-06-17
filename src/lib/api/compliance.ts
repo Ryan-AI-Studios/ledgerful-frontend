@@ -1,5 +1,6 @@
 import { apiGet } from "../api";
 import { ComplianceSummary, SignatureEntry } from "@/lib/types";
+import { buildApiUrl } from "../utils";
 
 export async function fetchComplianceSummary(): Promise<ComplianceSummary> {
   return await apiGet<ComplianceSummary>("/compliance/summary");
@@ -10,7 +11,7 @@ export async function fetchSignatureEntries(): Promise<SignatureEntry[]> {
 }
 
 export async function triggerSoc2Export(): Promise<void> {
-  const response = await fetch("/api/v1/compliance/export");
+  const response = await fetch(buildApiUrl("/compliance/export"));
   if (!response.ok) {
     throw new Error("Failed to export SOC2 evidence");
   }

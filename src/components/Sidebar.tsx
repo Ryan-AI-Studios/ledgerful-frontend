@@ -21,7 +21,7 @@ import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/changes", label: "Changes", icon: GitCommit },
   { href: "/ledger", label: "Ledger", icon: BookOpen },
   { href: "/hotspots", label: "Hotspots", icon: BarChart3 },
