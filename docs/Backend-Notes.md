@@ -29,7 +29,7 @@ The token is obtained from the daemon's login redirect (`?token=...`) and stored
 
 ### 2.3 Required Endpoints
 
-The frontend currently expects these endpoints to exist or be mocked:
+The frontend expects these endpoints to exist or be mocked:
 
 | Endpoint | Purpose |
 |---|---|
@@ -54,7 +54,7 @@ The frontend currently expects these endpoints to exist or be mocked:
 | `GET /api/verify/history` | Pass/fail trend over time |
 | `GET /api/verify/steps` | Verification step metrics |
 
-Endpoints marked *future* (Compliance, Verify, Session, Trends, ADRs, Graph search) are used by Tracks 0002, 0003, 0006, and 0007.
+All endpoints listed above are fully implemented and integrated.
 
 ### 2.4 Route Shape for Static Export
 
@@ -121,10 +121,14 @@ interface LedgerEntry {
 
 ```ts
 interface Hotspot {
-  rank: number;
+  id: string;
   filePath: string;
-  score: number;
-  trend: number[];
+  riskLevel: RiskLevel;
+  riskScore: number;
+  lastTouchedAt: string;
+  contributor?: string;
+  changeCount: number;
+  rank: number;
 }
 ```
 
@@ -133,15 +137,68 @@ interface Hotspot {
 ```ts
 interface GraphNode {
   id: string;
-  symbol: string;
-  filePath: string;
-  risk: RiskLevel;
-  edges: number;
-  complexity: number;
+  type: "file" | "change" | "ai";
+  label: string;
+  riskLevel?: RiskLevel;
+  x?: number;
+  y?: number;
+}
+
+interface GraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  type: "depends" | "changed" | "ai-edited";
 }
 ```
 
-### 3.5 Status Response
+### 3.5 Compliance
+
+```ts
+interface ComplianceSummary {
+  totalSigned: number;
+  validCount: number;
+  invalidCount: number;
+  skippedCount: number;
+  validityPercent: number;
+  lastAuditAt?: string;
+  hotspotDeltaPercent: number;
+}
+
+interface SignatureEntry {
+  txId: string;
+  timestamp: string;
+  signer: string;
+  status: "VALID" | "INVALID" | "SKIPPED";
+}
+```
+
+### 3.6 Verification
+
+```ts
+interface VerificationHealth {
+  status: "HEALTHY" | "DEGRADED" | "FAILING";
+  lastRunAt: string;
+  message?: string;
+}
+
+interface VerificationTrendPoint {
+  date: string;
+  passed: number;
+  failed: number;
+}
+
+interface VerificationStep {
+  id: string;
+  name: string;
+  lastRunAt: string;
+  averageDurationMs: number;
+  passRatePercent: number;
+  recentFailures: number;
+}
+```
+
+### 3.7 Status Response
 
 ```ts
 interface StatusResponse {
@@ -156,7 +213,7 @@ interface StatusResponse {
 
 Backend returns snake_case keys; the frontend maps them to camelCase.
 
-### 3.6 Project
+### 3.8 Project
 
 ```ts
 interface Project {
@@ -168,6 +225,7 @@ interface Project {
   healthScore: number;
 }
 ```
+
 
 **Desired backend additions:** The current `/api/projects` endpoint returns only `id`, `name`, and `path`. The frontend currently defaults `status` to `"healthy"`, `lastScanAt` to `"now"`, and `healthScore` to `100`. Richer project switching requires backend support for status, last scan time, and health score.
 
@@ -223,5 +281,5 @@ interface Project {
 
 ## Changelog
 
+- **2026-06-16** — Finalized data contracts for Tracks 0002-0008 (Hotspots, Trends, Graph, Compliance, Verify, Session); updated data shapes in Section 3 to match `src/lib/types.ts`.
 - **2026-06-16** — Reconciled with Track M3 implementation: changed base URL from `/api/v1/*` to `/api/*`, default port from `52000` to `52001`, added ephemeral `?token=` auth, documented snake_case response normalization, and added static-export route shape note (`/ledger/detail?txId=`).
-- **2026-06-16** — Updated data-shape examples to match `src/lib/types.ts` after Track 0001 API client layer; added StatusResponse and Project sections; documented desired backend fields for ledger entries and projects.
