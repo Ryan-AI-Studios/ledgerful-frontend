@@ -18,12 +18,12 @@ export function TopNav({ onToggleMenu, isOpen }: TopNavProps) {
           onClick={onToggleMenu}
           aria-expanded={isOpen}
           aria-controls="mobile-sidebar"
-          className="lg:hidden p-2 rounded-md text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-raised)] transition-colors duration-100"
+          className="lg:hidden p-3 rounded-md text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-raised)] transition-colors duration-100"
           aria-label="Toggle menu"
         >
           <Menu className="w-5 h-5" />
         </button>
-        <Link href="/" className="font-semibold text-[var(--color-text-primary)] hover:text-[var(--color-primary)] transition-colors duration-100 p-1">
+        <Link href="/" className="font-semibold text-[var(--color-text-primary)] hover:text-[var(--color-primary)] transition-colors duration-100 p-2">
           Ledgerful
         </Link>
         <span className="hidden md:inline text-[var(--color-text-muted)]" aria-hidden="true">/</span>
@@ -34,16 +34,16 @@ export function TopNav({ onToggleMenu, isOpen }: TopNavProps) {
 
       <div className="flex items-center gap-2 md:gap-4">
         <div className="relative hidden sm:block">
-          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" aria-hidden="true" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" aria-hidden="true" />
           <input
             type="search"
             aria-label="Search"
             placeholder="Search..."
-            className="w-40 md:w-80 h-8 pl-8 pr-3 rounded-md bg-[var(--color-surface)] border border-[var(--color-border-muted)] text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
+            className="w-40 md:w-80 h-11 pl-10 pr-3 rounded-md bg-[var(--color-surface)] border border-[var(--color-border-muted)] text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
           />
         </div>
-        <button aria-label="Disconnect" className="p-2 rounded-md text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-raised)] transition-colors duration-100">
-          <Power className="w-4 h-4" />
+        <button aria-label="Disconnect" className="p-3 rounded-md text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-raised)] transition-colors duration-100">
+          <Power className="w-5 h-5" />
         </button>
         <UserMenu />
       </div>

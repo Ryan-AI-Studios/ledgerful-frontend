@@ -45,7 +45,7 @@ export default function DocsPage() {
                 type="search"
                 aria-label="Search documentation"
                 placeholder="Search docs..."
-                className="w-full h-10 pl-10 pr-4 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border-muted)] text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+                className="w-full h-11 pl-10 pr-4 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border-muted)] text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
               />
             </div>
             <nav className="space-y-8">

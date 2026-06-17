@@ -97,7 +97,7 @@ export function UserMenu() {
   };
 
   if (loading) {
-    return <div className="w-7 h-7 rounded-full bg-[var(--color-surface-raised)] animate-pulse" />;
+    return <div className="w-11 h-11 rounded-full bg-[var(--color-surface-raised)] animate-pulse" />;
   }
 
   const initials = session?.name
@@ -117,7 +117,7 @@ export function UserMenu() {
         aria-haspopup="true"
         aria-expanded={isOpen}
         aria-label="User menu"
-        className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold overflow-hidden transition-all duration-100 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 focus:ring-offset-[var(--color-surface-alt)] ${
+        className={`w-11 h-11 rounded-full flex items-center justify-center text-xs font-semibold overflow-hidden transition-all duration-100 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 focus:ring-offset-[var(--color-surface-alt)] ${
           isOpen ? "ring-2 ring-[var(--color-primary)]" : "bg-[var(--color-surface-alt)] border border-[var(--color-border)] hover:border-[var(--color-primary)]"
         }`}
       >

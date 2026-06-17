@@ -125,7 +125,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors duration-100 border-l-2 ${
+                    className={`flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors duration-100 border-l-2 ${
                       isActive
                         ? "relative bg-[rgba(0,229,160,0.06)] text-[var(--color-primary)] border-[var(--color-primary)]"
                         : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-raised)] border-transparent"
