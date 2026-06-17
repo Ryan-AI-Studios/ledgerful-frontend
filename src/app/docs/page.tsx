@@ -7,28 +7,28 @@ export default function DocsPage() {
     {
       title: "Getting Started",
       links: [
-        { name: "Introduction", href: "/docs" },
+        { name: "Introduction", href: "#introduction" },
         { name: "Quick Start Guide", href: "#quick-start" },
-        { name: "Installation", href: "/docs" },
-        { name: "Core Concepts", href: "/docs" },
+        { name: "Installation", href: "#installation" },
+        { name: "Core Concepts", href: "#core-concepts" },
       ],
     },
     {
       title: "CLI Reference",
       links: [
-        { name: "ledger start", href: "/docs" },
-        { name: "ledger commit", href: "/docs" },
-        { name: "ledger status", href: "/docs" },
-        { name: "search", href: "/docs" },
+        { name: "ledger start", href: "#cli-reference" },
+        { name: "ledger commit", href: "#cli-reference" },
+        { name: "ledger status", href: "#cli-reference" },
+        { name: "search", href: "#cli-reference" },
       ],
     },
     {
       title: "Advanced",
       links: [
-        { name: "AI Agent Integration", href: "/docs" },
-        { name: "Knowledge Graph API", href: "/docs" },
-        { name: "Compliance Hub", href: "/docs" },
-        { name: "Custom Policies", href: "/docs" },
+        { name: "AI Agent Integration", href: "#advanced" },
+        { name: "Knowledge Graph API", href: "#advanced" },
+        { name: "Compliance Hub", href: "#advanced" },
+        { name: "Custom Policies", href: "#advanced" },
       ],
     },
   ];
@@ -75,14 +75,14 @@ export default function DocsPage() {
 
         {/* Content */}
         <article className="flex-1 max-w-3xl">
-          <div className="mb-12">
+          <div id="introduction" className="mb-12 scroll-mt-24">
             <h1 className="text-4xl font-extrabold mb-4">Documentation</h1>
             <p className="text-xl text-[var(--color-text-secondary)]">
               Everything you need to build high-integrity software with Ledgerful.
             </p>
           </div>
 
-          <section id="quick-start" className="mb-16">
+          <section id="quick-start" className="mb-16 scroll-mt-24">
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
               <Terminal className="w-6 h-6 text-[var(--color-primary)]" /> Quick Start Guide
             </h2>
@@ -91,7 +91,7 @@ export default function DocsPage() {
             </p>
 
             <div className="space-y-8">
-              <div className="p-6 rounded-xl bg-[var(--color-surface-alt)] border border-[var(--color-border-muted)]">
+              <div id="installation" className="p-6 rounded-xl bg-[var(--color-surface-alt)] border border-[var(--color-border-muted)] scroll-mt-24">
                 <h3 className="font-bold mb-3 flex items-center gap-2">
                   <span className="w-6 h-6 rounded-full bg-[var(--color-primary)] text-[var(--color-text-inverse)] flex items-center justify-center text-xs">1</span>
                   Install the CLI
@@ -114,7 +114,7 @@ export default function DocsPage() {
                 </code>
               </div>
 
-              <div className="p-6 rounded-xl bg-[var(--color-surface-alt)] border border-[var(--color-border-muted)]">
+              <div id="cli-reference" className="p-6 rounded-xl bg-[var(--color-surface-alt)] border border-[var(--color-border-muted)] scroll-mt-24">
                 <h3 className="font-bold mb-3 flex items-center gap-2">
                   <span className="w-6 h-6 rounded-full bg-[var(--color-primary)] text-[var(--color-text-inverse)] flex items-center justify-center text-xs">3</span>
                   Start a transaction
@@ -129,23 +129,25 @@ export default function DocsPage() {
             </div>
           </section>
 
-          <div className="grid sm:grid-cols-2 gap-6">
+          <div id="core-concepts" className="grid sm:grid-cols-2 gap-6 scroll-mt-24">
             <Link
-              href="/docs"
+              href="#core-concepts"
               className="p-6 rounded-xl border border-[var(--color-border-muted)] hover:border-[var(--color-primary)] transition-colors group"
             >
               <Book className="w-8 h-8 text-[var(--color-primary)] mb-4" />
               <h3 className="font-bold mb-2 group-hover:text-[var(--color-primary)]">Core Concepts</h3>
               <p className="text-sm text-[var(--color-text-secondary)]">Understand the intent ledger and cryptographic provenance.</p>
             </Link>
-            <Link
-              href="/docs"
-              className="p-6 rounded-xl border border-[var(--color-border-muted)] hover:border-[var(--color-primary)] transition-colors group"
-            >
-              <Cpu className="w-8 h-8 text-[var(--color-primary)] mb-4" />
-              <h3 className="font-bold mb-2 group-hover:text-[var(--color-primary)]">Agentic Workflows</h3>
-              <p className="text-sm text-[var(--color-text-secondary)]">Learn how to integrate Ledgerful with AI coding assistants.</p>
-            </Link>
+            <div id="advanced" className="scroll-mt-24">
+              <Link
+                href="#advanced"
+                className="p-6 rounded-xl border border-[var(--color-border-muted)] hover:border-[var(--color-primary)] transition-colors group h-full block"
+              >
+                <Cpu className="w-8 h-8 text-[var(--color-primary)] mb-4" />
+                <h3 className="font-bold mb-2 group-hover:text-[var(--color-primary)]">Agentic Workflows</h3>
+                <p className="text-sm text-[var(--color-text-secondary)]">Learn how to integrate Ledgerful with AI coding assistants.</p>
+              </Link>
+            </div>
           </div>
         </article>
       </div>

@@ -146,7 +146,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="mt-auto pt-4 border-t border-[var(--color-border-muted)]">
           <Link
             href="/projects"
-            className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-raised)] transition-colors duration-100"
+            className="flex items-center gap-2 px-3 py-3 rounded-md text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-raised)] transition-colors duration-100"
           >
             <FolderGit2 className="w-4 h-4" aria-hidden="true" />
             <div className="flex-1">
@@ -162,7 +162,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
           <Link
             href="/status"
-            className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-raised)] transition-colors duration-100 mt-1"
+            className="flex items-center gap-2 px-3 py-3 rounded-md text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-raised)] transition-colors duration-100 mt-1"
           >
             <Activity className="w-4 h-4" aria-hidden="true" />
             <div className="flex-1">
