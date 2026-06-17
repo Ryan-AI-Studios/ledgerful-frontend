@@ -56,6 +56,9 @@ Add track-specific criteria (tests, backend contract alignment, accessibility ch
 | 0009-VerificationSuiteExpansion | Completed | — | Comprehensive unit testing for Tracks 0002-0008 |
 | 0010-WebOnboardingWizard | Completed | — | Guided first-run setup experience |
 | 0011-GitHubTeamIntegration | Completed | — | GitHub App integration and multi-user ledger UI |
+| 0012-MarketingAssetCleanup | Planning | — | Remove/properly wire unused Banner.png/Icon.png (~1.74MB, zero references); coordinates with ChangeGuard Track M5 |
+| 0013-TelemetryIngestEndpoint | Planning | — | Supabase Edge Function ingest endpoint for opt-in CLI usage metrics; schema must match ChangeGuard Track M7 exactly |
+| 0014-LiveTeamAndSyncData | Planning | — | Replace Track 0011's mock-mode data with real ledger/project/sync data; blocked on ChangeGuard Tracks M3 + M8 |
 
 ## Completed Tracks
 
