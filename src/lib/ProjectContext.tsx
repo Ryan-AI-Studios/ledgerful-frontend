@@ -16,32 +16,38 @@ interface ProjectContextType {
   project: Project;
   setProject: (project: Project) => void;
   allProjects: Project[];
+  isLoaded: boolean;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
 export function ProjectProvider({ children }: { children: ReactNode }) {
   const [project, setProject] = useState<Project>(defaultProject);
-  const [allProjects, setAllProjects] = useState<Project[]>([defaultProject]);
+  const [allProjects, setAllProjects] = useState<Project[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     fetchProjects()
       .then((loaded) => {
         if (cancelled) return;
-        const list = loaded.length > 0 ? loaded : [defaultProject];
-        setAllProjects(list);
+        setAllProjects(loaded);
+        setIsLoaded(true);
 
-        try {
-          const stored = window.localStorage.getItem(STORAGE_KEY);
-          const next = stored ? list.find((p) => p.id === stored) : undefined;
-          if (next) setProject(next);
-        } catch {
-          // localStorage unavailable (e.g., private mode) — fall back to default.
+        if (loaded.length > 0) {
+          try {
+            const stored = window.localStorage.getItem(STORAGE_KEY);
+            const next = stored ? loaded.find((p) => p.id === stored) : loaded[0];
+            if (next) setProject(next);
+          } catch {
+            setProject(loaded[0]);
+          }
         }
       })
       .catch(() => {
-        // Keep the default project list on failure.
+        // Fallback to default if load fails
+        setAllProjects([defaultProject]);
+        setIsLoaded(true);
       });
     return () => {
       cancelled = true;
@@ -59,7 +65,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
 
   return (
     <ProjectContext.Provider
-      value={{ project, setProject: handleSetProject, allProjects }}
+      value={{ project, setProject: handleSetProject, allProjects, isLoaded }}
     >
       {children}
     </ProjectContext.Provider>

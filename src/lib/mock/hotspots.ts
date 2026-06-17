@@ -1,6 +1,6 @@
 import { Hotspot } from "@/lib/types";
 
-export function fetchHotspots(_days: number = 90): Promise<Hotspot[]> {
+export function fetchHotspots(): Promise<Hotspot[]> {
   // Simple mock data matching the new type
   return Promise.resolve([
     {

@@ -2,7 +2,7 @@
 
 import { TopNav } from "./TopNav";
 import { Sidebar } from "./Sidebar";
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useState } from "react";
 import { usePathname } from "next/navigation";
 
 interface PageLayoutProps {

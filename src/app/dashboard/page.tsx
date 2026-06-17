@@ -10,6 +10,7 @@ import { RecentChanges } from "@/components/RecentChanges";
 import { EmptyState } from "@/components/EmptyState";
 import { HeroSkeleton } from "@/components/HeroSkeleton";
 import { ExplainScoreModal } from "@/components/ExplainScoreModal";
+import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { AlertCircle, RefreshCw } from "lucide-react";
 
 type DashboardState =
@@ -18,16 +19,54 @@ type DashboardState =
   | { status: "error"; message: string }
   | { status: "ready"; data: DashboardData };
 
+const ONBOARDING_KEY = "ledgerful:onboarding-completed";
+const ONBOARDING_DISMISSED_KEY = "ledgerful:onboarding-dismissed";
+
 export default function DashboardPage() {
-  const { project } = useProject();
-  return <DashboardContent key={project.id} projectId={project.id} />;
+  const { project, allProjects, isLoaded } = useProject();
+  return (
+    <DashboardContent
+      key={project.id}
+      projectId={project.id}
+      hasProjects={allProjects.length > 0}
+      isLoaded={isLoaded}
+    />
+  );
 }
 
-function DashboardContent({ projectId }: { projectId: string }) {
+function DashboardContent({
+  projectId,
+  hasProjects,
+  isLoaded,
+}: {
+  projectId: string;
+  hasProjects: boolean;
+  isLoaded: boolean;
+}) {
   const [state, setState] = useState<DashboardState>({ status: "loading" });
   const [explainOpen, setExplainOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (isLoaded) {
+      const completed = localStorage.getItem(ONBOARDING_KEY);
+      const dismissed = sessionStorage.getItem(ONBOARDING_DISMISSED_KEY);
+      // If onboarding not completed AND not dismissed in session, show wizard
+      // We show it even if there are projects if it's not completed yet
+      if (!completed && !dismissed) {
+        const timer = setTimeout(() => setShowOnboarding(true), 0);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isLoaded]);
 
   const load = useCallback(() => {
+    if (!hasProjects) {
+      // Use setTimeout to defer state update and avoid cascading render lint error
+      setTimeout(() => setState({ status: "empty" }), 0);
+      return;
+    }
+
     fetchDashboardData(projectId)
       .then((data) => {
         if (data.recentChanges.length === 0 && data.health.score === 100) {
@@ -43,7 +82,7 @@ function DashboardContent({ projectId }: { projectId: string }) {
             "Could not load dashboard data. The Ledgerful daemon may not be running.",
         });
       });
-  }, [projectId]);
+  }, [projectId, hasProjects]);
 
   useEffect(() => {
     load();
@@ -105,6 +144,18 @@ function DashboardContent({ projectId }: { projectId: string }) {
       <ExplainScoreModal
         isOpen={explainOpen}
         onClose={() => setExplainOpen(false)}
+      />
+
+      <OnboardingWizard
+        isOpen={showOnboarding}
+        onClose={() => {
+          sessionStorage.setItem(ONBOARDING_DISMISSED_KEY, "true");
+          setShowOnboarding(false);
+        }}
+        onComplete={() => {
+          localStorage.setItem(ONBOARDING_KEY, "true");
+          setShowOnboarding(false);
+        }}
       />
     </PageLayout>
   );

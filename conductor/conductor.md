@@ -53,8 +53,8 @@ Add track-specific criteria (tests, backend contract alignment, accessibility ch
 | 0006-ComplianceHub | Completed | — | SOC2 evidence export and signature validation |
 | 0007-VerificationHistory | Completed | — | Verification pass/fail trends and health |
 | 0008-MarketingSite | Completed | — | Landing, pricing, and docs shell |
-| 0009-VerificationSuiteExpansion | In Progress | — | Comprehensive unit testing for Tracks 0002-0008 |
-| 0010-WebOnboardingWizard | In Progress | — | Guided first-run setup experience |
+| 0009-VerificationSuiteExpansion | Completed | — | Comprehensive unit testing for Tracks 0002-0008 |
+| 0010-WebOnboardingWizard | Completed | — | Guided first-run setup experience |
 
 ## Completed Tracks
 

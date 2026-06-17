@@ -1,5 +1,5 @@
 import { PageLayout } from "@/components/PageLayout";
-import { User, Mail, Shield, Key } from "lucide-react";
+import { User, Shield } from "lucide-react";
 
 export default function ProfilePage() {
   return (
