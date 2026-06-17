@@ -48,5 +48,13 @@ next-env.d.ts
 /.claude/
 /.ai-brains/
 
+# agent state
+.agents/worktrees/
+.codex/worktrees/
+.agents/review_*.md
+.codex/review_*.md
+.agents/*.lock
+.codex/*.lock
+
 # changeguard derived state
 /.changeguard/
