@@ -58,3 +58,13 @@ next-env.d.ts
 
 # changeguard derived state
 /.changeguard/
+
+# Supabase
+.supabase/
+.branches
+.temp
+
+# env files
+.env.local
+.env.*.local
+.env.keys
