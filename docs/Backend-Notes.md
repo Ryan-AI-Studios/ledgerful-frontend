@@ -54,9 +54,15 @@ The frontend expects these endpoints to exist or be mocked:
 | `GET /api/verify/history` | Pass/fail trend over time |
 | `GET /api/verify/steps` | Verification step metrics |
 
-All endpoints listed above are fully implemented and integrated.
+### 2.4 Official Telemetry Ingest Point (Track 0013)
 
-### 2.4 Route Shape for Static Export
+The official ingestion point for opt-in CLI usage metrics is a Supabase Edge Function. Backend Track M7 **must** use this URL for the `CHANGEGUARD_USAGE_ENDPOINT` production default:
+
+**URL:** `https://scmxtnjqqklvcwyeouvj.supabase.co/functions/v1/telemetry-ingest`
+
+*Note: This endpoint expects a POST request with the JSON payload schema defined in Track 0013/M7. It does not require a Supabase JWT (authentication is handled via size caps and strict schema validation).*
+
+### 2.5 Route Shape for Static Export
 
 Because `next.config.ts` uses `output: "export"`, dynamic route parameters cannot be used for detail pages. The ledger detail page is served at `/ledger/detail?txId=<txId>` instead of `/ledger/[txId]`. Backend links into the dashboard should use this query-based URL.
 

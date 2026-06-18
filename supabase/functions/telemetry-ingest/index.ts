@@ -92,6 +92,28 @@ serve(async (req)=>{
         }
       });
     }
+    if (typeof payload.client_version !== "string") {
+      return new Response(JSON.stringify({
+        error: "Invalid client_version: must be a string"
+      }), {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+    }
+
+    if (typeof payload.platform !== "string") {
+      return new Response(JSON.stringify({
+        error: "Invalid platform: must be a string"
+      }), {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+    }
+
     if (!isISO8601(payload.sent_at) || !isISO8601(payload.window_start) || !isISO8601(payload.window_end)) {
       return new Response(JSON.stringify({
         error: "Invalid date format: sent_at, window_start, and window_end must be ISO 8601"

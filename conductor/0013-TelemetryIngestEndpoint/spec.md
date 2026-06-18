@@ -93,15 +93,14 @@ The Settings page's "Live Payload" preview (already built in `0011`) should NOT 
 
 ## Definition of Done
 
-- [ ] `telemetry_events` table created via migration.
-- [ ] Edge Function implemented with validation, size cap, and service-role insert.
-- [ ] Deployed; URL documented and reconciled with `ChangeGuard` Track M7's default endpoint (no mismatch).
-- [ ] Local + deployed manual tests pass (valid payload, invalid version, missing field, oversized payload).
-- [ ] End-to-end test against the real CLI once M7 is available.
-- [ ] `npm run build` and `npm run lint` still pass for the main Next.js app (this track shouldn't touch it, but confirm no regression).
-- [ ] `changeguard ledger status --compact` clean.
-- [ ] Registry status updated to Completed.
-
+- [x] `telemetry_events` table created via migration.
+- [x] Edge Function implemented with validation, size cap, and service-role insert.
+- [x] Deployed; URL documented and reconciled with `ChangeGuard` Track M7's default endpoint (no mismatch). (URL documented in Backend-Notes.md)
+- [x] Local + deployed manual tests pass (valid payload, invalid version, missing field, oversized payload).
+- [ ] End-to-end test against the real CLI once M7 is available. (Deferred: Pending backend Track M7 implementation)
+- [x] `npm run build` and `npm run lint` still pass for the main Next.js app (this track shouldn't touch it, but confirm no regression).
+- [x] `changeguard ledger status --compact` clean.
+- [x] Registry status updated to Completed.
 ## Related Documents
 
 - `ChangeGuard/conductor/trackM7/spec.md` — CLI side, schema must match exactly

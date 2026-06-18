@@ -42,15 +42,15 @@ This matters for two independent reasons:
 
 ## Definition of Done
 
-- [ ] Decision made and documented (delete vs. properly re-wire) with a one-line rationale in the commit message.
-- [ ] `public/` no longer contains unreferenced multi-hundred-KB images.
-- [ ] If re-wired: images compressed and placed via Next's metadata file convention, confirmed in rendered `<head>`.
-- [ ] Scaffold SVG icons in `public/` audited; removed if unreferenced.
-- [ ] `npm run build` passes.
-- [ ] `npm run lint` passes.
-- [ ] `changeguard ledger status --compact` clean.
-- [ ] Registry status updated to Completed.
-- [ ] Flagged to whoever runs ChangeGuard Track M5 that this track is done and what the final filenames/state are.
+- [x] Decision made and documented (delete vs. properly re-wire) with a one-line rationale in the commit message.
+- [x] `public/` no longer contains unreferenced multi-hundred-KB images.
+- [x] If re-wired: images compressed and placed via Next's metadata file convention, confirmed in rendered `<head>`. (N/A - Deletion chosen)
+- [x] Scaffold SVG icons in `public/` audited; removed if unreferenced.
+- [x] `npm run build` passes.
+- [x] `npm run lint` passes.
+- [x] `changeguard ledger status --compact` clean.
+- [x] Registry status updated to Completed.
+- [x] Flagged to whoever runs ChangeGuard Track M5 that this track is done and what the final filenames/state are. (Flagged via doc update in Backend-Notes.md and commit message)
 
 ## Related Documents
 
