@@ -80,16 +80,16 @@ interface SyncStatus {
 
 ## Definition of Done
 
-- [ ] Confirmed M3 + M8 are on ChangeGuard's `main` before starting.
-- [ ] Real `author` rendering in Ledger/Changes lists.
-- [ ] Real `status`/`lastScanAt`/`healthScore` in project switching UI.
-- [ ] Sync status section reads real `/api/sync/status` data.
-- [ ] `docs/Backend-Notes.md` reconciled (no stale "desired additions" notes once this track confirms they're live).
-- [ ] GitHub PR-column UI explicitly still marked as a known mock-data gap (not silently presented as live).
-- [ ] Daemon-unreachable fallback confirmed working for all new fields.
-- [ ] `npm run build` and `npm run lint` pass.
-- [ ] `changeguard ledger status --compact` clean.
-- [ ] Registry status updated to Completed.
+- [x] Confirmed M3 + M8 are on ChangeGuard's `main` before starting.
+- [x] Real `author` rendering in Ledger/Changes lists.
+- [x] Real `status`/`lastScanAt`/`healthScore` in project switching UI.
+- [x] Sync status section reads real `/api/sync/status` data.
+- [x] `docs/Backend-Notes.md` reconciled (no stale "desired additions" notes once this track confirms they're live).
+- [x] GitHub PR-column UI explicitly still marked as a known mock-data gap (not silently presented as live).
+- [x] Daemon-unreachable fallback confirmed working for all new fields.
+- [x] `npm run build` and `npm run lint` pass.
+- [x] `changeguard ledger status --compact` clean.
+- [x] Registry status updated to Completed.
 
 ## Related Documents
 

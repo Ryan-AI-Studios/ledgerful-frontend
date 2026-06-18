@@ -97,10 +97,17 @@ export interface Project {
   name: string;
   path: string;
   status: "healthy" | "warning" | "critical";
-  lastScanAt: string;
+  lastScanAt: string | null;
   healthScore: number;
   githubRepo?: string;
   integrationStatus?: "CONNECTED" | "DISCONNECTED" | "PENDING";
+}
+
+export interface SyncStatus {
+  deviceId: string | null;
+  lastExtractAt: string | null;
+  lastApplyAt: string | null;
+  lastRunAt: string | null;
 }
 
 export interface StatusResponse {

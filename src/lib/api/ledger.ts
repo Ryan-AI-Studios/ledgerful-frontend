@@ -7,6 +7,7 @@ interface LedgerApiEntry {
   entry_type: string;
   summary: string;
   reason: string;
+  author: string;
   committed_at: string;
   risk?: string;
   signature?: string;
@@ -36,7 +37,7 @@ function toLedgerEntry(item: LedgerApiEntry): LedgerEntry {
     status,
     summary: item.summary,
     reason: item.reason,
-    author: "unknown",
+    author: item.author,
     timeAgo: formatTimeAgo(item.committed_at),
     files: [],
     hotspotsCrossed: 0,

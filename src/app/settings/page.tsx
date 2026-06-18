@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { PageLayout } from "@/components/PageLayout";
-import { Copy, CheckCircle2, GitPullRequest, ShieldCheck, Activity } from "lucide-react";
+import { Copy, CheckCircle2, GitPullRequest, ShieldCheck, Activity, Users } from "lucide-react";
 import { buildApiUrl } from "@/lib/utils";
 import { getGithubIntegrationStatus, connectGithub, disconnectGithub } from "@/lib/api/github";
 import { useProject } from "@/lib/ProjectContext";
+import { fetchSyncStatus, SyncStatus } from "@/lib/sync-data";
 
 interface ConfigResponse {
   project: string;
@@ -35,27 +36,38 @@ export default function SettingsPage() {
   const { project } = useProject();
   const projectId = project?.id || "unknown";
 
-  const [activeTab, setActiveTab] = useState<"daemon" | "integrations" | "privacy">("daemon");
+  const [activeTab, setActiveTab] = useState<"daemon" | "integrations" | "sync" | "privacy">("daemon");
   const [config, setConfig] = useState<ConfigResponse>(defaultConfig);
   const [loading, setLoading] = useState(true);
+  const [daemonReachable, setDaemonReachable] = useState(true);
 
   // GitHub State
-  const [githubStatus, setGithubStatus] = useState<"CONNECTED" | "DISCONNECTED" | "PENDING">("DISCONNECTED");
+  const [githubStatus, setGithubStatus] = useState<"CONNECTED" | "DISCONNECTED" | "PENDING" | "UNREACHABLE">("DISCONNECTED");
   const [githubRepo, setGithubRepo] = useState<string | undefined>(undefined);
   const [isGithubLoading, setIsGithubLoading] = useState(true);
+
+  // Sync State
+  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
 
   // Privacy State
   const [telemetryEnabled, setTelemetryEnabled] = useState(false);
 
   useEffect(() => {
+    let isDaemonUp = true;
     fetch(buildApiUrl("/config"))
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data: ConfigResponse) => {
         setConfig(data);
         setTelemetryEnabled(data.telemetry === "enabled");
+        setDaemonReachable(true);
+        isDaemonUp = true;
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setDaemonReachable(false);
+        isDaemonUp = false;
+        setLoading(false);
+      });
 
     // Fetch github integration status
     getGithubIntegrationStatus(projectId).then(({ status, repo }) => {
@@ -63,10 +75,19 @@ export default function SettingsPage() {
       setGithubRepo(repo);
     })
     .catch(() => {
-      setGithubStatus("DISCONNECTED");
+      setGithubStatus(isDaemonUp ? "DISCONNECTED" : "UNREACHABLE");
     })
     .finally(() => {
+      // Re-evaluate unreachable inside finally just in case the config request finished late
+      setGithubStatus((prev) => (!isDaemonUp ? "UNREACHABLE" : prev));
       setIsGithubLoading(false);
+    });
+
+    // Fetch sync status
+    fetchSyncStatus().then((data) => {
+      setSyncStatus(data);
+    }).catch(() => {
+      setSyncStatus(null);
     });
   }, [projectId]);
 
@@ -138,6 +159,19 @@ export default function SettingsPage() {
           <div className="flex items-center gap-2">
             <GitPullRequest className="w-4 h-4" />
             <span>Integrations</span>
+          </div>
+        </button>
+        <button
+          className={`pb-2 px-1 min-h-[44px] min-w-[44px] border-b-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] ${
+            activeTab === "sync"
+              ? "border-[var(--color-primary)] text-[var(--color-primary)]"
+              : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+          }`}
+          onClick={() => setActiveTab("sync")}
+        >
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            <span>Team Sync</span>
           </div>
         </button>
         <button
@@ -218,6 +252,28 @@ export default function SettingsPage() {
               {isGithubLoading ? "..." : githubStatus === "CONNECTED" ? "Disconnect" : "Connect to GitHub"}
             </button>
           </div>
+        </div>
+      )}
+
+      {activeTab === "sync" && (
+        <div className="bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg p-6">
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Team Sync Data</h2>
+          {!daemonReachable ? (
+            <div className="p-4 bg-[var(--color-error-muted)] text-[var(--color-error)] rounded-md border border-[var(--color-error)] mb-4">
+              Daemon unreachable. Sync status cannot be fetched.
+            </div>
+          ) : !syncStatus ? (
+            <div className="p-4 bg-[var(--color-surface)] border border-[var(--color-border-muted)] rounded-md text-[var(--color-text-secondary)] text-sm">
+              Loading sync status...
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              <Setting label="Device ID" value={syncStatus.deviceId || "None"} />
+              <Setting label="Last Extract" value={syncStatus.lastExtractAt ? new Date(syncStatus.lastExtractAt).toLocaleString() : "Never"} />
+              <Setting label="Last Apply" value={syncStatus.lastApplyAt ? new Date(syncStatus.lastApplyAt).toLocaleString() : "Never"} />
+              <Setting label="Last Run" value={syncStatus.lastRunAt ? new Date(syncStatus.lastRunAt).toLocaleString() : "Never"} />
+            </div>
+          )}
         </div>
       )}
 

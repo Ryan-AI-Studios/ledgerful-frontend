@@ -6,7 +6,7 @@ interface ChangeApiItem {
   path: string;
   status: string;
   summary?: string;
-  author?: string;
+  author: string;
   timeAgo?: string;
   fileCount?: number;
   additions?: number;
@@ -31,7 +31,7 @@ function toChangeEntry(item: ChangeApiItem, index: number): ChangeEntry {
     id: item.id ?? `${item.path}:${index}`,
     filePath: item.path,
     summary: item.summary ?? `${status}: ${item.path}`,
-    author: item.author ?? "unknown",
+    author: item.author,
     timeAgo: item.timeAgo ?? "now",
     fileCount: item.fileCount ?? 1,
     filesChanged: item.fileCount ?? 1,

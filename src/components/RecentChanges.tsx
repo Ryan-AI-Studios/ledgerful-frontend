@@ -53,7 +53,7 @@ export function RecentChanges({ changes }: RecentChangesProps) {
                       {change.prNumber && (
                         <>
                           {' '}·{' '}
-                          <span className="inline-flex items-center gap-1 font-mono">
+                          <span className="inline-flex items-center gap-1 font-mono" title="GitHub PR linking is not yet implemented">
                             <span className={`w-1 h-1 rounded-full ${change.prStatus === "Merged" ? "bg-[var(--color-primary)]" : change.prStatus === "Closed" ? "bg-[var(--color-error)]" : "bg-[var(--color-success)]"}`} />
                             #{change.prNumber}
                           </span>

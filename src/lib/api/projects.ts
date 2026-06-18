@@ -5,6 +5,9 @@ interface ProjectApiItem {
   id: string;
   name: string;
   path: string;
+  status: string;
+  last_scan_at: string | null;
+  health_score: number;
 }
 
 export async function fetchProjects(): Promise<Project[]> {
@@ -17,8 +20,8 @@ export async function fetchProjects(): Promise<Project[]> {
     id: p.id,
     name: p.name,
     path: p.path,
-    status: "healthy",
-    lastScanAt: "now",
-    healthScore: 100,
+    status: (p.status === "healthy" || p.status === "warning" || p.status === "critical") ? p.status : "warning",
+    lastScanAt: p.last_scan_at,
+    healthScore: p.health_score,
   }));
 }

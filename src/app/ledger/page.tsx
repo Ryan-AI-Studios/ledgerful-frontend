@@ -67,15 +67,15 @@ export default function LedgerPage() {
     },
     {
       key: "pr",
-      header: "PR",
+      header: <span title="GitHub PR linking is not yet implemented">PR</span>,
       width: "90px",
       cell: (row) => row.prNumber ? (
-        <span className="inline-flex items-center gap-1 text-xs font-mono px-2 py-0.5 rounded-full border border-[var(--color-border-muted)] bg-[var(--color-surface)]">
+        <span className="inline-flex items-center gap-1 text-xs font-mono px-2 py-0.5 rounded-full border border-[var(--color-border-muted)] bg-[var(--color-surface)]" title="GitHub PR linking is not yet implemented">
           <span className={`w-1.5 h-1.5 rounded-full ${row.prStatus === "Merged" ? "bg-[var(--color-primary)]" : row.prStatus === "Closed" ? "bg-[var(--color-error)]" : "bg-[var(--color-success)]"}`} />
           #{row.prNumber}
         </span>
       ) : (
-        <span className="text-xs text-[var(--color-text-muted)]">-</span>
+        <span className="text-xs text-[var(--color-text-muted)]" title="GitHub PR linking is not yet implemented">-</span>
       ),
     },
     {
