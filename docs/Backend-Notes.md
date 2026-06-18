@@ -115,7 +115,7 @@ interface LedgerEntry {
 }
 ```
 
-**Desired backend additions:** The current `/api/ledger` and `/api/ledger/:txId` endpoints do not return `author`, `files`, `hotspotsCrossed`, `testsRun`, or `flakes`. The frontend currently synthesizes defaults for these so the UI renders, but richer live data requires backend support. The mock service in `src/lib/mock/ledger.ts` shows the intended shape.
+**Implementation status:** All fields in the `LedgerEntry` interface are now returned by the live API — `author` is populated from `git config user.name` at commit time (fallback `user.email`, fallback `"unknown"`). `files`, `hotspotsCrossed`, `testsRun`, and `flakes` are available on `/api/ledger/:txId` (detail view only, not the list view, to keep response size bounded). The mock service in `src/lib/mock/ledger.ts` shows the intended shape.
 
 ### 3.3 Hotspot
 
@@ -227,7 +227,7 @@ interface Project {
 ```
 
 
-**Desired backend additions:** The current `/api/projects` endpoint returns only `id`, `name`, and `path`. The frontend currently defaults `status` to `"healthy"`, `lastScanAt` to `"now"`, and `healthScore` to `100`. Richer project switching requires backend support for status, last scan time, and health score.
+**Implementation status:** All fields in the `Project` interface are now returned by the live API — `status` ("healthy"/"warning"/"critical"), `lastScanAt` (from latest impact report timestamp), and `healthScore` (0-100, computed as `100 - (high_risk_files * 10)`, clamped).
 
 ## 4. CLI / UI Parity
 
@@ -266,11 +266,21 @@ interface Project {
 - When the backend adds a new endpoint, add a matching mock service in `src/lib/*-data.ts` so the dashboard works offline.
 - When the frontend adds a new screen, document the required endpoints here and in the relevant track `spec.md`.
 
-## 9. Open Questions
+## 9. Resolved Questions
 
-- Will team/multi-user mode require a separate backend sync protocol, or will it layer on top of the daemon via Supabase?
-- Should the GitHub App eventually push data into the daemon, or into a shared Postgres via Supabase?
-- What is the long-term plan for real-time updates: polling, Supabase Realtime, WebSocket from the daemon?
+### Team/Multi-User Sync Protocol
+
+**Decision (2026-06-17):** Team/multi-user sync uses ChangeGuard Track M0's existing local-first, Ed25519-signed, `dir://`-transport sync protocol — already fully implemented (`changeguard sync init/pair/run/status/...`). Supabase remains reserved for the hosted/demo tier only (per `.env.example`'s own comment: "used for hosted demo / team tier; local-first mode does not require this"). Do not introduce a second, competing sync mechanism.
+
+The new `GET /api/sync/status` endpoint exposes the current sync state (device ID, last extract/apply timestamps, last run time) from the local M0 state.
+
+### GitHub PR Data
+
+**Decision (2026-06-17):** GitHub PR/webhook data is NOT wired into `/api/ledger`'s `prNumber`/`prStatus` fields in this iteration. Track M4 (the GitHub Action) posts risk-comment summaries to PRs via CI but doesn't persist PR metadata into the local ledger DB. Wiring real PR metadata is future work.
+
+### Real-Time Updates
+
+**Decision deferred:** Still open — to be resolved when real-time requirements are clearer. Options: polling (current), WebSocket from the ChangeGuard daemon, or Supabase Realtime for the hosted tier.
 
 ## Related Documents
 
@@ -283,3 +293,4 @@ interface Project {
 
 - **2026-06-16** — Finalized data contracts for Tracks 0002-0008 (Hotspots, Trends, Graph, Compliance, Verify, Session); updated data shapes in Section 3 to match `src/lib/types.ts`.
 - **2026-06-16** — Reconciled with Track M3 implementation: changed base URL from `/api/v1/*` to `/api/*`, default port from `52000` to `52001`, added ephemeral `?token=` auth, documented snake_case response normalization, and added static-export route shape note (`/ledger/detail?txId=`).
+- **2026-06-17** — Track M8: resolved all "Desired backend additions" (author, files, hotspotsCrossed, testsRun, flakes on ledger; status, lastScanAt, healthScore on projects). Added `GET /api/sync/status` endpoint. Resolved Open Questions: team sync uses M0 local-first protocol (not Supabase), GitHub PR data deferred. Updated Section 3.2, 3.8, and Section 9.

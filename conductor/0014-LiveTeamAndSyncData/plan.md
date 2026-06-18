@@ -18,9 +18,10 @@
 - [ ] Update `src/lib/types.ts` with confirmed real field types.
 - [ ] Update the ledger/changes data service to map real `author` through instead of a placeholder.
 - [ ] Update the project data service to map real `status`/`lastScanAt`/`healthScore` through instead of hardcoded defaults.
-- [ ] Add a sync-status fetch + display (Settings or Team section) reading `/api/sync/status`.
-- [ ] Confirm GitHub PR-column UI is explicitly labeled/flagged as still-mocked (e.g. a small "Coming soon" or disabled state) rather than silently left wired to nothing.
+- [ ] Add a sync-status fetch + display (Settings or Team section) reading `/api/sync/status`. Verify `lastExtractAt`/`lastApplyAt` are real ISO 8601 strings from M8 before wiring up date formatting — if M8 shipped raw HLC strings instead, stop and flag it back rather than working around it client-side.
+- [ ] Confirm GitHub PR-column UI is explicitly labeled/flagged as still-mocked: add a tooltip or inline caption near the PR column explaining it's not wired up yet (not just a silently-empty `-` cell on every row).
 - [ ] Confirm the existing mock-fallback contract (`NEXT_PUBLIC_LEDGERFUL_USE_MOCK` / daemon-unreachable detection) covers these new fields/endpoint the same way it covers existing ones.
+- [ ] In `src/app/settings/page.tsx` (~lines 61-67), distinguish "daemon unreachable" from "integration not configured" in the GitHub status `.catch()` instead of collapsing both into `"DISCONNECTED"` — reuse whatever daemon-reachability signal this track is already adding for the sync section.
 
 ## Phase 4: Verification
 
