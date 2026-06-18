@@ -123,6 +123,8 @@ interface LedgerEntry {
 
 **Implementation status:** All fields in the `LedgerEntry` interface are now returned by the live API — `author` is populated from `git config user.name` at commit time (fallback `user.email`, fallback `"unknown"`). `files`, `hotspotsCrossed`, `testsRun`, and `flakes` are available on `/api/ledger/:txId` (detail view only, not the list view, to keep response size bounded). The mock service in `src/lib/mock/ledger.ts` shows the intended shape.
 
+> **Known limitation (follow-up track):** `files[].additions` and `files[].deletions` are currently always `0`. The `changed_files` table in the ChangeGuard SQLite schema stores file paths and staging status but not per-file diff stats. Adding those columns is tracked as a future track (C1 from the M8 post-review). Do not rely on these fields for non-zero values until that track ships.
+
 ### 3.3 Hotspot
 
 ```ts
@@ -233,7 +235,14 @@ interface Project {
 ```
 
 
-**Implementation status:** All fields in the `Project` interface are now returned by the live API — `status` ("healthy"/"warning"/"critical"), `lastScanAt` (from latest impact report timestamp), and `healthScore` (0-100, computed as `100 - (high_risk_files * 10)`, clamped).
+**Implementation status:** All fields in the `Project` interface are now returned by the live API — `status` ("healthy"/"warning"/"critical"), `lastScanAt` (from latest impact report timestamp), and `healthScore` (0–100). The health score formula (per `conductor/trackM8/spec.md` deviations):
+
+```
+risk_penalty = riskLevel: High→60, Medium→30, Low→5, missing/corrupt→40
+healthScore  = clamp(100 − risk_penalty − (doctor_failures × 20), 0, 100)
+```
+
+Status thresholds: `≥80` → `"healthy"`, `≥50` → `"warning"`, `<50` → `"critical"`. Sibling projects discovered via federation emit `status: "unknown", healthScore: 0` — real sibling health probes are a future track.
 
 ## 4. CLI / UI Parity
 
@@ -300,3 +309,4 @@ The new `GET /api/sync/status` endpoint exposes the current sync state (device I
 - **2026-06-16** — Finalized data contracts for Tracks 0002-0008 (Hotspots, Trends, Graph, Compliance, Verify, Session); updated data shapes in Section 3 to match `src/lib/types.ts`.
 - **2026-06-16** — Reconciled with Track M3 implementation: changed base URL from `/api/v1/*` to `/api/*`, default port from `52000` to `52001`, added ephemeral `?token=` auth, documented snake_case response normalization, and added static-export route shape note (`/ledger/detail?txId=`).
 - **2026-06-17** — Track M8: resolved all "Desired backend additions" (author, files, hotspotsCrossed, testsRun, flakes on ledger; status, lastScanAt, healthScore on projects). Added `GET /api/sync/status` endpoint. Resolved Open Questions: team sync uses M0 local-first protocol (not Supabase), GitHub PR data deferred. Updated Section 3.2, 3.8, and Section 9.
+- **2026-06-18** — M8 post-review (ChangeGuard v0.1.5): (1) Clarified §2.4 telemetry endpoint — `CHANGEGUARD_USAGE_ENDPOINT` production default is now the Supabase Edge Function URL (`scmxtnjqqklvcwyeouvj.supabase.co/functions/v1/telemetry-ingest`), not a placeholder. (2) Added §3.2 known limitation: `files[].additions` and `files[].deletions` are always `0` until a follow-up track adds diff-stat columns. (3) Corrected §3.8 health_score formula — it uses `riskLevel` enum penalties (High→60, Medium→30, Low→5), not `high_risk_files * 10`.

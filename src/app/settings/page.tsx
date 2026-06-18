@@ -39,7 +39,6 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<"daemon" | "integrations" | "sync" | "privacy">("daemon");
   const [config, setConfig] = useState<ConfigResponse>(defaultConfig);
   const [loading, setLoading] = useState(true);
-  const [daemonReachable, setDaemonReachable] = useState(true);
 
   // GitHub State
   const [githubStatus, setGithubStatus] = useState<"CONNECTED" | "DISCONNECTED" | "PENDING" | "UNREACHABLE">("DISCONNECTED");
@@ -53,42 +52,58 @@ export default function SettingsPage() {
   const [telemetryEnabled, setTelemetryEnabled] = useState(false);
 
   useEffect(() => {
-    let isDaemonUp = true;
-    fetch(buildApiUrl("/config"))
-      .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((data: ConfigResponse) => {
-        setConfig(data);
-        setTelemetryEnabled(data.telemetry === "enabled");
-        setDaemonReachable(true);
-        isDaemonUp = true;
-        setLoading(false);
-      })
-      .catch(() => {
-        setDaemonReachable(false);
-        isDaemonUp = false;
-        setLoading(false);
+    let mounted = true;
+
+    async function loadData() {
+      const configPromise = fetch(buildApiUrl("/config")).then((res) => {
+        if (!res.ok) throw new Error("Config fetch failed");
+        return res.json() as Promise<ConfigResponse>;
       });
 
-    // Fetch github integration status
-    getGithubIntegrationStatus(projectId).then(({ status, repo }) => {
-      setGithubStatus(status || "DISCONNECTED");
-      setGithubRepo(repo);
-    })
-    .catch(() => {
-      setGithubStatus(isDaemonUp ? "DISCONNECTED" : "UNREACHABLE");
-    })
-    .finally(() => {
-      // Re-evaluate unreachable inside finally just in case the config request finished late
-      setGithubStatus((prev) => (!isDaemonUp ? "UNREACHABLE" : prev));
-      setIsGithubLoading(false);
-    });
+      const githubPromise = getGithubIntegrationStatus(projectId);
+      const syncPromise = fetchSyncStatus();
 
-    // Fetch sync status
-    fetchSyncStatus().then((data) => {
-      setSyncStatus(data);
-    }).catch(() => {
-      setSyncStatus(null);
-    });
+      let isDaemonUp = true;
+
+      try {
+        const data = await configPromise;
+        if (mounted) {
+          setConfig(data);
+          setTelemetryEnabled(data.telemetry === "enabled");
+        }
+      } catch {
+        isDaemonUp = false;
+      } finally {
+        if (mounted) setLoading(false);
+      }
+
+      try {
+        const { status, repo } = await githubPromise;
+        if (mounted) {
+          setGithubStatus(!isDaemonUp ? "UNREACHABLE" : (status || "DISCONNECTED"));
+          setGithubRepo(repo);
+        }
+      } catch {
+        if (mounted) {
+          setGithubStatus(isDaemonUp ? "DISCONNECTED" : "UNREACHABLE");
+        }
+      } finally {
+        if (mounted) setIsGithubLoading(false);
+      }
+
+      try {
+        const data = await syncPromise;
+        if (mounted) setSyncStatus(data);
+      } catch {
+        if (mounted) setSyncStatus(null);
+      }
+    }
+
+    loadData();
+
+    return () => {
+      mounted = false;
+    };
   }, [projectId]);
 
   const copyConfig = () => {
@@ -258,11 +273,7 @@ export default function SettingsPage() {
       {activeTab === "sync" && (
         <div className="bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg p-6">
           <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Team Sync Data</h2>
-          {!daemonReachable ? (
-            <div className="p-4 bg-[var(--color-error-muted)] text-[var(--color-error)] rounded-md border border-[var(--color-error)] mb-4">
-              Daemon unreachable. Sync status cannot be fetched.
-            </div>
-          ) : !syncStatus ? (
+          {!syncStatus ? (
             <div className="p-4 bg-[var(--color-surface)] border border-[var(--color-border-muted)] rounded-md text-[var(--color-text-secondary)] text-sm">
               Loading sync status...
             </div>
