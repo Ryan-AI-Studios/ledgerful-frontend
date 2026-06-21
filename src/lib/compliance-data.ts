@@ -1,14 +1,14 @@
-import { 
+import {
   fetchComplianceSummary as fetchLiveComplianceSummary,
   fetchSignatureEntries as fetchLiveSignatureEntries,
   triggerSoc2Export as triggerLiveSoc2Export
 } from "@/lib/api/compliance";
-import { 
+import {
   fetchComplianceSummary as fetchMockComplianceSummary,
   fetchSignatureEntries as fetchMockSignatureEntries,
   triggerSoc2Export as triggerMockSoc2Export
 } from "@/lib/mock/compliance";
-import { withFallback } from "@/lib/fallback";
+import { withFallback, shouldUseMock } from "@/lib/fallback";
 import { ComplianceSummary, SignatureEntry } from "@/lib/types";
 
 export async function fetchComplianceSummary(): Promise<ComplianceSummary> {
@@ -26,8 +26,15 @@ export async function fetchSignatureEntries(): Promise<SignatureEntry[]> {
 }
 
 export async function triggerSoc2Export(): Promise<void> {
-  return withFallback(
-    () => triggerLiveSoc2Export(),
-    () => triggerMockSoc2Export(),
-  );
+  if (shouldUseMock()) {
+    return triggerMockSoc2Export();
+  }
+  try {
+    return await triggerLiveSoc2Export();
+  } catch (err) {
+    if (err instanceof TypeError) {
+      return triggerMockSoc2Export();
+    }
+    throw err;
+  }
 }

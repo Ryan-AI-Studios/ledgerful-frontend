@@ -137,7 +137,7 @@ export interface ComplianceSummary {
   invalidCount?: number;
   skippedCount?: number;
   validityPercent: number;
-  lastAuditAt?: string;
+  lastAuditAt?: string | null;
   oldestUnaddressedAdr?: AdrEntry;
   hotspotDeltaPercent: number;
 }

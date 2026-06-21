@@ -8,7 +8,7 @@ interface ComplianceSummaryCardsProps {
 }
 
 export function ComplianceSummaryCards({ summary }: ComplianceSummaryCardsProps) {
-  const formatDate = (dateString?: string) => {
+  const formatDate = (dateString?: string | null) => {
     if (!dateString) return "Never";
     return new Date(dateString).toLocaleDateString();
   };
