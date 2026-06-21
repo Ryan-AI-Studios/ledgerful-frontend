@@ -173,7 +173,7 @@ interface ComplianceSummary {
 - [x] `npm run build` passes.
 - [x] `npm run lint` passes.
 - [x] `npm run test:unit` passes.
-- [ ] `changeguard ledger status --compact` clean (or drift reconciled).
+- [x] `changeguard ledger status --compact` clean (or drift reconciled).
 
 ## Related Documents
 

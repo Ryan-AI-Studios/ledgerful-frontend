@@ -58,6 +58,6 @@
 
 ## Phase 5: Finalization
 
-- [ ] Mark this track Completed in `conductor/conductor.md`.
-- [ ] Commit with `changeguard ledger commit <tx-id> ...`.
-- [ ] Run `changeguard ledger status --compact` to confirm clean.
+- [x] Mark this track Completed in `conductor/conductor.md`.
+- [x] Commit with `changeguard ledger commit ef6c0f6c-8876-4172-85d2-16dccbb81dfc` (git commit f328901; stale sidecar af68c356 committed post-commit).
+- [x] Run `changeguard ledger status --compact` to confirm clean.
