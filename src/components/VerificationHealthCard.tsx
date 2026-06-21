@@ -50,9 +50,13 @@ export function VerificationHealthCard({ health }: VerificationHealthCardProps) 
 
       <div className="mt-6 flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
         <span>Last verified:</span>
-        <time dateTime={health.lastRunAt}>
-          {formatRelativeTime(health.lastRunAt)}
-        </time>
+        {health.lastRunAt ? (
+          <time dateTime={health.lastRunAt}>
+            {formatRelativeTime(health.lastRunAt)}
+          </time>
+        ) : (
+          <span>No runs yet</span>
+        )}
       </div>
     </div>
   );

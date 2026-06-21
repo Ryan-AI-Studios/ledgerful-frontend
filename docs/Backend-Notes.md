@@ -188,7 +188,9 @@ interface SignatureEntry {
 ```ts
 interface VerificationHealth {
   status: "HEALTHY" | "DEGRADED" | "FAILING";
-  lastRunAt: string;
+  // The backend emits `null` when no verification runs exist (dashboard
+  // empty state). The frontend must guard the render against null.
+  lastRunAt: string | null;
   message?: string;
 }
 

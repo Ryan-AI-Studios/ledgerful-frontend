@@ -154,7 +154,9 @@ export interface AdrEntry {
 
 export interface VerificationHealth {
   status: "HEALTHY" | "DEGRADED" | "FAILING";
-  lastRunAt: string;
+  // The backend emits `null` when no verification runs exist (dashboard
+  // empty state). Render must guard against null before formatting.
+  lastRunAt: string | null;
   message?: string;
 }
 
