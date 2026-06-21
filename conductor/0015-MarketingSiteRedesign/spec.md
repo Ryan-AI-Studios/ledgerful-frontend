@@ -131,7 +131,7 @@ visual evidence of the product, not live data.
 - [x] `npm run build` passes.
 - [x] `npm run lint` passes.
 - [x] Screenshots captured.
-- [ ] `changeguard ledger status --compact` clean (or drift reconciled).
+- [x] `changeguard ledger status --compact` clean (or drift reconciled).
 
 ## Related Documents
 
