@@ -18,9 +18,9 @@ export async function fetchVerificationHealth(): Promise<VerificationHealth> {
   );
 }
 
-export async function fetchVerificationHistory(): Promise<VerificationTrendPoint[]> {
+export async function fetchVerificationHistory(days = 90): Promise<VerificationTrendPoint[]> {
   return withFallback(
-    () => fetchLiveVerificationHistory(),
+    () => fetchLiveVerificationHistory(days),
     async () => MOCK_VERIFICATION_HISTORY,
   );
 }

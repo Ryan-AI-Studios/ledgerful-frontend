@@ -13,13 +13,20 @@ export function ComplianceSummaryCards({ summary }: ComplianceSummaryCardsProps)
     return new Date(dateString).toLocaleDateString();
   };
 
+  const hasCountBreakdown =
+    summary.validCount !== undefined && summary.invalidCount !== undefined;
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <Card
         icon={ShieldCheck}
         label="Total Signed"
         value={summary.totalSigned.toLocaleString()}
-        subValue={`${summary.validCount} valid / ${summary.invalidCount} invalid`}
+        subValue={
+          hasCountBreakdown
+            ? `${summary.validCount} valid / ${summary.invalidCount} invalid`
+            : "Signed transactions"
+        }
         tone="neutral"
       />
       <Card
@@ -36,13 +43,23 @@ export function ComplianceSummaryCards({ summary }: ComplianceSummaryCardsProps)
         subValue={summary.hotspotDeltaPercent <= 0 ? `${Math.abs(summary.hotspotDeltaPercent)}% reduction in hotspots` : `${summary.hotspotDeltaPercent}% increase in hotspots`}
         tone={summary.hotspotDeltaPercent <= 0 ? "success" : "warning"}
       />
-      <Card
-        icon={FileWarning}
-        label="Oldest ADR"
-        value={summary.oldestUnaddressedAdr?.id || "None"}
-        subValue={summary.oldestUnaddressedAdr?.title || "All ADRs addressed"}
-        tone={summary.oldestUnaddressedAdr ? "warning" : "success"}
-      />
+      {summary.oldestUnaddressedAdr ? (
+        <Card
+          icon={FileWarning}
+          label="Oldest ADR"
+          value={summary.oldestUnaddressedAdr.id}
+          subValue={summary.oldestUnaddressedAdr.title}
+          tone="warning"
+        />
+      ) : (
+        <Card
+          icon={FileWarning}
+          label="Oldest ADR"
+          value="None"
+          subValue="All ADRs addressed"
+          tone="success"
+        />
+      )}
     </div>
   );
 }

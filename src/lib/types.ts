@@ -129,9 +129,13 @@ export interface UserSession {
 
 export interface ComplianceSummary {
   totalSigned: number;
-  validCount: number;
-  invalidCount: number;
-  skippedCount: number;
+  // The E2 backend returns only `totalSigned`, `validityPercent`,
+  // `lastAuditAt`, and `hotspotDeltaPercent`. The count breakdown and ADR
+  // fields are mock-only; mark them optional so the live contract type-checks
+  // while mock-fallback mode can still render the richer cards.
+  validCount?: number;
+  invalidCount?: number;
+  skippedCount?: number;
   validityPercent: number;
   lastAuditAt?: string;
   oldestUnaddressedAdr?: AdrEntry;
@@ -140,9 +144,11 @@ export interface ComplianceSummary {
 
 export interface SignatureEntry {
   txId: string;
-  timestamp: string;
-  signer: string;
+  entity: string;
+  summary: string;
+  committedAt: string;
   status: "VALID" | "INVALID" | "SKIPPED";
+  category: string;
 }
 
 export interface AdrEntry {

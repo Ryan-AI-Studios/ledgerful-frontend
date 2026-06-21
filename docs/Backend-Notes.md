@@ -167,21 +167,29 @@ interface GraphEdge {
 ```ts
 interface ComplianceSummary {
   totalSigned: number;
-  validCount: number;
-  invalidCount: number;
-  skippedCount: number;
   validityPercent: number;
-  lastAuditAt?: string;
+  lastAuditAt: string | null;     // null in empty state (NOT skip-serialized)
   hotspotDeltaPercent: number;
+  // The E2 backend does NOT return the following fields. They are marked
+  // optional on the frontend so mock-fallback mode can still render the
+  // richer cards; live daemon responses omit them.
+  validCount?: number;
+  invalidCount?: number;
+  skippedCount?: number;
+  oldestUnaddressedAdr?: AdrEntry;
 }
 
 interface SignatureEntry {
   txId: string;
-  timestamp: string;
-  signer: string;
+  entity: string;          // was: signer (E2 renamed)
+  summary: string;         // E2 added
+  committedAt: string;     // was: timestamp (E2 renamed)
   status: "VALID" | "INVALID" | "SKIPPED";
+  category: string;        // E2 added
 }
 ```
+
+**E2 contract notes:** `GET /api/compliance/signatures` returns a bare JSON array, sorted `committedAt DESC`, bounded to the most recent 100 entries. `GET /api/compliance/summary` returns `lastAuditAt: null` (not omitted) in the empty state.
 
 ### 3.6 Verification
 
@@ -209,6 +217,8 @@ interface VerificationStep {
   recentFailures: number;
 }
 ```
+
+**E1 contract notes:** `GET /api/verify/history` accepts a `?days=N` query parameter (default 30, capped 365) and returns a bare JSON array of `{ date, passed, failed }` (`GROUP BY DATE(timestamp)`, ascending, dates with no runs omitted). The frontend dashboard's trend chart passes `?days=90` to match the "Verification Trend (90 Days)" header. `GET /api/verify/health` emits `lastRunAt: null` (not omitted) when no runs exist; failure precedence over staleness. `GET /api/verify/steps` returns per-command aggregates with a friendly `name` (traceability segments stripped).
 
 ### 3.7 Status Response
 
@@ -315,3 +325,4 @@ The new `GET /api/sync/status` endpoint exposes the current sync state (device I
 - **2026-06-17** — Track M8: resolved all "Desired backend additions" (author, files, hotspotsCrossed, testsRun, flakes on ledger; status, lastScanAt, healthScore on projects). Added `GET /api/sync/status` endpoint. Resolved Open Questions: team sync uses M0 local-first protocol (not Supabase), GitHub PR data deferred. Updated Section 3.2, 3.8, and Section 9.
 - **2026-06-18** — M8 post-review (ChangeGuard v0.1.5): (1) Clarified §2.4 telemetry endpoint — `CHANGEGUARD_USAGE_ENDPOINT` production default is now the Supabase Edge Function URL (`scmxtnjqqklvcwyeouvj.supabase.co/functions/v1/telemetry-ingest`), not a placeholder. (2) Added §3.2 known limitation: `files[].additions` and `files[].deletions` are always `0` until a follow-up track adds diff-stat columns. (3) Corrected §3.8 health_score formula — it uses `riskLevel` enum penalties (High→60, Medium→30, Low→5), not `high_risk_files * 10`.
 - **2026-06-18** — M8 review-2: extended the §3.2 known-limitation note to cover `testsRun`/`flakes` as well — the `tx_id` join column exists (migration `m45`) but nothing in the verify-write path populates it yet, so both fields read `0` for every transaction (not just legacy ones) until a follow-up track wires that through. `hotspotsCrossed` has no such gap and is real today.
+- **2026-06-21** — Aligned frontend to backend Tracks E1/E2/E3 (all three Completed in the ChangeGuard repo). (1) §3.5 `SignatureEntry` renamed: `timestamp→committedAt`, `signer→entity`, added `summary` + `category`; `ComplianceSummary` count-breakdown + ADR fields marked optional (E2 backend omits them; mock keeps them for richer fallback). (2) §3.6 documented E1 `/verify/history?days=N` param (default 30, capped 365); frontend passes `?days=90` to match the "90 Days" trend header. (3) `triggerSoc2Export` (E3) now surfaces backend error messages and verifies `Content-Type: application/zip` before blob-ing. No new endpoints; pure contract alignment.

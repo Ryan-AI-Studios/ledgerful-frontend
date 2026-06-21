@@ -15,14 +15,17 @@ export function SignatureValidationTable({ entries }: SignatureValidationTablePr
   const [authorFilter, setAuthorFilter] = useState<string>("ALL");
 
   const filteredEntries = entries.filter(entry => {
-    const matchesSearch = entry.txId.toLowerCase().includes(filter.toLowerCase()) || 
-                          entry.signer.toLowerCase().includes(filter.toLowerCase());
+    const q = filter.toLowerCase();
+    const matchesSearch = entry.txId.toLowerCase().includes(q) ||
+                          entry.entity.toLowerCase().includes(q) ||
+                          entry.summary.toLowerCase().includes(q) ||
+                          entry.category.toLowerCase().includes(q);
     const matchesStatus = statusFilter === "ALL" || entry.status === statusFilter;
-    const matchesAuthor = authorFilter === "ALL" || entry.signer === authorFilter;
+    const matchesAuthor = authorFilter === "ALL" || entry.entity === authorFilter;
     return matchesSearch && matchesStatus && matchesAuthor;
   });
 
-  const uniqueAuthors = Array.from(new Set(entries.map(e => e.signer)));
+  const uniqueAuthors = Array.from(new Set(entries.map(e => e.entity)));
 
   const columns: Column<SignatureEntry>[] = [
     {
@@ -35,28 +38,46 @@ export function SignatureValidationTable({ entries }: SignatureValidationTablePr
       ),
     },
     {
-      key: "timestamp",
-      header: "Timestamp",
+      key: "category",
+      header: "Category",
       cell: (row) => (
-        <span className="text-sm text-[var(--color-text-secondary)]">
-          {new Date(row.timestamp).toLocaleString()}
+        <span className="text-[0.6875rem] font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">
+          {row.category}
         </span>
       ),
     },
     {
-      key: "signer",
+      key: "summary",
+      header: "Summary",
+      cell: (row) => (
+        <span className="text-sm text-[var(--color-text-primary)]" title={row.summary}>
+          {row.summary}
+        </span>
+      ),
+    },
+    {
+      key: "entity",
       header: "Signer",
       cell: (row) => {
-        const initial = row.signer ? row.signer.charAt(0) : "?";
+        const initial = row.entity ? row.entity.charAt(0) : "?";
         return (
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-full bg-[var(--color-surface-raised)] border border-[var(--color-border)] flex items-center justify-center text-[10px] font-bold text-[var(--color-text-primary)] uppercase">
               {initial}
             </div>
-            <span className="text-sm font-medium">{row.signer}</span>
+            <span className="text-sm font-medium">{row.entity}</span>
           </div>
         );
       },
+    },
+    {
+      key: "committedAt",
+      header: "Committed",
+      cell: (row) => (
+        <span className="text-sm text-[var(--color-text-secondary)]">
+          {new Date(row.committedAt).toLocaleString()}
+        </span>
+      ),
     },
     {
       key: "status",
@@ -87,8 +108,8 @@ export function SignatureValidationTable({ entries }: SignatureValidationTablePr
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
             <input
               type="text"
-              aria-label="Search transactions or signers"
-              placeholder="Search TX or Signer..."
+              aria-label="Search transactions, signers, summaries, or categories"
+              placeholder="Search TX, Signer, Summary..."
               className="pl-9 pr-3 py-1.5 text-sm bg-[var(--color-surface)] border border-[var(--color-border)] rounded-md focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] w-full sm:w-64"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}

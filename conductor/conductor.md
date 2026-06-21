@@ -60,6 +60,7 @@ Add track-specific criteria (tests, backend contract alignment, accessibility ch
 | 0013-TelemetryIngestEndpoint | Completed | — | Supabase Edge Function ingest endpoint for opt-in CLI usage metrics; schema must match ChangeGuard Track M7 exactly |
 | 0014-LiveTeamAndSyncData | Completed | — | Replace Track 0011's mock-mode data with real ledger/project/sync data; blocked on ChangeGuard Tracks M3 + M8 |
 | 0015-MarketingSiteRedesign | Completed | — | Ground-up rebuild of Track 0008's marketing site to match DESIGN.md and monetization roadmap; landing/pricing/docs with committed-dark single-mint terminal-as-evidence voice |
+| 0016-ComplianceContractAlignment | Completed | — | Align frontend compliance + verify types, components, mocks, and data calls to backend Tracks E1/E2/E3 contracts (SignatureEntry rename, ComplianceSummary optional fields, verify ?days=90, SOC2 export error surfacing) |
 
 ## Completed Tracks
 
