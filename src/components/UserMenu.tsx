@@ -122,6 +122,7 @@ export function UserMenu() {
         }`}
       >
         {session?.avatarUrl ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
           <img src={session.avatarUrl} alt="" className="w-full h-full object-cover" />
         ) : (
           <span className="text-[var(--color-text-primary)]">{initials}</span>

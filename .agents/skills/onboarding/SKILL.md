@@ -51,10 +51,12 @@ screenshots/             # Playwright-generated UI reference captures
 
 1. Read `AGENTS.md` — project-specific instructions.
 2. Read `.agents/skills/onboarding/SKILL.md` (this file) for workflow.
-3. Run `npm install` if `node_modules` is missing.
-4. Run `npm run build` to verify the project compiles.
-5. Run `changeguard doctor` (in the backend repo or if available here) to check daemon health.
-6. Run `changeguard ledger status` to check for pending transactions or drift.
+3. If present on this machine, read `C:\dev\ChangeGuard\docs\Frontend-Notes.md` — backend author's notes for the frontend (constraints, contracts, gotchas). Skip if absent; not all contributors have the backend repo locally.
+4. If present on this machine, read `C:\Users\RyanB\Desktop\changeguard_monetization_roadmap.md` — product/monetization roadmap shaping feature priorities. Skip if absent; treat as context only.
+5. Run `npm install` if `node_modules` is missing.
+6. Run `npm run build` to verify the project compiles.
+7. Run `changeguard doctor` (in the backend repo or if available here) to check daemon health.
+8. Run `changeguard ledger status` to check for pending transactions or drift.
 
 ## Quick Reference: Commands
 
@@ -244,3 +246,5 @@ changeguard ask "..."
 - `.agents/skills/changeguard/SKILL.md` — Backend ChangeGuard command reference.
 - `.agents/skills/codex-review/SKILL.md` — Cross-model review process.
 - `.agents/skills/ai-brains/SKILL.md` — Memory and recall workflow.
+- `C:\dev\ChangeGuard\docs\Frontend-Notes.md` — Backend author's frontend-facing notes, constraints, and contracts.
+- `C:\Users\RyanB\Desktop\changeguard_monetization_roadmap.md` — Monetization roadmap informing feature priorities.
