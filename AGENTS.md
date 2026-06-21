@@ -146,3 +146,57 @@ aibrains{
   recall:"query past decisions only: run 'ai-brains recall \"<query>\" --semantic'"
   pin:"persist decisions/constraints: run 'ai-brains pin \"<DECISION/CONSTRAINT/HOTSPOT: message>\"'"
 }
+
+git{
+  forbid[4]:
+    "push to main/master without a clean ledger"
+    "force-push without explicit approval"
+    "destructive operations without explicit approval"
+    "committing secrets/.env"
+  require[4]:
+    "inspect diff before commit"
+    "commit only intentional files"
+    "keep unrelated fixes separate where practical"
+    "clear ledger status before push"
+}
+
+review{
+  log:"conductor/<track>/review.md"
+  critical_high:"must be verified_fixed before clearance"
+  regression_caused_by_work:"high; never deferrable"
+  medium:"fix by default; defer only with one-line justification in review.md, cap <=3 deferred per track"
+  closure:"code change alone is not closure — finding must be verified_fixed by a subagent or cross-model reviewer"
+}
+
+contracts{
+  required_when[3]:
+    "/api/* payload shape changed"
+    "backend track adds/renames/removes a field the frontend renders"
+    "mock service shape diverges from live API shape"
+  update[3]:
+    "docs/Backend-Notes.md (the frontend's reverse-contract for the backend)"
+    "C:\dev\ChangeGuard\docs\Frontend-Notes.md (the backend's notes for the frontend)"
+    "affected frontend types/components/mocks"
+  missing:"high finding in review.md — contract drift is a P1 minimum"
+  template:"E1/E2 ripple: backend renames a field → frontend type, component, mock, and Backend-Notes §3 must all update in the same track"
+}
+
+stop_before[8]:
+  "destructive git operation"
+  "force-push"
+  "push to main/master without clean ledger"
+  "missing secrets or .env in commit"
+  "unavailable external service with no mock fallback"
+  "ambiguous/conflicting specs not resolvable from code+plan"
+  "broad unrelated failures beyond the current track scope"
+  "scope exceeds the current track's spec.md"
+
+unrelated_failures{
+  rule:"triage; do not broadly clean up"
+  fix_only_if[3]:
+    "obvious"
+    "low-risk"
+    "blocking validation"
+  otherwise:"document in review.md and report"
+  commit:"separate where practical"
+}

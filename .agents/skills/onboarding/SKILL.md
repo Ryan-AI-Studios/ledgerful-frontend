@@ -35,6 +35,33 @@ All v1 screens are implemented and build successfully:
 | Projects | Complete | Project switcher, persistent via localStorage |
 | Status | Complete | System checks from backend |
 
+## Authority Order
+
+When sources conflict, higher wins:
+
+1. **User/run prompt** — the current task instruction.
+2. **`conductor/conductor.md`** — track registry and status.
+3. **`conductor/<track>/spec.md`** — the track's definition of done.
+4. **`conductor/<track>/plan.md`** — the track's phased checklist.
+5. **`.agents/skills/implement/SKILL.md`** — the implementation workflow.
+6. **This onboarding skill.**
+7. **`AGENTS.md`** — top-level repo rules (verify, ledger, git, review, contracts).
+8. **Docs and ledger history** — `docs/Backend-Notes.md`, `docs/product.md`, `docs/design.md`.
+9. **External docs** — Next.js 16 bundled docs in `node_modules/next/dist/docs/`, Tailwind, web.
+
+## Track History
+
+The frontend repo has completed tracks 0001–0016. The backend repo (`C:\dev\changeguard`)
+has a longer history with different prefixes:
+
+| Repo | Track prefixes | Scope |
+|---|---|---|
+| Frontend | 0001–0016 | Dashboard screens, API client, marketing site, contract alignment |
+| Backend | 0–40, L1-1–L7-1, G1–G7, R1-1–R1-4, S1–S3, T1–T2, W1–W13, I/J/K/CG-F, M0–M10, DX1–DX7, E1–E3 | CLI, daemon, APIs, ledger, KG, impact, web server |
+
+Frontend tracks often depend on backend tracks (e.g., 0016 aligns to backend E1/E2/E3).
+Check `conductor/conductor.md` for the current registry and any `In Progress` track.
+
 ## Architecture at a Glance
 
 ```
