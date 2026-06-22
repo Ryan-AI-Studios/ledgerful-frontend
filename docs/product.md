@@ -20,6 +20,33 @@ Ledgerful is a local-first Rust CLI and dashboard that captures the immutable "w
 
 Success looks like: a manager can screenshot the Dashboard and post it in Slack; a CISO can run `ledgerful export --format=soc2` and hand the signed bundle to an auditor; a developer can run `ledgerful scan --open` and trust the number they see in under 10 seconds.
 
+## Positioning
+
+Ledgerful is a **B2B developer-tool SaaS** in the **DevSecOps / code-intelligence
+/ AI-assisted code review** lane. Not a generic cybersecurity SaaS — positioning
+against Snyk/Wiz/CrowdStrike loses; positioning as devtool-first with a trust
+overlay wins.
+
+- **Primary category:** developer tools SaaS. Built for engineers, repos, PRs,
+  local workflows, CLI/IDE habits.
+- **Secondary:** code intelligence / codebase understanding — maps what changed,
+  what it affects, what needs verification.
+- **Secondary:** AI code review / PR quality — helps catch gaps before
+  review/merge.
+- **Trust overlay:** DevSecOps / secure SDLC — security and governance matter
+  but must not swallow the core message.
+
+**Closest 2026 benchmarks:**
+- Sourcegraph (codebase credibility)
+- Graphite + CodeRabbit (CTA simplicity, self-serve install)
+- Linear (dark-mode polish, restraint)
+- Snyk + Semgrep (trust language — borrowed in form, not content)
+
+**Product framing:** Ledgerful is not an AI code reviewer (CodeRabbit/Qodo
+lane, crowded, weaker). It is the intent ledger that AI agents can read but
+cannot bypass. AI is the consumer of the ledger, not the engine. Position as
+"the ledger AI agents can't silently skip" — not "AI-assisted change analysis."
+
 ## Brand Personality
 
 Precise. Immutable. Credible.

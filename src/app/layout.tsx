@@ -16,8 +16,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ledgerful — Project Health",
-  description: "Local-first intent ledger for agentic engineering",
+  title: "Ledgerful — the intent ledger for agentic engineering.",
+  description: "Ledgerful — the intent ledger for agentic engineering.",
 };
 
 export default function RootLayout({

@@ -326,6 +326,30 @@ Ledgerful is a developer tool first. The web UI is **not** a marketing
 site — it's a power tool that lives next to a terminal. The visual language
 borrows from:
 
+## Registers
+
+Pre-auth surfaces (`/`, `/pricing`, `/docs`, any future `/blog`, `/changelog`)
+follow the **marketing register**: filled primary CTAs, scroll-triggered motion,
+product visuals in the hero, logo strips, compliance badges, single-slogan H1.
+The marketing register is where conversion happens.
+
+Authenticated app surfaces (`/dashboard`, `/changes`, `/ledger`, `/hotspots`,
+`/graph`, `/settings`, `/projects`, `/status`, `/verify`, `/compliance`,
+`/profile`, `/trends`) follow the **product register**: density, hairline
+borders, no filled marketing CTAs, no marketing motion, risk multi-cue. The
+product register is where the power tool lives.
+
+**Shared invariants across both registers:**
+- No emoji anywhere.
+- No gradient text (`background-clip: text`).
+- No glassmorphism as default.
+- Mint accent (`#00E5A0`) only for action/active state.
+- Coral accent (`#FF7B72`) only for AI-attribution markers and hotspot highlights.
+- Risk colors only for risk levels (HIGH/MED/LOW/TRIVIAL).
+- WCAG 2.2 AA minimum; AAA where cheap.
+- `prefers-reduced-motion` honored on every animated surface.
+- Inter for UI, JetBrains Mono for data. No third font family.
+
 - **GitHub dark** (`#0D1117` is the exact default) — every dev knows it.
 - **Linear's restraint** — single accent, surface ladder, no gradients.
 - **Datadog/Honeycomb density** — the activity feeds feel like monitoring

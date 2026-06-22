@@ -26,8 +26,7 @@ export function MarketingLayout({ children }: MarketingLayoutProps) {
               <span className="text-[var(--color-primary)]">Ledger</span>ful
             </span>
             <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">
-              Local-first change intelligence and cryptographic provenance.
-              Where git answers what changed, Ledgerful answers why.
+              Ledgerful — the intent ledger for agentic engineering.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-6 sm:gap-10">
@@ -37,6 +36,7 @@ export function MarketingLayout({ children }: MarketingLayoutProps) {
                 <li><Link href="/pricing" className="text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">Pricing</Link></li>
                 <li><Link href="/docs" className="text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">Docs</Link></li>
                 <li><Link href="/dashboard" className="text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">Dashboard</Link></li>
+                <li><a href="https://status.ledgerful.dev" rel="noopener noreferrer" target="_blank" className="text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">Uptime</a></li>
               </ul>
             </nav>
           </div>

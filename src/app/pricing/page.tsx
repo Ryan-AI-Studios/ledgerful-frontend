@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import { MarketingLayout } from "@/components/MarketingLayout";
-import { Check, ArrowRight } from "lucide-react";
+import { Check, ArrowRight, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
 type Cell = boolean | string;
@@ -204,6 +204,18 @@ export default function PricingPage() {
               </ul>
             </div>
           ))}
+        </div>
+
+        {/* Compliance proof block */}
+        <div className="mt-8 p-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)]">
+          <div className="flex items-center gap-2 mb-2">
+            <ShieldCheck className="w-4 h-4 text-[var(--color-primary)]" aria-hidden="true" />
+            <span className="text-sm font-semibold text-[var(--color-text-primary)]">Compliance-ready</span>
+          </div>
+          <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">
+            SOC2-ready export format, Ed25519 signed audit trail, and RBAC for admin, auditor,
+            and developer roles. Designed for regulated industries and external auditor review.
+          </p>
         </div>
 
         {/* Comparison matrix */}

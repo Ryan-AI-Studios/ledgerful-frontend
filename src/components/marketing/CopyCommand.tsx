@@ -10,11 +10,14 @@ interface CopyCommandProps {
 
 export function CopyCommand({ command, label = "Copy command" }: CopyCommandProps) {
   const [state, setState] = useState<"idle" | "copied" | "error">("idle");
+  const [flashBorder, setFlashBorder] = useState(false);
 
   const onCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(command);
       setState("copied");
+      setFlashBorder(true);
+      window.setTimeout(() => setFlashBorder(false), 150);
       window.setTimeout(() => setState("idle"), 2000);
     } catch {
       setState("error");
@@ -24,7 +27,7 @@ export function CopyCommand({ command, label = "Copy command" }: CopyCommandProp
 
   return (
     <div className="w-full max-w-md">
-      <div className="flex items-stretch rounded-md border border-[var(--color-border)] bg-[var(--color-surface-alt)] overflow-hidden">
+      <div className={`flex items-stretch rounded-md border bg-[var(--color-surface-alt)] overflow-hidden transition-colors duration-150 ${flashBorder ? "border-[var(--color-primary)]" : "border-[var(--color-border)]"}`}>
         <div className="flex items-center pl-3 pr-2 text-[var(--color-text-muted)]" aria-hidden="true">
           <TerminalSquare className="w-4 h-4" />
         </div>
