@@ -317,7 +317,7 @@ export function OnboardingWizard({ isOpen, onClose, onComplete }: OnboardingWiza
               className={`inline-flex items-center gap-2 px-6 py-2 rounded-md font-bold text-sm transition-all duration-200 ${
                 step === 3 && !scanComplete 
                   ? "bg-[var(--color-border)] text-[var(--color-text-secondary)] cursor-not-allowed"
-                  : "bg-[var(--color-primary)] text-black hover:bg-[var(--color-primary-hover)] active:scale-95 shadow-lg shadow-[var(--color-primary-faded)]"
+                  : "bg-[var(--color-primary)] text-black hover:bg-[var(--color-primary-hover)] active:scale-95 shadow-lg shadow-[var(--color-primary-faded)] hover:shadow-[0_0_24px_var(--color-primary-faded)]"
               }`}
             >
               {step === 4 ? "Finish" : "Next"}

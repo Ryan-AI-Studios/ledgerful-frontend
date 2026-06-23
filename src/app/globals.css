@@ -5,6 +5,8 @@
   --color-primary: #00e5a0;
   --color-primary-muted: #00b87a;
   --color-primary-deep: #007a4d;
+  --color-primary-hover: #1bffb0;
+  --color-primary-faded: rgba(0, 229, 160, 0.28);
   --color-accent: #ff7b72;
 
   /* Surfaces */
