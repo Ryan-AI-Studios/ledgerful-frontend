@@ -1,13 +1,13 @@
-# ChangeGuard MCP Server
+# Ledgerful MCP Server
 
-ChangeGuard provides a Model Context Protocol (MCP) server that exposes its intelligence as read-only tools for AI coding agents.
+Ledgerful provides a Model Context Protocol (MCP) server that exposes its intelligence as read-only tools for AI coding agents.
 
 ## Registration
 
 ### Claude Code
 Run this command in your terminal:
 ```bash
-mcp add changeguard cargo run --manifest-path C:/dev/changeguard/Cargo.toml -- mcp
+mcp add ledgerful cargo run --manifest-path C:/dev/ledgerful/Cargo.toml -- mcp
 ```
 
 ### Cursor
@@ -15,9 +15,9 @@ Add to `.cursor/mcp.json` or Global Settings:
 ```json
 {
  "mcpServers": {
-  "changeguard": {
+  "ledgerful": {
    "command": "cargo",
-   "args": ["run", "--manifest-path", "C:/dev/changeguard/Cargo.toml", "--features", "mcp", "--", "mcp"]
+   "args": ["run", "--manifest-path", "C:/dev/ledgerful/Cargo.toml", "--features", "mcp", "--", "mcp"]
   }
  }
 }
@@ -28,9 +28,9 @@ Add to your `mcp.json`:
 ```json
 {
  "mcpServers": {
-  "changeguard": {
+  "ledgerful": {
    "command": "cargo",
-   "args": ["run", "--manifest-path", "C:/dev/changeguard/Cargo.toml", "--features", "mcp", "--", "mcp"]
+   "args": ["run", "--manifest-path", "C:/dev/ledgerful/Cargo.toml", "--features", "mcp", "--", "mcp"]
   }
  }
 }
@@ -41,9 +41,9 @@ Add to `.cline/mcp.json`:
 ```json
 {
  "mcpServers": {
-  "changeguard": {
+  "ledgerful": {
    "command": "cargo",
-   "args": ["run", "--manifest-path", "C:/dev/changeguard/Cargo.toml", "--features", "mcp", "--", "mcp"]
+   "args": ["run", "--manifest-path", "C:/dev/ledgerful/Cargo.toml", "--features", "mcp", "--", "mcp"]
   }
  }
 }
@@ -54,9 +54,9 @@ Add to your config:
 ```json
 {
  "mcpServers": {
-  "changeguard": {
+  "ledgerful": {
    "command": "cargo",
-   "args": ["run", "--manifest-path", "C:/dev/changeguard/Cargo.toml", "--features", "mcp", "--", "mcp"]
+   "args": ["run", "--manifest-path", "C:/dev/ledgerful/Cargo.toml", "--features", "mcp", "--", "mcp"]
   }
  }
 }
@@ -65,7 +65,7 @@ Add to your config:
 ### Aider
 Run aider with:
 ```bash
-aider --mcp-server "cargo run --manifest-path C:/dev/changeguard/Cargo.toml -- mcp"
+aider --mcp-server "cargo run --manifest-path C:/dev/ledgerful/Cargo.toml -- mcp"
 ```
 
 ## Tools
@@ -87,4 +87,4 @@ aider --mcp-server "cargo run --manifest-path C:/dev/changeguard/Cargo.toml -- m
 - No streaming or mutations.
 
 ## Troubleshooting
-- **agent can't find changeguard on PATH**: Install with `cargo install changeguard --locked` or use `cargo run -- mcp`.
+- **agent can't find ledgerful on PATH**: Install with `cargo install ledgerful --locked` or use `cargo run -- mcp`.

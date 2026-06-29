@@ -5,7 +5,7 @@ description: Trigger this skill when starting a new session on the Ledgerful-fro
 
 # Ledgerful Frontend Onboarding
 
-You are working on **Ledgerful Frontend** — a local-first web dashboard for the Ledgerful change-intelligence engine (currently the ChangeGuard Rust daemon). It is a separate repository from the Rust backend and communicates with it over a local HTTP/WebSocket API served at `localhost:52001`.
+You are working on **Ledgerful Frontend** — a local-first web dashboard for the Ledgerful change-intelligence engine (currently the Ledgerful Rust daemon). It is a separate repository from the Rust backend and communicates with it over a local HTTP/WebSocket API served at `localhost:52001`.
 
 ## What Ledgerful Frontend Does
 
@@ -46,12 +46,12 @@ When sources conflict, higher wins:
 5. **`.agents/skills/implement/SKILL.md`** — the implementation workflow.
 6. **This onboarding skill.**
 7. **`AGENTS.md`** — top-level repo rules (verify, ledger, git, review, contracts).
-8. **Docs and ledger history** — `docs/Backend-Notes.md`, `docs/product.md`, `docs/design.md`.
+8. **Docs and ledger history** — `C:\dev\coordinated\coordination.md`, `docs/product.md`, `docs/design.md`.
 9. **External docs** — Next.js 16 bundled docs in `node_modules/next/dist/docs/`, Tailwind, web.
 
 ## Track History
 
-The frontend repo has completed tracks 0001–0016. The backend repo (`C:\dev\changeguard`)
+The frontend repo has completed tracks 0001–0016. The backend repo (`C:\dev\ledgerful`)
 has a longer history with different prefixes:
 
 | Repo | Track prefixes | Scope |
@@ -78,12 +78,12 @@ screenshots/             # Playwright-generated UI reference captures
 
 1. Read `AGENTS.md` — project-specific instructions.
 2. Read `.agents/skills/onboarding/SKILL.md` (this file) for workflow.
-3. If present on this machine, read `C:\dev\ChangeGuard\docs\Frontend-Notes.md` — backend author's notes for the frontend (constraints, contracts, gotchas). Skip if absent; not all contributors have the backend repo locally.
-4. If present on this machine, read `C:\Users\RyanB\Desktop\changeguard_monetization_roadmap.md` — product/monetization roadmap shaping feature priorities. Skip if absent; treat as context only.
+3. If present on this machine, read `C:\dev\coordinated\coordination.md` — backend author's notes for the frontend (constraints, contracts, gotchas). Skip if absent; not all contributors have the backend repo locally.
+4. If present on this machine, read `C:\dev\Release-Implementation-Plan.md` — product/monetization roadmap shaping feature priorities. Skip if absent; treat as context only.
 5. Run `npm install` if `node_modules` is missing.
 6. Run `npm run build` to verify the project compiles.
-7. Run `changeguard doctor` (in the backend repo or if available here) to check daemon health.
-8. Run `changeguard ledger status` to check for pending transactions or drift.
+7. Run `ledgerful doctor` (in the backend repo or if available here) to check daemon health.
+8. Run `ledgerful ledger status` to check for pending transactions or drift.
 
 ## Quick Reference: Commands
 
@@ -94,11 +94,11 @@ npm run build          # Production build + type check
 npm run lint           # ESLint
 
 # Backend intelligence (from backend repo or daemon)
-changeguard doctor
-changeguard scan --impact
-changeguard ledger status --compact
-changeguard verify
-changeguard ledger commit <tx-id> --summary "..." --reason "..."
+ledgerful doctor
+ledgerful scan --impact
+ledgerful ledger status --compact
+ledgerful verify
+ledgerful ledger commit <tx-id> --summary "..." --reason "..."
 ```
 
 ---
@@ -111,7 +111,7 @@ When researching before a code change, use this order:
 
 1. **Active file / spec** — current code and task context.
 2. **Project docs** — `PRODUCT.md`, `DESIGN.md`, `CLAUDE.md`, `AGENTS.md`.
-3. **Ledger history** — `changeguard ledger search` for architectural history.
+3. **Ledger history** — `ledgerful ledger search` for architectural history.
 4. **Local rules** — `.agents/rules/*.md`.
 5. **Codebase search** — LSP/Grep for symbols, components, hooks.
 6. **External** — Next.js docs, Tailwind docs, shadcn/ui patterns, web search.
@@ -158,10 +158,10 @@ Use `// @ledgerful-tx: <tx_id>` comments to link complex logic back to backend l
 ### 1. Planning Phase
 
 1. Read `AGENTS.md` and `conductor/conductor.md`.
-2. Run `changeguard doctor` and `changeguard ledger status`.
+2. Run `ledgerful doctor` and `ledgerful ledger status`.
 3. If backend changes are needed, do them in the **backend repo** first.
 4. Update `conductor/conductor.md`: set the target track to **In Progress** and push.
-5. Start a transaction: `changeguard ledger start <feature> --category <CAT>`.
+5. Start a transaction: `ledgerful ledger start <feature> --category <CAT>`.
 
 ### 2. Implementation Phase (Multi-Agent)
 
@@ -189,7 +189,7 @@ Also required:
 - Subagent verifies the codex fixes.
 - A second `codex review` confirms no new critical/high findings.
 - Manual end-to-end test of the feature in the browser.
-- `changeguard verify` if the backend contract changed.
+- `ledgerful verify` if the backend contract changed.
 - Playwright smoke screenshots for UI changes.
 
 If any gate fails, fix it before moving on. Never use `--no-verify` unless the user explicitly requests it.
@@ -198,8 +198,8 @@ If any gate fails, fix it before moving on. Never use `--no-verify` unless the u
 
 1. Mark track tasks `- [x]` in its `plan.md`.
 2. Update `conductor/conductor.md`: set the track to **Completed**.
-3. Commit with ledger: `changeguard ledger commit <tx-id> --summary "..." --reason "..."`.
-4. Push and confirm `changeguard ledger status` is clean.
+3. Commit with ledger: `ledgerful ledger commit <tx-id> --summary "..." --reason "..."`.
+4. Push and confirm `ledgerful ledger status` is clean.
 5. If there is no regression, proceed to the next track in `conductor/conductor.md`.
 
 ### Ledger Categories
@@ -221,16 +221,16 @@ If any gate fails, fix it before moving on. Never use `--no-verify` unless the u
 
 ### Ledgerful Backend (separate repo)
 
-Use ChangeGuard commands against the backend repo or the running daemon:
+Use Ledgerful commands against the backend repo or the running daemon:
 
 | Phase | Command | Purpose |
 |---|---|---|
-| Session start | `changeguard doctor` | Verify daemon/toolchain health |
-| Before edits | `changeguard scan --impact` | Detect drift and assess blast radius |
-| After implementation | `changeguard impact` | Full impact report |
-| Before commit | `changeguard verify` | Run verification plan |
-| On commit | `changeguard ledger commit` | Close transaction |
-| Audit | `changeguard ledger status` | Ensure clean baseline |
+| Session start | `ledgerful doctor` | Verify daemon/toolchain health |
+| Before edits | `ledgerful scan --impact` | Detect drift and assess blast radius |
+| After implementation | `ledgerful impact` | Full impact report |
+| Before commit | `ledgerful verify` | Run verification plan |
+| On commit | `ledgerful ledger commit` | Close transaction |
+| Audit | `ledgerful ledger status` | Ensure clean baseline |
 
 ### GitHub CLI (`gh`)
 
@@ -240,7 +240,7 @@ Use ChangeGuard commands against the backend repo or the running daemon:
 
 ### Codebase Search
 
-Prefer LSP/Grep for frontend symbols, ChangeGuard for backend symbols:
+Prefer LSP/Grep for frontend symbols, Ledgerful for backend symbols:
 
 ```bash
 # Frontend symbols
@@ -248,9 +248,9 @@ npx tsc --noEmit   # type-check
 # Use LSP/Grep for components, hooks, data services
 
 # Backend intelligence (run in backend repo or against daemon)
-changeguard index --incremental
-changeguard search "symbol"
-changeguard ask "..."
+ledgerful index --incremental
+ledgerful search "symbol"
+ledgerful ask "..."
 ```
 
 ---
@@ -263,15 +263,15 @@ changeguard ask "..."
 - **Local-first**: dashboard renders with mock data when daemon is unavailable.
 - **Windows paths**: preserve separators in displayed strings.
 - **No secrets in commits**: never commit `.env`, credentials, or API keys.
-- **No editing `.changeguard/` state files** directly unless the user explicitly requests it.
+- **No editing `.ledgerful/` state files** directly unless the user explicitly requests it.
 
 ## Key Reference Documents
 
 - `docs/product.md` — Product strategy and personas.
 - `docs/design.md` — Ledgerful design system (colors, typography, spacing, components, risk system).
 - `AGENTS.md` — Top-level agent rules and verification commands for Claude Code.
-- `.agents/skills/changeguard/SKILL.md` — Backend ChangeGuard command reference.
+- `.agents/skills/ledgerful/SKILL.md` — Backend Ledgerful command reference.
 - `.agents/skills/codex-review/SKILL.md` — Cross-model review process.
 - `.agents/skills/ai-brains/SKILL.md` — Memory and recall workflow.
-- `C:\dev\ChangeGuard\docs\Frontend-Notes.md` — Backend author's frontend-facing notes, constraints, and contracts.
-- `C:\Users\RyanB\Desktop\changeguard_monetization_roadmap.md` — Monetization roadmap informing feature priorities.
+- `C:\dev\coordinated\coordination.md` — Backend author's frontend-facing notes, constraints, and contracts.
+- `C:\dev\Release-Implementation-Plan.md` — Monetization roadmap informing feature priorities.

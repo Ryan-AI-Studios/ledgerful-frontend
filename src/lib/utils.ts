@@ -10,13 +10,6 @@ const TOKEN_KEY = "ledgerful:token";
 export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
 
-  try {
-    const stored = window.sessionStorage.getItem(TOKEN_KEY);
-    if (stored) return stored;
-  } catch {
-    // sessionStorage may be unavailable in private mode.
-  }
-
   const fromUrl = new URLSearchParams(window.location.search).get("token");
   if (fromUrl) {
     try {
@@ -25,6 +18,13 @@ export function getAuthToken(): string | null {
       // ignore storage errors.
     }
     return fromUrl;
+  }
+
+  try {
+    const stored = window.sessionStorage.getItem(TOKEN_KEY);
+    if (stored) return stored;
+  } catch {
+    // sessionStorage may be unavailable in private mode.
   }
 
   return null;

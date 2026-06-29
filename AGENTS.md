@@ -14,21 +14,21 @@ onboarding{
 
 ledgerful{
   before[6]:
-    "changeguard doctor to verify the daemon/backend is healthy at session start"
-    "changeguard audit at session start for project health"
-    "changeguard ledger status --compact"
+    "ledgerful doctor to verify the daemon/backend is healthy at session start"
+    "ledgerful audit at session start for project health"
+    "ledgerful ledger status --compact"
     "read conductor/conductor.md for the active track and definition of done"
-    "changeguard scan --impact for meaningful code/config/policy edits"
-    "read .changeguard/reports/latest-impact.json if present"
+    "ledgerful scan --impact for meaningful code/config/policy edits"
+    "read .ledgerful/reports/latest-impact.json if present"
   edit[4]:
-    "do not edit .changeguard state files"
+    "do not edit .ledgerful state files"
     "inspect hotspots surfaced by the backend"
     "inspect temporal couplings >70% reported by the backend"
     "research current documentation and pins online before adding or upgrading outside dependencies"
   after[3]:
     "npm run build must pass after TypeScript/Next.js edits"
     "npm run lint or next lint must pass"
-    "report risk, verification, pending tx, drift from changeguard"
+    "report risk, verification, pending tx, drift from ledgerful"
   skip[5]:
     "format-only"
     "scratch files"
@@ -64,13 +64,13 @@ workflow{
 }
 
 ledger{
-  start:"changeguard ledger start <entity> --category <CATEGORY> --message <intent>"
-  commit:"changeguard ledger commit <tx-id> --summary <what> --reason <why>"
+  start:"ledgerful ledger start <entity> --category <CATEGORY> --message <intent>"
+  commit:"ledgerful ledger commit <tx-id> --summary <what> --reason <why>"
   close_gate:"a track is not ledger-committed until implementation review, codex review, manual test, and npm build/lint/test all pass"
   no_placeholders:"do not commit a track as Completed if it still contains TODOs, stubs, or placeholder components"
   hooks[2]:
-    "pre-commit: changeguard ledger status --compact --exit-code"
-    "pre-push: changeguard ledger status --compact --exit-code"
+    "pre-commit: ledgerful ledger status --compact --exit-code"
+    "pre-push: ledgerful ledger status --compact --exit-code"
   stale_sidecar:"after git commit, if ledger status shows 1 pending, run ledger commit immediately; the hook removes the sidecar before post-commit can promote it"
 }
 
@@ -108,26 +108,26 @@ frontend{
 }
 
 kg{
-  backend:"CozoDB via changeguard daemon"
-  state:".changeguard/state/ledger.cozo in the backend repo"
+  backend:"CozoDB via ledgerful daemon"
+  state:".ledgerful/state/ledger.cozo in the backend repo"
   use[8]:
-    "changeguard search for high-precision regex/text discovery (prefer over grep)"
-    "changeguard ask --semantic for conceptual discovery (prefer over semantic search)"
-    "changeguard ask for architecture/codebase questions in the backend repo"
-    "changeguard index --incremental before any search/ask or after pulling changes"
-    "changeguard dead-code before cleanup sprints in the backend repo"
-    "changeguard data-models list before schema changes"
-    "changeguard config verify after config changes"
-    "changeguard viz for deep architecture review"
+    "ledgerful search for high-precision regex/text discovery (prefer over grep)"
+    "ledgerful ask --semantic for conceptual discovery (prefer over semantic search)"
+    "ledgerful ask for architecture/codebase questions in the backend repo"
+    "ledgerful index --incremental before any search/ask or after pulling changes"
+    "ledgerful dead-code before cleanup sprints in the backend repo"
+    "ledgerful data-models list before schema changes"
+    "ledgerful config verify after config changes"
+    "ledgerful viz for deep architecture review"
   surfaces[8]:
-    "changeguard endpoints --changed / --json"
-    "changeguard services diff"
-    "changeguard data-models impact --changed"
-    "changeguard config schema / config diff"
-    "changeguard observability diff / observability coverage"
-    "changeguard hotspots trend / hotspots explain"
-    "changeguard security boundaries / security impact --changed"
-    "changeguard ledger graph <tx-id>"
+    "ledgerful endpoints --changed / --json"
+    "ledgerful services diff"
+    "ledgerful data-models impact --changed"
+    "ledgerful config schema / config diff"
+    "ledgerful observability diff / observability coverage"
+    "ledgerful hotspots trend / hotspots explain"
+    "ledgerful security boundaries / security impact --changed"
+    "ledgerful ledger graph <tx-id>"
 }
 
 powershell{
@@ -174,11 +174,11 @@ contracts{
     "backend track adds/renames/removes a field the frontend renders"
     "mock service shape diverges from live API shape"
   update[3]:
-    "docs/Backend-Notes.md (the frontend's reverse-contract for the backend)"
-    "C:\dev\ChangeGuard\docs\Frontend-Notes.md (the backend's notes for the frontend)"
+    "C:\dev\coordinated\coordination.md (the cross-repo contract)"
+    "C:\dev\coordinated\coordination.md (the backend's notes for the frontend)"
     "affected frontend types/components/mocks"
   missing:"high finding in review.md — contract drift is a P1 minimum"
-  template:"E1/E2 ripple: backend renames a field → frontend type, component, mock, and Backend-Notes §3 must all update in the same track"
+  template:"E1/E2 ripple: backend renames a field → frontend type, component, mock, and coordination.md §4 (data shapes) must all update in the same track"
 }
 
 stop_before[8]:

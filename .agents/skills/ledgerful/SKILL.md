@@ -1,68 +1,68 @@
 ---
-name: changeguard
-description: Use this skill when making frontend edits that depend on backend intelligence, when reviewing impact/risk, verification planning, drift handling, ledger provenance, or deciding what tests to run in the Ledgerful frontend repo. Before meaningful edits, run ChangeGuard scan/impact in the backend repo; after edits, run frontend verification and report unresolved drift or ledger state.
+name: ledgerful
+description: Use this skill when making frontend edits that depend on backend intelligence, when reviewing impact/risk, verification planning, drift handling, ledger provenance, or deciding what tests to run in the Ledgerful frontend repo. Before meaningful edits, run Ledgerful scan/impact in the backend repo; after edits, run frontend verification and report unresolved drift or ledger state.
 ---
 
-# ChangeGuard as Ledgerful Backend Intelligence
+# Ledgerful as Ledgerful Backend Intelligence
 
-Use ChangeGuard as the local safety layer and engineering intelligence engine for the Ledgerful backend. It provides impact analysis, hotspot and temporal-coupling signals, verification planning, and transactional provenance. The Ledgerful frontend displays these signals in a readable dashboard.
+Use Ledgerful as the local safety layer and engineering intelligence engine for the Ledgerful backend. It provides impact analysis, hotspot and temporal-coupling signals, verification planning, and transactional provenance. The Ledgerful frontend displays these signals in a readable dashboard.
 
 ## Core Capabilities (Backend-Driven)
 
 - **Search & Discovery**: High-performance regex (Tantivy), precise LSP navigation (SCIP), and conceptual semantic search (local embeddings) with parallel HNSW retrieval.
-- **Code Symbol Index**: Tree-sitter parsing of Rust, TypeScript, and Python — extracts every public function, struct, enum, trait, module, and HTTP route into the Knowledge Graph. Queryable via `changeguard search` and `changeguard ask`.
+- **Code Symbol Index**: Tree-sitter parsing of Rust, TypeScript, and Python — extracts every public function, struct, enum, trait, module, and HTTP route into the Knowledge Graph. Queryable via `ledgerful search` and `ledgerful ask`.
 - **Route Extraction**: Detects HTTP routes from Axum, Express, and other frameworks. Stores `method`, `path_pattern`, `handler_name`, `framework`, and confidence score.
 - **Call Graph**: Tracks function call relationships (`Direct`, `MethodCall`, `TraitDispatch`, `Dynamic`, `External`) so you can answer "what calls this function?" and "what does this function depend on?".
 - **Knowledge Graph**: Durable, billion-edge relational and vector storage (CozoDB-redux/Sled) with native code-aware tokenization (Tree-Sitter). Stores symbols in `project_symbol` table.
-- **AI-Brains Bridge**: Exports hotspots, ledger entries, and MADR data to AI-Brains via `changeguard bridge export --hotspots --ledger [--madr] [--stdout]`. AI-Brains nightly pipeline ingests this output as code symbols into recall (T70). Inbound recall uses `changeguard bridge query "<text>"` (IPC with CLI fallback).
+- **AI-Brains Bridge**: Exports hotspots, ledger entries, and MADR data to AI-Brains via `ledgerful bridge export --hotspots --ledger [--madr] [--stdout]`. AI-Brains nightly pipeline ingests this output as code symbols into recall (T70). Inbound recall uses `ledgerful bridge query "<text>"` (IPC with CLI fallback).
 - **Impact Analysis**: Deep "blast radius" analysis across 20+ specialized providers (Infra, Contracts, Observability, Temporal).
 - **Cryptographic Provenance**: Mathematical proof of intent via Ed25519 signing of every ledger entry. Offline verification via `verify --signatures`.
 - **Predictable Verification**: Bayesian test reordering and CI failure prediction.
 - **Dead Code Detection**: Confidence-based dead code detection blending graph reachability, git activity, and test history (`dead-code` command).
 - **Live Visualization**: WebSocket-based Arc Diagram for real-time Knowledge Graph updates (`viz-server`, `viz-server --stop`).
-- **Endpoints**: Indexed endpoint graph with auth, schemas, consumers, and owner links. `changeguard endpoints --json` / `--changed` for direct review.
-- **Services Diff**: Declared service map with queue/topic/RPC edges and PR-style boundary diff. `changeguard services diff`.
-- **Data Models**: Durable data model, table, migration, and compatibility-class relations with impact rules for destructive changes. `changeguard data-models impact --changed`.
-- **Config Schema & Diff**: Explicit env var schema metadata (required/secret/owner/provider) and change diff. `changeguard config schema` / `changeguard config diff`.
+- **Endpoints**: Indexed endpoint graph with auth, schemas, consumers, and owner links. `ledgerful endpoints --json` / `--changed` for direct review.
+- **Services Diff**: Declared service map with queue/topic/RPC edges and PR-style boundary diff. `ledgerful services diff`.
+- **Data Models**: Durable data model, table, migration, and compatibility-class relations with impact rules for destructive changes. `ledgerful data-models impact --changed`.
+- **Config Schema & Diff**: Explicit env var schema metadata (required/secret/owner/provider) and change diff. `ledgerful config schema` / `ledgerful config diff`.
 - **Dependency & Advisory Graph**: Cargo/npm/Python lockfile ingestion with cargo-audit/osv advisory matching. Impact rules for vulnerable dependency introduction.
-- **Test Mapping**: Durable test nodes linked to endpoints, symbols, services, and data models. `changeguard verify explain --entity <path>` for entity-scoped test explanation.
-- **Observability Graph**: SLO, metric, alert, and signal nodes from OpenSLO YAML. Source-file-backed diff matching. `changeguard observability diff` / `observability coverage`.
-- **Hotspot Trends**: Persistent hotspot and temporal coupling snapshots with trend deltas. `changeguard hotspots trend` / `hotspots explain`.
-- **Ledger Graph**: Per-transaction entity neighborhood view linking ledger entries to symbols, endpoints, services, ADRs, config keys, and deploy surfaces. `changeguard ledger graph <tx-id>`.
+- **Test Mapping**: Durable test nodes linked to endpoints, symbols, services, and data models. `ledgerful verify explain --entity <path>` for entity-scoped test explanation.
+- **Observability Graph**: SLO, metric, alert, and signal nodes from OpenSLO YAML. Source-file-backed diff matching. `ledgerful observability diff` / `observability coverage`.
+- **Hotspot Trends**: Persistent hotspot and temporal coupling snapshots with trend deltas. `ledgerful hotspots trend` / `hotspots explain`.
+- **Ledger Graph**: Per-transaction entity neighborhood view linking ledger entries to symbols, endpoints, services, ADRs, config keys, and deploy surfaces. `ledgerful ledger graph <tx-id>`.
 - **Ledger Validator Lifecycle**: Full validator lifecycle with `ledger validator list`, `disable`, `enable`, `remove`, `doctor`, and hook-repair rollback for sidecar/pending mismatches.
-- **Security Boundaries**: Cedar policy parsing with cross-surface links (policy→endpoint/service/config_key/deploy_surface/ADR). `changeguard security boundaries` / `security impact --changed`.
+- **Security Boundaries**: Cedar policy parsing with cross-surface links (policy→endpoint/service/config_key/deploy_surface/ADR). `ledgerful security boundaries` / `security impact --changed`.
 
 ## Frontend ↔ Backend Relationship
 
-The Ledgerful frontend is **not** the backend. It consumes ChangeGuard data through:
+The Ledgerful frontend is **not** the backend. It consumes Ledgerful data through:
 
 1. **Mock services** in `src/lib/*-data.ts` (current v1 default).
 2. **HTTP API** from the daemon when wired (target for v2).
 3. **WebSocket** for live updates and real-time KG visualizations (future).
 
-When working on the frontend, treat ChangeGuard commands as **discovery and governance tools** against the backend repo, not as build/test tools for this repo.
+When working on the frontend, treat Ledgerful commands as **discovery and governance tools** against the backend repo, not as build/test tools for this repo.
 
 ## Default Workflow
 
 1. Check availability when uncertain:
 
    ```bash
-   changeguard doctor
+   ledgerful doctor
    ```
 
 2. Check current provenance state:
 
    ```bash
-   changeguard ledger status
+   ledgerful ledger status
    ```
 
 3. Before meaningful code edits, assess impact in the **backend repo**:
 
    ```bash
-   changeguard scan --impact
+   ledgerful scan --impact
    ```
 
-4. Read `.changeguard/reports/latest-impact.json` when it exists. Use it to
+4. Read `.ledgerful/reports/latest-impact.json` when it exists. Use it to
    identify risk level, hotspots, temporal couplings, affected symbols, runtime
    dependencies, and verification hints.
 
@@ -76,45 +76,45 @@ When working on the frontend, treat ChangeGuard commands as **discovery and gove
    npm run test:unit
    ```
 
-   Also run `changeguard verify` in the backend repo if backend contracts changed.
+   Also run `ledgerful verify` in the backend repo if backend contracts changed.
 
 7. Report the outcome: impact/risk signals used, frontend verification run, and any
-   unresolved pending transactions, drift, or unavailable ChangeGuard command.
+   unresolved pending transactions, drift, or unavailable Ledgerful command.
 
 ## Code Symbol Queries — Use These First for Backend Research
 
-Before searching the web or reading files manually, query ChangeGuard's symbol index. It knows every public function, struct, route, and call edge in the backend codebase.
+Before searching the web or reading files manually, query Ledgerful's symbol index. It knows every public function, struct, route, and call edge in the backend codebase.
 
 ```bash
 # Always refresh the index first (incremental, fast)
-changeguard index --incremental
+ledgerful index --incremental
 
 # Use automated SCIP indexing for compiler-grade precision (Rust, TS, Python)
-changeguard index --auto-scip
+ledgerful index --auto-scip
 
 # Find a function, struct, or type by name
-changeguard search "handleGetUser"
-changeguard search "AuthMiddleware"
+ledgerful search "handleGetUser"
+ledgerful search "AuthMiddleware"
 
 # Find HTTP routes
-changeguard search "POST /auth"
-changeguard ask "list all HTTP GET route handlers"
+ledgerful search "POST /auth"
+ledgerful ask "list all HTTP GET route handlers"
 
 # Find what calls a function
-changeguard ask "what calls validateToken"
-changeguard ask "show callers of UserRepository::find_by_id"
+ledgerful ask "what calls validateToken"
+ledgerful ask "show callers of UserRepository::find_by_id"
 
 # Find all public endpoints
-changeguard ask "find all Axum route handlers"
-changeguard ask "what API endpoints are defined in src/routes"
+ledgerful ask "find all Axum route handlers"
+ledgerful ask "what API endpoints are defined in src/routes"
 
 # Dead code
-changeguard dead-code --threshold 0.75
+ledgerful dead-code --threshold 0.75
 
 # Dead code — show everything including standard traits (Eq, Clone, Debug, …)
 # By default, standard trait symbols are EXCLUDED because they are used implicitly
 # via derive macros or blanket impls and almost always produce false positives.
-changeguard dead-code --include-traits
+ledgerful dead-code --include-traits
 ```
 
 > **Heuristic note**: Dead code analysis blends graph reachability, git inactivity, and
@@ -124,11 +124,11 @@ changeguard dead-code --include-traits
 >   (they are often dispatched dynamically or through serde).
 > Use `--include-traits` to restore unfiltered output for auditing purposes.
 
-For **frontend** code symbols (React components, hooks, data services), use LSP/Grep instead of ChangeGuard.
+For **frontend** code symbols (React components, hooks, data services), use LSP/Grep instead of Ledgerful.
 
 ## Audit Smoke Tests
 
-When reviewing backend behavior that surfaces in the dashboard, supplement unit tests with command-level smoke tests against the running daemon or `target\debug\changeguard.exe` on Windows.
+When reviewing backend behavior that surfaces in the dashboard, supplement unit tests with command-level smoke tests against the running daemon or `target\debug\ledgerful.exe` on Windows.
 
 Useful checks include:
 
@@ -139,9 +139,9 @@ Useful checks include:
 
 ## Repository Configuration
 
-ChangeGuard's `.changeguard/rules.toml` and `.changeguard/config.toml` live in the **backend repo**, not here. When the frontend needs new data shapes, coordinate with the backend repo's config and API surface rather than copying policy files.
+Ledgerful's `.ledgerful/rules.toml` and `.ledgerful/config.toml` live in the **backend repo**, not here. When the frontend needs new data shapes, coordinate with the backend repo's config and API surface rather than copying policy files.
 
-If `changeguard verify` fails with "Command not found" or times out while the
+If `ledgerful verify` fails with "Command not found" or times out while the
 same command passes manually, fix the backend repo-local config before treating it as a
 frontend failure.
 
@@ -157,56 +157,56 @@ For backend audit findings, coordinate fixes in the backend repo and update the 
 
 ## When To Skip
 
-Skip ChangeGuard backend checks only for trivial frontend formatting, simple dependency lockfile updates, binary/media changes, temporary scratch files, or when the user explicitly says to bypass it.
+Skip Ledgerful backend checks only for trivial frontend formatting, simple dependency lockfile updates, binary/media changes, temporary scratch files, or when the user explicitly says to bypass it.
 
 ## If Commands Fail
 
-- If `changeguard` is unavailable, continue with normal frontend tools and tell the
-  user backend ChangeGuard signals were unavailable.
+- If `ledgerful` is unavailable, continue with normal frontend tools and tell the
+  user backend Ledgerful signals were unavailable.
 - If `ledger status` shows unaudited drift, reconcile or adopt in the **backend repo** before continuing
   unless the user directs otherwise.
 - If `scan --impact` cannot complete, continue cautiously and include the error
   in the final report.
 - If a command reports that the index is `[STALE]`, you can append the `--auto-index` flag to commands like `search`, `ask`, `hotspots`, or `dead-code` to automatically refresh it before executing.
-- Do not edit `.changeguard/` state files directly.
+- Do not edit `.ledgerful/` state files directly.
 
 ## Ledger Provenance
 
 For tracked manual edits (typically in the backend repo):
 
 ```bash
-changeguard ledger start <entity> --category <CAT> --message "Intent"
+ledgerful ledger start <entity> --category <CAT> --message "Intent"
 # edit files
-changeguard ledger commit <tx-id> --summary "Done" --reason "Why"
+ledgerful ledger commit <tx-id> --summary "Done" --reason "Why"
 ```
 
 For surgical one-command provenance:
 
 ```bash
-changeguard ledger atomic <entity> --category <CAT> --summary "Task" --reason "Goal"
+ledgerful ledger atomic <entity> --category <CAT> --summary "Task" --reason "Goal"
 ```
 
 For lightweight notes or lessons learned:
 
 ```bash
 # Both positional and --message formats are supported
-changeguard ledger note <entity> "Note content"
-changeguard ledger note <entity> --message "Note content"
+ledgerful ledger note <entity> "Note content"
+ledgerful ledger note <entity> --message "Note content"
 ```
 
 ### Git Hook Lifecycle (Milestone O)
 
-ChangeGuard uses a two-phase commit lifecycle to ensure zero phantom records:
+Ledgerful uses a two-phase commit lifecycle to ensure zero phantom records:
 1. **`commit-msg`**: Launches the TUI to capture intent. Creates a `PENDING` transaction and a sidecar file.
 2. **`post-commit`**: Automatically promotes the `PENDING` transaction to `COMMITTED` once the Git commit is finalized. If the Git commit fails, the record remains pending or is safely rolled back on the next attempt.
 
 ### Cryptographic Security
 
-If `intent.require_signing = true` is set in `.changeguard/config.toml` in the backend repo, all ledger entries must be signed by the developer's local Ed25519 key.
+If `intent.require_signing = true` is set in `.ledgerful/config.toml` in the backend repo, all ledger entries must be signed by the developer's local Ed25519 key.
 
 To verify the integrity of the entire ledger:
 ```bash
-changeguard verify --signatures
+ledgerful verify --signatures
 ```
 This performs an offline mathematical validation of every record against its signature and public key.
 
@@ -253,10 +253,10 @@ Backend maintenance commands (run in the backend repo):
 
 ```bash
 # Safely migrate repository state (clears indices, preserves ledger)
-changeguard update --migrate --force
+ledgerful update --migrate --force
 
 # Rebuild indices after migration
-changeguard index --semantic
+ledgerful index --semantic
 ```
 
 ## Cross-Model Review Notes
@@ -274,8 +274,8 @@ review may already have written useful findings.
 
 ## References
 
-- `.agents/skills/changeguard/references/commands.md` — Full command details
-- `.agents/skills/changeguard/references/install.md` — Install fallback
-- `.agents/skills/changeguard/references/internals.md` — Architecture/internal notes
+- `.agents/skills/ledgerful/references/commands.md` — Full command details
+- `.agents/skills/ledgerful/references/install.md` — Install fallback
+- `.agents/skills/ledgerful/references/internals.md` — Architecture/internal notes
 - Backend repo: `docs/engineering.md`, `docs/architecture.md`
 - Frontend repo: `AGENTS.md`, `docs/product.md`, `docs/design.md`

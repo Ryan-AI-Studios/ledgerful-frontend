@@ -28,7 +28,7 @@ export async function apiRequest<T>(
   body?: unknown,
   params?: Record<string, string | undefined>,
 ): Promise<T> {
-  const init: RequestInit = { method };
+  const init: RequestInit = { method, signal: AbortSignal.timeout(5000) };
 
   if (method === "POST" && body !== undefined) {
     init.headers = { "Content-Type": "application/json" };
@@ -48,7 +48,11 @@ export async function apiRequest<T>(
     throw new ApiError(res.status, message);
   }
 
-  return (await res.json()) as T;
+  try {
+    return (await res.json()) as T;
+  } catch (err) {
+    throw new ApiError(500, "Invalid JSON response from server");
+  }
 }
 
 export async function apiGet<T>(

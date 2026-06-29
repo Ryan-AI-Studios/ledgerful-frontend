@@ -29,10 +29,7 @@ export function RecentChanges({ changes }: RecentChangesProps) {
         <ul className="divide-y divide-[var(--color-border-muted)]" role="list">
           {changes.map((change) => (
             <li key={change.id}>
-              <Link
-                href={`/ledger/detail?txId=${encodeURIComponent(change.id)}`}
-                className="group flex items-start justify-between gap-4 py-3 transition-colors duration-100 hover:bg-[var(--color-surface-raised)] -mx-4 px-4 md:-mx-6 md:px-6"
-              >
+              <div className="flex items-start justify-between gap-4 py-3 -mx-4 px-4 md:-mx-6 md:px-6">
                 <div className="flex items-start gap-3 min-w-0">
                   <RiskBadge risk={change.risk} />
                   <div className="min-w-0">
@@ -62,11 +59,7 @@ export function RecentChanges({ changes }: RecentChangesProps) {
                     </div>
                   </div>
                 </div>
-                <ArrowRight
-                  className="w-4 h-4 text-[var(--color-text-muted)] group-hover:text-[var(--color-primary)] flex-shrink-0 mt-1 transition-colors duration-100"
-                  aria-hidden="true"
-                />
-              </Link>
+              </div>
             </li>
           ))}
         </ul>

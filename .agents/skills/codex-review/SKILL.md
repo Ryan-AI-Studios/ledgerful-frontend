@@ -9,14 +9,14 @@ Different AI models catch different issues. The primary reviewer is OpenAI
 Codex (`codex review`); the fallback when Codex is exhausted or rate-limited
 is Anthropic Claude (`claude -p`). Both produce independent reviews of the
 same diff. This is especially valuable before committing high-risk changes,
-after substantial refactors, or when the ChangeGuard impact report shows
+after substantial refactors, or when the Ledgerful impact report shows
 elevated risk in the backend.
 
 ## When To Use
 
 - Before committing high-risk changes (ARCHITECTURE, FEATURE, BUGFIX categories)
 - After a substantial refactor spanning multiple files
-- When ChangeGuard reports `riskLevel: High` or broad temporal couplings in the backend
+- When Ledgerful reports `riskLevel: High` or broad temporal couplings in the backend
 - After implementing a full phase of frontend work
 - When you want a second opinion on design decisions
 - Before creating a PR
@@ -103,13 +103,13 @@ claude -p "Run 'git diff HEAD~3..HEAD --stat' then 'git diff HEAD~3..HEAD' in th
 | Both available | **Codex first**, then Claude for a second independent pass if the first found issues |
 | Neither available | Continue with native gates (build/lint/test); report the missing cross-model signal |
 
-## ChangeGuard-Aware Review
+## Ledgerful-Aware Review
 
 Include backend signals in the review context:
 
 ```powershell
 # Get backend risk summary first (run in backend repo)
-changeguard impact --summary
+ledgerful impact --summary
 
 # Then review frontend diff with that context in the title
 New-Item -ItemType Directory -Force -Path output
@@ -152,13 +152,13 @@ The review should contain findings ordered by severity. Address critical and hig
 
 ## Integration with Ledgerful Workflow
 
-1. Run `changeguard scan --impact` in the backend repo — get risk signals
+1. Run `ledgerful scan --impact` in the backend repo — get risk signals
 2. Make your frontend changes
 3. Run `npm run build` and `npm run lint`
 4. Run cross-model review (Codex primary, Claude fallback) — get findings
 5. Address critical/high findings
 6. Run `npm run test:unit` / `npm run test:e2e` as appropriate
-7. Commit with `changeguard ledger commit` (if tracked)
+7. Commit with `ledgerful ledger commit` (if tracked)
 
 ## Frontend-Specific Review Checklist
 

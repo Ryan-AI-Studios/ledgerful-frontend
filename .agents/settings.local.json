@@ -2,9 +2,9 @@
   "permissions": {
     "allow": [
       "Read(//c/Users/RyanB/AppData/Local/Temp/u22_smoke/**)",
-      "Bash(changeguard reset *)",
-      "Bash(changeguard init *)",
-      "Bash(rm -rf .changeguard .git/hooks/*)",
+      "Bash(ledgerful reset *)",
+      "Bash(ledgerful init *)",
+      "Bash(rm -rf .ledgerful .git/hooks/*)",
       "Bash(npm run dev -- -p 52001)",
       "Bash(node screenshots/*.js)"
     ]

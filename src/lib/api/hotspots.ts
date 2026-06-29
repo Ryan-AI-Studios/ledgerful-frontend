@@ -1,12 +1,29 @@
 import { apiGet } from "../api";
-import { Hotspot } from "@/lib/types";
+import { Hotspot, RiskLevel } from "@/lib/types";
+
+interface HotspotResponse {
+  id: string;
+  filePath: string;
+  riskLevel: RiskLevel;
+  riskScore: number;
+  lastTouchedAt: string | null;
+  contributor: string | null;
+  changeCount: number;
+  rank: number;
+}
 
 export async function fetchHotspots(days: number = 90): Promise<Hotspot[]> {
-  const hotspots = await apiGet<Hotspot[]>("/hotspots", { days: days.toString() });
+  const hotspots = await apiGet<HotspotResponse[]>("/hotspots", { days: days.toString() });
   
-  // Ensure rank is populated based on the order returned (assuming API sorts by risk score)
-  return hotspots.map((h, i) => ({
-    ...h,
-    rank: h.rank ?? i + 1
+  return hotspots.map((h) => ({
+    id: h.id,
+    filePath: h.filePath,
+    riskLevel: h.riskLevel,
+    riskScore: h.riskScore,
+    // Fallback to empty string or current date if null to satisfy the UI interface
+    lastTouchedAt: h.lastTouchedAt ?? new Date().toISOString(),
+    contributor: h.contributor ?? undefined,
+    changeCount: h.changeCount,
+    rank: h.rank
   }));
 }

@@ -13,10 +13,15 @@ export default function ChangesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchChanges().then((data) => {
-      setChanges(data);
-      setLoading(false);
-    });
+    fetchChanges()
+      .then((data) => {
+        setChanges(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to load changes:", err);
+        setLoading(false);
+      });
   }, []);
 
   const columns: Column<ChangeEntry>[] = [
@@ -105,9 +110,6 @@ export default function ChangesPage() {
             columns={columns}
             rows={changes}
             getRowKey={(row) => row.id}
-            onRowClick={(row) => {
-              window.location.href = `/ledger/detail?txId=${encodeURIComponent(row.id)}`;
-            }}
           />
         )}
 

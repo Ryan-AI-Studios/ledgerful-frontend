@@ -1,6 +1,6 @@
 ---
 name: ai-brains
-description: Load this skill at session start (run preflight), before risky changes, when searching for past decisions or architectural history across sessions, or when deciding whether to use ai-brains recall vs changeguard search vs reading code directly. Ai-brains provides persistent memory, cross-session recall, and safety signals across all your projects, including the Ledgerful frontend and its Rust backend.
+description: Load this skill at session start (run preflight), before risky changes, when searching for past decisions or architectural history across sessions, or when deciding whether to use ai-brains recall vs ledgerful search vs reading code directly. Ai-brains provides persistent memory, cross-session recall, and safety signals across all your projects, including the Ledgerful frontend and its Rust backend.
 ---
 
 # AI-Brains + Ledgerful: Product Development Skill
@@ -9,10 +9,10 @@ description: Load this skill at session start (run preflight), before risky chan
 
 | Tool | Role |
 |------|------|
-| **ChangeGuard** | Change intelligence for the backend repo — impact analysis, hotspots, ledger provenance, verification planning |
+| **Ledgerful** | Change intelligence for the backend repo — impact analysis, hotspots, ledger provenance, verification planning |
 | **ai-brains** | Persistent memory vault — cross-session recall, past decisions, safety signals, code symbol search across projects |
 
-They are interoperable: ChangeGuard nightly feeds code symbols, hotspots, and ledger ADRs into ai-brains recall so a single recall query covers both past decisions and live code structure.
+They are interoperable: Ledgerful nightly feeds code symbols, hotspots, and ledger ADRs into ai-brains recall so a single recall query covers both past decisions and live code structure.
 
 ## New Repo Setup (Do This Once)
 
@@ -20,7 +20,7 @@ They are interoperable: ChangeGuard nightly feeds code symbols, hotspots, and le
 # 1. Initialize project context — writes .env with AI_BRAINS_PROJECT_ID and AI_BRAINS_SESSION_ID
 ai-brains context
 
-# 2. Sync ChangeGuard hotspots into vault as pinned safety signals
+# 2. Sync Ledgerful hotspots into vault as pinned safety signals
 ai-brains safety sync
 
 # 3. Verify preflight works
@@ -36,8 +36,8 @@ ai-brains preflight --summary
 ai-brains preflight --summary
 
 # Current repo state
-changeguard ledger status --compact
-changeguard doctor
+ledgerful ledger status --compact
+ledgerful doctor
 ```
 
 ## When to Reach for Each
@@ -48,17 +48,17 @@ changeguard doctor
 | Past decisions or cross-session architectural history only | `ai-brains recall "<topic>" --semantic` |
 | Safety signals before a risky edit | `ai-brains preflight --summary` |
 | Find a live frontend component, hook, or data service | Use LSP/Grep for `src/components` / `src/lib` |
-| Find a backend function, route, or symbol by name | `changeguard search "functionName"` |
-| Natural language code queries | `changeguard ask "find all GET handlers"` |
-| Blast radius of a proposed change | `changeguard scan --impact` |
-| Provenance — why was this changed? | `changeguard ledger search "<topic>"` |
+| Find a backend function, route, or symbol by name | `ledgerful search "functionName"` |
+| Natural language code queries | `ledgerful ask "find all GET handlers"` |
+| Blast radius of a proposed change | `ledgerful scan --impact` |
+| Provenance — why was this changed? | `ledgerful ledger search "<topic>"` |
 
 `ai-brains sync query` is the primary search path — it queries both tools in one shot. Use `recall` alone only when you want memory-only results.
 
 ## Recall (Memory Retrieval)
 
 ```bash
-# Unified recall across ai-brains + ChangeGuard (preferred)
+# Unified recall across ai-brains + Ledgerful (preferred)
 ai-brains sync query "<topic>"
 
 # FTS keyword recall
@@ -73,7 +73,7 @@ ai-brains recall "<topic>" --semantic --graph-boost 0.1 --limit 5
 
 `ai-brains recall` returns JSON by default. `ai-brains sync query` returns human-readable output.
 
-`ai-brains recall` also returns code symbols (functions, routes) ingested from ChangeGuard nightly — a single recall query covers both past decisions and backend code structure. For frontend code symbols, rely on LSP/Grep and pinned memories.
+`ai-brains recall` also returns code symbols (functions, routes) ingested from Ledgerful nightly — a single recall query covers both past decisions and backend code structure. For frontend code symbols, rely on LSP/Grep and pinned memories.
 
 ## Pinning Decisions and Constraints
 
@@ -81,8 +81,8 @@ ai-brains recall "<topic>" --semantic --graph-boost 0.1 --limit 5
 # Pin a decision directly to the vault
 ai-brains pin "DECISION: Switched dashboard charts to Recharts for v2"
 
-# Pin linked to a ChangeGuard ledger transaction (strongest provenance)
-ai-brains pin "DECISION: Migrated to CozoDB for graph queries" --tx-id <changeguard-tx-id>
+# Pin linked to a Ledgerful ledger transaction (strongest provenance)
+ai-brains pin "DECISION: Migrated to CozoDB for graph queries" --tx-id <ledgerful-tx-id>
 
 # Pin a constraint with a tag
 ai-brains pin "CONSTRAINT: Never store PII in telemetry" --tag security
@@ -97,7 +97,7 @@ Pinned memories with DECISION/CONSTRAINT/HOTSPOT prefixes are promoted to `prefl
 # Ingest project docs, notes, or specs
 ai-brains ingest --project-id <id> --path <path>
 
-# Sync ChangeGuard hotspots into vault as pinned safety signals
+# Sync Ledgerful hotspots into vault as pinned safety signals
 ai-brains safety sync
 
 # Run nightly pipeline manually (summarization, embeddings, symbol sync)
@@ -116,8 +116,8 @@ Runs automatically on schedule. Keeps recall fresh without manual action:
 
 1. Session summarization and hierarchical synthesis
 2. Embedding backfill and stale refresh
-3. MADR ingestion from ChangeGuard ledger
-4. ChangeGuard symbol index sync into recall
+3. MADR ingestion from Ledgerful ledger
+4. Ledgerful symbol index sync into recall
 
 If recall results feel stale, run `ai-brains nightly` manually.
 

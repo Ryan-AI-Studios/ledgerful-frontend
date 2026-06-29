@@ -39,15 +39,15 @@ plan{
     - read conductor/conductor.md
     - read conductor/<track>/spec.md
     - read conductor/<track>/plan.md
-    - changeguard ledger status --compact
-    - changeguard scan --impact (if backend touched)
+    - ledgerful ledger status --compact
+    - ledgerful scan --impact (if backend touched)
     - read the relevant Next.js guide in node_modules/next/dist/docs/
   output_plan[6]:
     - affected files/modules (app/, components/, lib/)
     - expected behavior
     - proof tests/checks
     - dependency research needed (research pins online before adding/upgrading)
-    - contract surfaces changed (types, mocks, Backend-Notes)
+    - contract surfaces changed (types, mocks, coordination.md)
     - likely conflicts/shared files
   spec_vs_reality:
     rule:"follow actual code layout over aspirational spec paths"
@@ -93,7 +93,7 @@ research{
     - conductor track
     - ledger history
     - local rules
-    - repo docs (docs/product.md, docs/design.md, docs/Backend-Notes.md)
+    - repo docs (docs/product.md, docs/design.md, C:\dev\coordinated\coordination.md)
     - Next.js bundled docs (node_modules/next/dist/docs/)
     - context7 or web
   pins:
@@ -112,7 +112,7 @@ targeted_checks{
 
 review_convergence{
   file:"conductor/<track>/review.md"
-  ledger_note:"review log is not changeguard ledger"
+  ledger_note:"review log is not ledgerful ledger"
   review_for:
     - correctness
     - TypeScript strictness (no `any`, proper optional/nullable handling)
@@ -122,7 +122,7 @@ review_convergence{
     - missing tests
     - edge cases
     - regressions
-    - contract drift (types vs Backend-Notes vs mock vs live API)
+    - contract drift (types vs coordination.md vs mock vs live API)
   finding_fields:
     - id
     - severity
@@ -201,7 +201,7 @@ full_gate{
     - npm run test:unit
     - npm run test:e2e (when page or interaction flows are touched)
   doctests:"n/a for frontend"
-  changeguard_verify:"only if backend contract changed"
+  ledgerful_verify:"only if backend contract changed"
   alias_unavailable:"fallback to native checks; report missing signal"
   never:"--no-verify unless user explicitly requests"
   codex_review:"codex review --uncommitted --title \"...\" 2>&1 | Out-File output/review.md (or claude -p fallback)"
@@ -215,7 +215,7 @@ finalize{
     - no unresolved regression caused by work
     - full gate green
     - manual evidence recorded
-    - contracts synced (Backend-Notes + Frontend-Notes + types + mocks)
+    - contracts synced (coordination.md + types + mocks)
     - conductor updated
     - ledger status clean after commit
   conductor:
