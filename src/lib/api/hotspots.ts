@@ -15,7 +15,7 @@ interface HotspotResponse {
 export async function fetchHotspots(days: number = 90): Promise<Hotspot[]> {
   const hotspots = await apiGet<HotspotResponse[]>("/hotspots", { days: days.toString() });
   
-  return hotspots.map((h) => ({
+  return hotspots.map((h, i) => ({
     id: h.id,
     filePath: h.filePath,
     riskLevel: h.riskLevel,
@@ -24,6 +24,6 @@ export async function fetchHotspots(days: number = 90): Promise<Hotspot[]> {
     lastTouchedAt: h.lastTouchedAt ?? new Date().toISOString(),
     contributor: h.contributor ?? undefined,
     changeCount: h.changeCount,
-    rank: h.rank
+    rank: h.rank ?? i + 1
   }));
 }
