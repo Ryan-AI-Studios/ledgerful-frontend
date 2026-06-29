@@ -221,7 +221,7 @@ export default function DocsPage() {
                 <p className="text-[0.8125rem] leading-relaxed text-[var(--color-text-secondary)] mb-3">
                   Install the MCP server and your agent can call scan, search, ask, hotspots, and ledger_status.
                 </p>
-                <CmdBlock command="npm install -g @changeguard/mcp-server" />
+                <CmdBlock command="npm install -g @ledgerful/mcp-server" />
               </div>
               <div id="compliance-export" className="rounded-lg border border-[var(--color-border-muted)] bg-[var(--color-surface-alt)] p-5 scroll-mt-20">
                 <h3 className="text-[0.9375rem] font-semibold text-[var(--color-text-primary)] mb-1.5">Compliance export</h3>

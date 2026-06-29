@@ -1,5 +1,5 @@
 -- Create table for opt-in CLI telemetry events
--- Schema must match ChangeGuard Track M7 exactly
+-- Schema must match Ledgerful Track M7 exactly
 create table if not exists public.telemetry_events (
   id bigint generated always as identity primary key,
   received_at timestamptz not null default now(),
@@ -25,4 +25,4 @@ create index if not exists telemetry_events_received_at_idx on public.telemetry_
 create index if not exists telemetry_events_anonymous_id_idx on public.telemetry_events (anonymous_id);
 
 -- Comment for clarity
-comment on table public.telemetry_events is 'Opt-in CLI usage metrics received from ChangeGuard CLI.';
+comment on table public.telemetry_events is 'Opt-in CLI usage metrics received from Ledgerful CLI.';

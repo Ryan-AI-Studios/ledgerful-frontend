@@ -28,7 +28,7 @@ const CHANNELS = [
   {
     icon: Zap,
     title: "MCP server",
-    sub: "@changeguard/mcp-server",
+    sub: "@ledgerful/mcp-server",
     body: "Cursor, Claude Code, Copilot, Windsurf. Your agents call scan, search, ask, hotspots, ledger_status.",
   },
   {

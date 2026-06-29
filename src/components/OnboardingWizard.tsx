@@ -208,7 +208,7 @@ export function OnboardingWizard({ isOpen, onClose, onComplete }: OnboardingWiza
                 </button>
               </div>
               <p className="text-xs text-[var(--color-text-secondary)] pt-2 italic">
-                This will create a <code className="text-[var(--color-text-primary)]">.changeguard</code> directory and start the local daemon.
+                This will create a <code className="text-[var(--color-text-primary)]">.ledgerful</code> directory and start the local daemon.
               </p>
             </div>
           )}

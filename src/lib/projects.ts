@@ -6,9 +6,9 @@ export type { Project } from "@/lib/types";
 
 export const projects: import("@/lib/types").Project[] = [
   {
-    id: "changeguard",
-    name: "changeguard",
-    path: "C:/dev/changeguard",
+    id: "ledgerful",
+    name: "ledgerful",
+    path: "C:/dev/ledgerful",
     status: "warning",
     lastScanAt: "2d ago",
     healthScore: 61,

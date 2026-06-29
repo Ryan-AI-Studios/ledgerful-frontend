@@ -47,7 +47,7 @@ serve(async (req)=>{
     }
     const decoder = new TextDecoder();
     const payload = JSON.parse(decoder.decode(body));
-    // 2. Schema Validation (matches ChangeGuard M7)
+    // 2. Schema Validation (matches Ledgerful M7)
     if (payload.schema_version !== 1) {
       return new Response(JSON.stringify({
         error: "Unsupported schema version"

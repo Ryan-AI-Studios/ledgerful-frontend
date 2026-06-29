@@ -4,7 +4,7 @@ name: Ledgerful
 description: Local-first "intent ledger for agentic engineering." Dark, dense,
   terminal-adjacent — the visual language of a power tool, not a marketing site.
   Single mint accent over GitHub-dark surfaces, Inter for UI, JetBrains Mono for
-  data. Ported from ChangeGuard and renamed for the Ledgerful v1 ship.
+  data. Originally ported from the previous code name and renamed for the Ledgerful v1 ship.
 
 # ─────────────────────────────────────────────────────────────────
 # COLORS
