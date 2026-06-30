@@ -9,6 +9,7 @@ export function fetchProjects(): Promise<Project[]> {
       status: "warning",
       lastScanAt: "2d ago",
       healthScore: 61,
+      validationWarnings: [],
     },
   ]);
 }

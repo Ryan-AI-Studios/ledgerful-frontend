@@ -1,6 +1,6 @@
 import { Project } from "@/lib/types";
 import { fetchProjects as fetchMockProjects } from "@/lib/mock/projects";
-import { withFallback } from "@/lib/fallback";
+import { withFallback, WithSource } from "@/lib/fallback";
 
 async function liveGetStatus(projectId: string): Promise<{ status: Project["integrationStatus"], repo?: string }> {
   void projectId;
@@ -16,7 +16,7 @@ async function mockGetStatus(projectId: string): Promise<{ status: Project["inte
   };
 }
 
-export async function getGithubIntegrationStatus(projectId: string): Promise<{ status: Project["integrationStatus"], repo?: string }> {
+export async function getGithubIntegrationStatus(projectId: string): Promise<WithSource<{ status: Project["integrationStatus"], repo?: string }>> {
   return withFallback(() => liveGetStatus(projectId), () => mockGetStatus(projectId));
 }
 
@@ -30,7 +30,7 @@ async function mockConnect(projectId: string): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 1000));
 }
 
-export async function connectGithub(projectId: string): Promise<void> {
+export async function connectGithub(projectId: string): Promise<WithSource<void>> {
   return withFallback(() => liveConnect(projectId), () => mockConnect(projectId));
 }
 
@@ -44,6 +44,6 @@ async function mockDisconnect(projectId: string): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 1000));
 }
 
-export async function disconnectGithub(projectId: string): Promise<void> {
+export async function disconnectGithub(projectId: string): Promise<WithSource<void>> {
   return withFallback(() => liveDisconnect(projectId), () => mockDisconnect(projectId));
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { VerificationHealth, VerificationTrendPoint, VerificationStep } from "@/lib/types";
+import { DataSource } from "@/lib/fallback";
 import { 
   fetchVerificationHealth, 
   fetchVerificationHistory, 
@@ -12,12 +13,13 @@ import { PageLayout } from "@/components/PageLayout";
 import { VerificationHealthCard } from "@/components/VerificationHealthCard";
 import { VerificationTrendSparkline } from "@/components/VerificationTrendSparkline";
 import { VerificationStepsTable } from "@/components/VerificationStepsTable";
+import { DataSourceBadge } from "@/components/DataSourceBadge";
 import { AlertCircle, RefreshCw } from "lucide-react";
 
 type VerifyState =
   | { status: "loading" }
   | { status: "error"; message: string }
-  | { status: "ready"; health: VerificationHealth; history: VerificationTrendPoint[]; steps: VerificationStep[] };
+  | { status: "ready"; health: VerificationHealth; history: VerificationTrendPoint[]; steps: VerificationStep[]; source: DataSource };
 
 export default function VerifyPage() {
   const { project } = useProject();
@@ -33,8 +35,20 @@ function VerifyContent() {
       fetchVerificationHistory(),
       fetchVerificationSteps()
     ])
-      .then(([health, history, steps]) => {
-        setState({ status: "ready", health, history, steps });
+      .then(([healthResult, historyResult, stepsResult]) => {
+        const source: DataSource =
+          healthResult.source === "mock" || historyResult.source === "mock" || stepsResult.source === "mock"
+            ? "mock"
+            : healthResult.source === "unavailable" || historyResult.source === "unavailable" || stepsResult.source === "unavailable"
+            ? "unavailable"
+            : "live";
+        setState({
+          status: "ready",
+          health: healthResult.data,
+          history: historyResult.data,
+          steps: stepsResult.data,
+          source,
+        });
       })
       .catch(() => {
         setState({
@@ -51,6 +65,9 @@ function VerifyContent() {
 
   return (
     <PageLayout title="Verification History">
+      <div className="flex items-center gap-3 mb-4" aria-live="polite" aria-busy={state.status === "loading"}>
+        {state.status === "ready" && <DataSourceBadge source={state.source} />}
+      </div>
       <div aria-live="polite" aria-busy={state.status === "loading"}>
         {state.status === "loading" && (
           <div className="flex flex-col gap-6 animate-pulse">

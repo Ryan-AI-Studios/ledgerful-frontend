@@ -33,20 +33,22 @@ describe("Trends API", () => {
 });
 
 describe("Trends Data Fallback", () => {
-  it("fetchTrendsData returns live data when available", async () => {
+  it("fetchTrendsData returns live data with source", async () => {
     const mockData = [{ date: "2026-06-16", score: 85, changes: 5, highRiskCount: 0 }];
     (apiGet as Mock).mockResolvedValueOnce(mockData);
     
-    const data = await fetchTrendsData(30);
-    expect(data).toEqual(mockData);
+    const result = await fetchTrendsData(30);
+    expect(result.source).toBe("live");
+    expect(result.data).toEqual(mockData);
   });
 
-  it("fetchTrendsData falls back to mock data when API fails", async () => {
+  it("fetchTrendsData falls back to mock data with source", async () => {
     const { ApiError } = await import("../api");
     (apiGet as Mock).mockRejectedValueOnce(new ApiError(500, "Network Error"));
     
-    const data = await fetchTrendsData(30);
-    expect(data.length).toBeGreaterThan(0);
-    expect(data[0]).toHaveProperty("score");
+    const result = await fetchTrendsData(30);
+    expect(result.source).toBe("mock");
+    expect(result.data.length).toBeGreaterThan(0);
+    expect(result.data[0]).toHaveProperty("score");
   });
 });

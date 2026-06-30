@@ -8,6 +8,7 @@ interface ProjectApiItem {
   status: string;
   last_scan_at: string | null;
   health_score: number;
+  validation_warnings: string[];
 }
 
 export async function fetchProjects(): Promise<Project[]> {
@@ -23,5 +24,6 @@ export async function fetchProjects(): Promise<Project[]> {
     status: (p.status === "healthy" || p.status === "warning" || p.status === "critical") ? p.status : "warning",
     lastScanAt: p.last_scan_at,
     healthScore: p.health_score,
+    validationWarnings: p.validation_warnings ?? [],
   }));
 }

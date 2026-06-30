@@ -2,45 +2,34 @@
 
 import { useEffect, useState } from "react";
 import { ComplianceSummary, SignatureEntry } from "@/lib/types";
+import { DataSource } from "@/lib/fallback";
 import { fetchComplianceSummary, fetchSignatureEntries } from "@/lib/compliance-data";
 import { PageLayout } from "@/components/PageLayout";
 import { ComplianceSummaryCards } from "@/components/ComplianceSummaryCards";
 import { SignatureValidationTable } from "@/components/SignatureValidationTable";
 import { Soc2ExportButton } from "@/components/Soc2ExportButton";
+import { DataSourceBadge } from "@/components/DataSourceBadge";
 import { AlertCircle, RefreshCw, Loader2 } from "lucide-react";
 
 type ComplianceState =
   | { status: "loading" }
   | { status: "error"; message: string }
-  | { status: "ready"; summary: ComplianceSummary; entries: SignatureEntry[] };
+  | { status: "ready"; summary: ComplianceSummary; entries: SignatureEntry[]; source: DataSource };
 
 export default function CompliancePage() {
   const [state, setState] = useState<ComplianceState>({ status: "loading" });
 
-  useEffect(() => {
-    let isMounted = true;
-    Promise.all([fetchComplianceSummary(), fetchSignatureEntries()])
-      .then(([summary, entries]) => {
-        if (isMounted) setState({ status: "ready", summary, entries });
-      })
-      .catch((err) => {
-        if (isMounted) {
-          setState({
-            status: "error",
-            message: "Could not load compliance data. The Ledgerful daemon may not be running. " + (err instanceof Error ? err.message : String(err)),
-          });
-        }
-      });
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const handleRetry = () => {
+  const load = () => {
     setState({ status: "loading" });
     Promise.all([fetchComplianceSummary(), fetchSignatureEntries()])
-      .then(([summary, entries]) => {
-        setState({ status: "ready", summary, entries });
+      .then(([summaryResult, entriesResult]) => {
+        const source: DataSource =
+          summaryResult.source === "mock" || entriesResult.source === "mock"
+            ? "mock"
+            : summaryResult.source === "unavailable" || entriesResult.source === "unavailable"
+            ? "unavailable"
+            : "live";
+        setState({ status: "ready", summary: summaryResult.data, entries: entriesResult.data, source });
       })
       .catch((err) => {
         setState({
@@ -50,15 +39,29 @@ export default function CompliancePage() {
       });
   };
 
+  useEffect(() => {
+    const timeout = setTimeout(() => load(), 0);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  const exportDisabled = state.status === "ready" && state.source === "mock";
+
+  const handleRetry = () => {
+    load();
+  };
+
   return (
     <PageLayout title="Compliance Hub">
       <div className="flex flex-col gap-8">
-        <div className="flex justify-between items-start gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <p className="text-[var(--color-text-secondary)] max-w-2xl text-sm leading-relaxed">
-            Audit-ready overview of repository integrity. This page provides signed transaction counts, 
+            Audit-ready overview of repository integrity. This page provides signed transaction counts,
             signature validity verification, and architectural decision records for compliance reporting.
           </p>
-          <Soc2ExportButton />
+          <div className="flex items-center gap-3">
+            {state.status === "ready" && <DataSourceBadge source={state.source} />}
+            <Soc2ExportButton disabled={exportDisabled} />
+          </div>
         </div>
 
         {state.status === "loading" && (

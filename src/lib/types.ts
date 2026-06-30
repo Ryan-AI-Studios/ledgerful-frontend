@@ -99,9 +99,12 @@ export interface Project {
   status: "healthy" | "warning" | "critical";
   lastScanAt: string | null;
   healthScore: number;
+  validationWarnings: string[];
   githubRepo?: string;
   integrationStatus?: "CONNECTED" | "DISCONNECTED" | "PENDING";
 }
+
+export type { DataSource } from "./fallback";
 
 export interface SyncStatus {
   deviceId: string | null;

@@ -4,7 +4,7 @@ import { PageLayout } from "@/components/PageLayout";
 import { useProject } from "@/lib/ProjectContext";
 import { projects } from "@/lib/projects";
 import { StatusDot } from "@/components/StatusDot";
-import { Check, FolderGit2 } from "lucide-react";
+import { Check, FolderGit2, AlertTriangle } from "lucide-react";
 
 export default function ProjectsPage() {
   const { project, setProject } = useProject();
@@ -20,17 +20,18 @@ export default function ProjectsPage() {
         <div className="space-y-2">
           {projects.map((p) => {
             const active = p.id === project.id;
+            const hasWarnings = p.validationWarnings.length > 0;
             return (
               <button
                 key={p.id}
                 onClick={() => setProject(p)}
-                className={`w-full flex items-center gap-4 p-4 rounded-lg border transition-colors duration-100 text-left ${
+                className={`w-full flex items-start gap-4 p-4 rounded-lg border transition-colors duration-100 text-left ${
                   active
                     ? "bg-[rgba(0,229,160,0.06)] border-[var(--color-primary)]"
                     : "bg-[var(--color-surface)] border-[var(--color-border-muted)] hover:bg-[var(--color-surface-raised)]"
                 }`}
               >
-                <FolderGit2 className="w-8 h-8 text-[var(--color-text-muted)]" aria-hidden="true" />
+                <FolderGit2 className="w-8 h-8 text-[var(--color-text-muted)] flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3">
                     <span className="text-[1rem] font-semibold text-[var(--color-text-primary)]">
@@ -51,6 +52,20 @@ export default function ProjectsPage() {
                     <span className="text-[var(--color-text-secondary)]">Health {p.healthScore}/100</span>
                     <span className="text-[var(--color-text-muted)]">Scanned {p.lastScanAt}</span>
                   </div>
+
+                  {hasWarnings && (
+                    <div className="mt-3 p-3 rounded-md bg-[var(--color-warning)]/10 border border-[var(--color-warning)]/20">
+                      <div className="flex items-center gap-2 text-sm font-medium text-[var(--color-warning)] mb-1">
+                        <AlertTriangle className="w-4 h-4" aria-hidden="true" />
+                        Needs attention
+                      </div>
+                      <ul className="list-disc list-inside text-sm text-[var(--color-text-secondary)] space-y-0.5">
+                        {p.validationWarnings.map((warning) => (
+                          <li key={warning}>{warning}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </button>
             );

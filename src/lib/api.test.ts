@@ -222,30 +222,34 @@ describe("domain wrappers with fallback", () => {
     delete process.env.NEXT_PUBLIC_LEDGERFUL_USE_MOCK;
   });
 
-  it("returns mock data when NEXT_PUBLIC_LEDGERFUL_USE_MOCK is true", async () => {
+  it("returns mock data with source=mock when NEXT_PUBLIC_LEDGERFUL_USE_MOCK is true", async () => {
     process.env.NEXT_PUBLIC_LEDGERFUL_USE_MOCK = "true";
-    const data = await fetchDashboardData();
-    expect(data.health.score).toBe(61);
-    expect(data.recentChanges.length).toBeGreaterThan(0);
+    const result = await fetchDashboardData();
+    expect(result.source).toBe("mock");
+    expect(result.data.health.score).toBe(61);
+    expect(result.data.recentChanges.length).toBeGreaterThan(0);
   });
 
   it("falls back to mock on 5xx daemon error", async () => {
     mockFetch.mockRejectedValueOnce(new ApiError(503, "daemon offline"));
-    const data = await fetchDashboardData();
-    expect(data.health.score).toBe(61);
-    expect(data.recentChanges.length).toBeGreaterThan(0);
+    const result = await fetchDashboardData();
+    expect(result.source).toBe("mock");
+    expect(result.data.health.score).toBe(61);
+    expect(result.data.recentChanges.length).toBeGreaterThan(0);
   });
 
   it("falls back to mock on network TypeError", async () => {
     mockFetch.mockRejectedValueOnce(new TypeError("Failed to fetch"));
-    const data = await fetchDashboardData();
-    expect(data.health.score).toBe(61);
+    const result = await fetchDashboardData();
+    expect(result.source).toBe("mock");
+    expect(result.data.health.score).toBe(61);
   });
 
-  it("returns undefined for a 404 ledger entry", async () => {
+  it("returns undefined with source=unavailable for a 404 ledger entry", async () => {
     mockFetch.mockRejectedValueOnce(new ApiError(404, "not found"));
-    const entry = await fetchLedgerEntry("missing-tx");
-    expect(entry).toBeUndefined();
+    const result = await fetchLedgerEntry("missing-tx");
+    expect(result.source).toBe("unavailable");
+    expect(result.data).toBeUndefined();
   });
 
   it("does not fall back to mock on 4xx client errors", async () => {

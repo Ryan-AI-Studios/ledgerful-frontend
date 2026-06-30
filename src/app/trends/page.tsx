@@ -3,16 +3,20 @@
 import { useEffect, useState, useMemo } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { fetchTrends, TrendPoint } from "@/lib/trends-data";
+import { DataSource } from "@/lib/fallback";
+import { DataSourceBadge } from "@/components/DataSourceBadge";
 import { Calendar, Info, TrendingUp } from "lucide-react";
 
 export default function TrendsPage() {
   const [trends, setTrends] = useState<TrendPoint[]>([]);
+  const [source, setSource] = useState<DataSource>("live");
   const [range, setRange] = useState(90);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchTrends(range).then((data) => {
-      setTrends(data);
+    fetchTrends(range).then((result) => {
+      setTrends(result.data);
+      setSource(result.source);
       setLoading(false);
     });
   }, [range]);
@@ -50,6 +54,9 @@ export default function TrendsPage() {
   return (
     <PageLayout title="Project Health Trends">
       <div className="space-y-6">
+        <div className="flex items-center gap-3 mb-4">
+          {!loading && <DataSourceBadge source={source} />}
+        </div>
         <div className="bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div className="space-y-1">

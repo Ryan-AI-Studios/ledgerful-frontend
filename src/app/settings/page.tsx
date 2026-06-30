@@ -7,6 +7,8 @@ import { buildApiUrl } from "@/lib/utils";
 import { getGithubIntegrationStatus, connectGithub, disconnectGithub } from "@/lib/api/github";
 import { useProject } from "@/lib/ProjectContext";
 import { fetchSyncStatus, SyncStatus } from "@/lib/sync-data";
+import { DataSource } from "@/lib/fallback";
+import { DataSourceBadge } from "@/components/DataSourceBadge";
 
 interface ConfigResponse {
   project: string;
@@ -47,6 +49,10 @@ export default function SettingsPage() {
 
   // Sync State
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
+  const [syncSource, setSyncSource] = useState<DataSource>("live");
+
+  // GitHub State source
+  const [githubSource, setGithubSource] = useState<DataSource>("live");
 
   // Privacy State
   const [telemetryEnabled, setTelemetryEnabled] = useState(false);
@@ -78,10 +84,11 @@ export default function SettingsPage() {
       }
 
       try {
-        const { status, repo } = await githubPromise;
+        const { data, source } = await githubPromise;
         if (mounted) {
-          setGithubStatus(!isDaemonUp ? "UNREACHABLE" : (status || "DISCONNECTED"));
-          setGithubRepo(repo);
+          setGithubSource(source);
+          setGithubStatus(!isDaemonUp ? "UNREACHABLE" : (data.status || "DISCONNECTED"));
+          setGithubRepo(data.repo);
         }
       } catch {
         if (mounted) {
@@ -92,8 +99,11 @@ export default function SettingsPage() {
       }
 
       try {
-        const data = await syncPromise;
-        if (mounted) setSyncStatus(data);
+        const result = await syncPromise;
+        if (mounted) {
+          setSyncStatus(result.data);
+          setSyncSource(result.source);
+        }
       } catch {
         if (mounted) setSyncStatus(null);
       }
@@ -149,6 +159,10 @@ export default function SettingsPage() {
 
   return (
     <PageLayout title="Settings">
+      <div className="flex items-center gap-3 mb-4">
+        {!loading && syncStatus && <DataSourceBadge source={syncSource} />}
+        {!loading && githubStatus !== "UNREACHABLE" && <DataSourceBadge source={githubSource} />}
+      </div>
       <div className="flex gap-4 mb-6 border-b border-[var(--color-border)]">
         <button
           className={`pb-2 px-1 min-h-[44px] min-w-[44px] border-b-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] ${

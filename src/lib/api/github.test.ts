@@ -18,13 +18,14 @@ describe("GitHub API", () => {
     process.env.NEXT_PUBLIC_LEDGERFUL_USE_MOCK = originalEnv;
   });
 
-  it("returns integration status for an existing project", async () => {
+  it("returns integration status with source for an existing project", async () => {
     (projectsMock.fetchProjects as import("vitest").Mock).mockResolvedValue([
       { id: "proj-1", integrationStatus: "CONNECTED", githubRepo: "acme/frontend" },
     ]);
-    const res = await getGithubIntegrationStatus("proj-1");
-    expect(res.status).toBe("CONNECTED");
-    expect(res.repo).toBe("acme/frontend");
+    const result = await getGithubIntegrationStatus("proj-1");
+    expect(result.source).toBe("mock");
+    expect(result.data.status).toBe("CONNECTED");
+    expect(result.data.repo).toBe("acme/frontend");
   });
 
   it("returns DISCONNECTED for missing project or missing status", async () => {
@@ -33,18 +34,20 @@ describe("GitHub API", () => {
       { id: "proj-2", integrationStatus: "PENDING" },
     ]);
     const res1 = await getGithubIntegrationStatus("proj-1");
-    expect(res1.status).toBe("DISCONNECTED");
-    expect(res1.repo).toBeUndefined();
+    expect(res1.data.status).toBe("DISCONNECTED");
+    expect(res1.data.repo).toBeUndefined();
 
     const res3 = await getGithubIntegrationStatus("proj-3");
-    expect(res3.status).toBe("DISCONNECTED");
+    expect(res3.data.status).toBe("DISCONNECTED");
   });
 
   it("simulates connecting to github", async () => {
-    await expect(connectGithub("proj-1")).resolves.toBeUndefined();
+    const result = await connectGithub("proj-1");
+    expect(result.source).toBe("mock");
   });
 
   it("simulates disconnecting from github", async () => {
-    await expect(disconnectGithub("proj-1")).resolves.toBeUndefined();
+    const result = await disconnectGithub("proj-1");
+    expect(result.source).toBe("mock");
   });
 });

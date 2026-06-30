@@ -57,12 +57,12 @@ const TIERS: Tier[] = [
     highlight: false,
     features: [
       "Everything in Pro",
-      "SSO / SAML (OIDC, Okta, Azure AD)",
+      "SSO / SAML (OIDC, Okta, Azure AD) — Planned",
       "SOC2 compliance export",
-      "RBAC (admin, auditor, developer)",
+      "RBAC (admin, auditor, developer) — Planned",
       "Signed audit trail (survives investigation)",
-      "Dedicated success manager",
-      "SLA + uptime monitoring",
+      "Dedicated success manager — Planned",
+      "SLA + uptime monitoring — Planned",
     ],
   },
 ];
@@ -96,11 +96,11 @@ const MATRIX: MatrixRow[] = [
   {
     category: "Governance",
     items: [
-      { label: "SSO / SAML", free: false, pro: false, ent: true },
+      { label: "SSO / SAML", free: false, pro: false, ent: "Planned" },
       { label: "SOC2 compliance export", free: false, pro: false, ent: true },
-      { label: "RBAC", free: false, pro: false, ent: true },
+      { label: "RBAC", free: false, pro: false, ent: "Planned" },
       { label: "Signed audit trail", free: false, pro: false, ent: true },
-      { label: "Dedicated success manager + SLA", free: false, pro: false, ent: true },
+      { label: "Dedicated success manager + SLA", free: false, pro: false, ent: "Planned" },
     ],
   },
 ];
@@ -108,7 +108,7 @@ const MATRIX: MatrixRow[] = [
 const FAQ = [
   {
     q: "Does Ledgerful send my code or intent data anywhere?",
-    a: "No. Ledgerful runs entirely on your machine or inside your air-gapped VPC. There is no SaaS, no telemetry, no data egress. The Enterprise tier adds hosted options, but the local-first model is the default.",
+    a: "Local-first by default. Opt-in telemetry, no default data egress. The Enterprise tier adds hosted options, but the local-first model is the default.",
   },
   {
     q: "How is this different from git?",
@@ -214,7 +214,7 @@ export default function PricingPage() {
           </div>
           <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">
             SOC2-ready export format, Ed25519 signed audit trail, and RBAC for admin, auditor,
-            and developer roles. Designed for regulated industries and external auditor review.
+            and developer roles (Planned). Designed for regulated industries and external auditor review.
           </p>
         </div>
 

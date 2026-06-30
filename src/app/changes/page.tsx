@@ -4,22 +4,26 @@ import { useEffect, useState } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { DataTable, Column } from "@/components/DataTable";
 import { RiskBadge } from "@/components/RiskBadge";
+import { DataSourceBadge } from "@/components/DataSourceBadge";
 import { ChangeEntry, fetchChanges } from "@/lib/changes-data";
+import { DataSource } from "@/lib/fallback";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 export default function ChangesPage() {
   const [changes, setChanges] = useState<ChangeEntry[]>([]);
+  const [source, setSource] = useState<DataSource>("live");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchChanges()
-      .then((data) => {
-        setChanges(data);
+      .then((result) => {
+        setChanges(result.data);
+        setSource(result.source);
         setLoading(false);
       })
       .catch((err) => {
-        console.error("Failed to load changes:", err);
+        void err;
         setLoading(false);
       });
   }, []);
@@ -80,6 +84,9 @@ export default function ChangesPage() {
 
   return (
     <PageLayout title="Changes">
+      <div className="flex items-center gap-3 mb-4">
+        {!loading && <DataSourceBadge source={source} />}
+      </div>
       <div className="bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="text-sm text-[var(--color-text-muted)]">

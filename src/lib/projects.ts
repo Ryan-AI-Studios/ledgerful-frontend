@@ -1,6 +1,6 @@
 import { fetchProjects as fetchLiveProjects } from "@/lib/api/projects";
 import { fetchProjects as fetchMockProjects } from "@/lib/mock/projects";
-import { withFallback } from "@/lib/fallback";
+import { withFallback, WithSource } from "@/lib/fallback";
 
 export type { Project } from "@/lib/types";
 
@@ -12,10 +12,11 @@ export const projects: import("@/lib/types").Project[] = [
     status: "warning",
     lastScanAt: "2d ago",
     healthScore: 61,
+    validationWarnings: [],
   },
 ];
 
-export async function fetchProjects(): Promise<import("@/lib/types").Project[]> {
+export async function fetchProjects(): Promise<WithSource<import("@/lib/types").Project[]>> {
   return withFallback(() => fetchLiveProjects(), () => fetchMockProjects());
 }
 

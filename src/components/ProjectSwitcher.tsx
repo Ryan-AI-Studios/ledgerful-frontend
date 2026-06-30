@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useProject } from "@/lib/ProjectContext";
-import { Check, ChevronDown, FolderGit2 } from "lucide-react";
+import { Check, ChevronDown, FolderGit2, AlertTriangle } from "lucide-react";
 import { StatusDot } from "./StatusDot";
 
 export function ProjectSwitcher() {
@@ -30,6 +30,12 @@ export function ProjectSwitcher() {
       >
         <FolderGit2 className="w-4 h-4" aria-hidden="true" />
         <span className="font-medium text-[var(--color-text-primary)]">{project.name}</span>
+        {project.validationWarnings.length > 0 && (
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[var(--color-warning)]/10 text-[var(--color-warning)] border border-[var(--color-warning)]/20">
+            <AlertTriangle className="w-3 h-3" aria-hidden="true" />
+            Needs attention
+          </span>
+        )}
         <ChevronDown
           className={`w-3.5 h-3.5 transition-transform duration-100 ${open ? "rotate-180" : ""}`}
           aria-hidden="true"

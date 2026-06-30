@@ -6,16 +6,20 @@ import { DataTable, Column } from "@/components/DataTable";
 import { RiskBadge } from "@/components/RiskBadge";
 import { LedgerStatusBadge } from "@/components/LedgerStatusBadge";
 import { LedgerEntry, fetchLedger } from "@/lib/ledger-data";
+import { DataSource } from "@/lib/fallback";
+import { DataSourceBadge } from "@/components/DataSourceBadge";
 import { Search } from "lucide-react";
 
 export default function LedgerPage() {
   const [entries, setEntries] = useState<LedgerEntry[]>([]);
+  const [source, setSource] = useState<DataSource>("live");
   const [loading, setLoading] = useState(true);
   const [authorFilter, setAuthorFilter] = useState("All authors");
 
   useEffect(() => {
-    fetchLedger().then((data) => {
-      setEntries(data);
+    fetchLedger().then((result) => {
+      setEntries(result.data);
+      setSource(result.source);
       setLoading(false);
     });
   }, []);
@@ -103,6 +107,9 @@ export default function LedgerPage() {
 
   return (
     <PageLayout title={`Ledger (${entries.length.toLocaleString()} entries)`}>
+      <div className="flex items-center gap-3 mb-4">
+        {!loading && <DataSourceBadge source={source} />}
+      </div>
       <div className="bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg p-6">
         <div className="flex items-center justify-between gap-4 mb-4">
           <div className="relative flex-1 max-w-md">

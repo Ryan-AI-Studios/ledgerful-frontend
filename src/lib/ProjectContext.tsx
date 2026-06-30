@@ -36,8 +36,9 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     }
     let cancelled = false;
     fetchProjects()
-      .then((loaded) => {
+      .then((result) => {
         if (cancelled) return;
+        const loaded = result.data;
         setAllProjects(loaded);
         setIsLoaded(true);
 

@@ -33,17 +33,19 @@ describe("Compliance API", () => {
 });
 
 describe("Compliance Data Logic", () => {
-  it("fetchComplianceSummaryData handles success", async () => {
+  it("fetchComplianceSummaryData returns live data with source", async () => {
     const mockSummary = { validityPercent: 95 };
     (apiGet as Mock).mockResolvedValueOnce(mockSummary);
-    const data = await fetchComplianceSummaryData();
-    expect(data.validityPercent).toBe(95);
+    const result = await fetchComplianceSummaryData();
+    expect(result.source).toBe("live");
+    expect(result.data.validityPercent).toBe(95);
   });
 
-  it("fetchComplianceSummaryData handles fallback", async () => {
+  it("fetchComplianceSummaryData falls back to mock with source", async () => {
     const { ApiError } = await import("../api");
     (apiGet as Mock).mockRejectedValueOnce(new ApiError(500, "Timeout"));
-    const data = await fetchComplianceSummaryData();
-    expect(data).toHaveProperty("validityPercent");
+    const result = await fetchComplianceSummaryData();
+    expect(result.source).toBe("mock");
+    expect(result.data).toHaveProperty("validityPercent");
   });
 });

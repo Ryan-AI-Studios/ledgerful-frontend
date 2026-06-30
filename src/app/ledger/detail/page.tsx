@@ -6,6 +6,8 @@ import { PageLayout } from "@/components/PageLayout";
 import { RiskBadge } from "@/components/RiskBadge";
 import { LedgerStatusBadge } from "@/components/LedgerStatusBadge";
 import { LedgerEntry, fetchLedgerEntry } from "@/lib/ledger-data";
+import { DataSource } from "@/lib/fallback";
+import { DataSourceBadge } from "@/components/DataSourceBadge";
 import { Copy, FileJson, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
@@ -25,12 +27,14 @@ function LedgerDetail() {
 
 function LedgerDetailContent({ txId }: { txId: string }) {
   const [entry, setEntry] = useState<LedgerEntry | null>(null);
+  const [source, setSource] = useState<DataSource>("live");
   const [loading, setLoading] = useState(Boolean(txId));
 
   useEffect(() => {
     if (!txId) return;
-    fetchLedgerEntry(txId).then((data) => {
-      setEntry(data || null);
+    fetchLedgerEntry(txId).then((result) => {
+      setEntry(result.data || null);
+      setSource(result.source);
       setLoading(false);
     });
   }, [txId]);
@@ -61,6 +65,9 @@ function LedgerDetailContent({ txId }: { txId: string }) {
 
   return (
     <PageLayout title={`Transaction ${entry.txId}`}>
+      <div className="flex items-center gap-3 mb-4">
+        {!loading && <DataSourceBadge source={source} />}
+      </div>
       <div className="bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg p-6">
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>

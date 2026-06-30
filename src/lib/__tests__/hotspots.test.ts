@@ -43,11 +43,12 @@ describe("Hotspots API", () => {
 });
 
 describe("Hotspots Data Fallback", () => {
-  it("fetchHotspotsData returns mock data on failure", async () => {
+  it("fetchHotspotsData returns mock data with source on failure", async () => {
     const { ApiError } = await import("../api");
     (apiGet as Mock).mockRejectedValueOnce(new ApiError(500, "API Down"));
-    const data = await fetchHotspotsData();
-    expect(data.length).toBeGreaterThan(0);
-    expect(data[0]).toHaveProperty("riskScore");
+    const result = await fetchHotspotsData();
+    expect(result.source).toBe("mock");
+    expect(result.data.length).toBeGreaterThan(0);
+    expect(result.data[0]).toHaveProperty("riskScore");
   });
 });

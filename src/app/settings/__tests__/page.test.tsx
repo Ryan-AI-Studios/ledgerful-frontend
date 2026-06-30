@@ -20,7 +20,7 @@ vi.mock("@/lib/ProjectContext", () => ({
 describe("SettingsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (getGithubIntegrationStatus as import("vitest").Mock).mockResolvedValue({ status: "DISCONNECTED" });
+    (getGithubIntegrationStatus as import("vitest").Mock).mockResolvedValue({ data: { status: "DISCONNECTED" }, source: "live" });
     global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,

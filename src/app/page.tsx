@@ -60,7 +60,7 @@ export default function MarketingPage() {
             <p className="mt-6 max-w-2xl text-[1.0625rem] leading-relaxed text-[var(--color-text-secondary)] [text-wrap:pretty]">
               The intent ledger for agentic engineering. Map change impact, find the tests
               your PR actually needs, and catch unresolved review gaps — before humans or
-              AI touch the diff. Runs local-first; no SaaS, no telemetry, no data egress.
+              AI touch the diff.               Runs local-first; no SaaS, no telemetry by default, no default data egress.
             </p>
             {/* CTA row: filled primary + ghost secondary, side-by-side on desktop, stacked on mobile */}
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
@@ -83,7 +83,7 @@ export default function MarketingPage() {
               <CopyCommand command="npm install -g @ledgerful/cli" />
             </div>
             <p className="mt-3 text-xs text-[var(--color-text-muted)]">
-              No telemetry · No data egress · MIT-licensed core
+              No telemetry by default · Opt-in only · MIT-licensed core
             </p>
           </div>
           {/* TerminalReceipt in the hero right column at lg; below copy on mobile */}

@@ -9,13 +9,15 @@ import Link from "next/link";
 export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [session, setSession] = useState<UserSession | null>(null);
+  const [, setSource] = useState<import("@/lib/fallback").DataSource>("live");
   const [loading, setLoading] = useState(true);
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    fetchSession().then((s) => {
-      setSession(s);
+    fetchSession().then((result) => {
+      setSession(result.data);
+      setSource(result.source);
       setLoading(false);
     });
   }, []);

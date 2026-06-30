@@ -4,7 +4,11 @@ import { useState, useRef, useEffect } from "react";
 import { Download, Loader2, AlertCircle, CheckCircle } from "lucide-react";
 import { triggerSoc2Export } from "@/lib/compliance-data";
 
-export function Soc2ExportButton() {
+interface Soc2ExportButtonProps {
+  disabled?: boolean;
+}
+
+export function Soc2ExportButton({ disabled = false }: Soc2ExportButtonProps) {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -16,7 +20,7 @@ export function Soc2ExportButton() {
   }, []);
 
   const handleExport = async () => {
-    if (status === "loading") return;
+    if (status === "loading" || disabled) return;
     setStatus("loading");
     setErrorMessage("");
     try {
@@ -43,10 +47,12 @@ export function Soc2ExportButton() {
       </span>
       <button
         onClick={handleExport}
-        aria-disabled={status === "loading"}
+        disabled={disabled || status === "loading"}
+        aria-disabled={disabled || status === "loading"}
+        title={disabled ? "Export disabled — data source is mock" : undefined}
         className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-all duration-150 ${
-          status === "loading" 
-            ? "bg-[var(--color-surface-raised)] text-[var(--color-text-muted)] cursor-not-allowed" 
+          disabled || status === "loading"
+            ? "bg-[var(--color-surface-raised)] text-[var(--color-text-muted)] cursor-not-allowed"
             : status === "success"
             ? "bg-[var(--color-success)] text-white"
             : status === "error"

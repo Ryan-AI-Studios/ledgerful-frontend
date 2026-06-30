@@ -5,18 +5,22 @@ import { useEffect, useState } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { DataTable, Column } from "@/components/DataTable";
 import { Hotspot, fetchHotspots } from "@/lib/hotspots-data";
+import { DataSource } from "@/lib/fallback";
 import { RiskBadge } from "@/components/RiskBadge";
+import { DataSourceBadge } from "@/components/DataSourceBadge";
 import { ArrowUpRight, Calendar, Clock } from "lucide-react";
 
 export default function HotspotsPage() {
   const router = useRouter();
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
+  const [source, setSource] = useState<DataSource>("live");
   const [range, setRange] = useState(90);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchHotspots(range).then((data) => {
-      setHotspots(data);
+    fetchHotspots(range).then((result) => {
+      setHotspots(result.data);
+      setSource(result.source);
       setLoading(false);
     });
   }, [range]);
@@ -95,6 +99,9 @@ export default function HotspotsPage() {
 
   return (
     <PageLayout title={`Hotspots (${hotspots.length})`}>
+      <div className="flex items-center gap-3 mb-4">
+        {!loading && <DataSourceBadge source={source} />}
+      </div>
       <div className="bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div className="text-sm text-[var(--color-text-muted)] max-w-md">

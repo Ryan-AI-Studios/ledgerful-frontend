@@ -2,13 +2,16 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { UserMenu } from "../UserMenu";
 import { describe, it, expect, vi } from "vitest";
 
-// fetchSession is called on mount
+// fetchSession is called on mount and now returns WithSource<UserSession>
 vi.mock("@/lib/session-data", () => ({
   fetchSession: vi.fn(() => Promise.resolve({
-    id: "user-1",
-    name: "Test User",
-    email: "test@example.com",
-    role: "admin"
+    data: {
+      id: "user-1",
+      name: "Test User",
+      email: "test@example.com",
+      role: "admin",
+    },
+    source: "live",
   })),
 }));
 

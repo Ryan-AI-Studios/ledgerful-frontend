@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { DashboardData } from "@/lib/types";
+import { DataSource } from "@/lib/fallback";
 import { fetchDashboardData } from "@/lib/data";
 import { useProject } from "@/lib/ProjectContext";
 import { PageLayout } from "@/components/PageLayout";
@@ -11,13 +12,14 @@ import { EmptyState } from "@/components/EmptyState";
 import { HeroSkeleton } from "@/components/HeroSkeleton";
 import { ExplainScoreModal } from "@/components/ExplainScoreModal";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
+import { DataSourceBadge } from "@/components/DataSourceBadge";
 import { AlertCircle, RefreshCw } from "lucide-react";
 
 type DashboardState =
   | { status: "loading" }
-  | { status: "empty" }
+  | { status: "empty"; source?: DataSource }
   | { status: "error"; message: string }
-  | { status: "ready"; data: DashboardData };
+  | { status: "ready"; data: DashboardData; source: DataSource };
 
 const ONBOARDING_KEY = "ledgerful:onboarding-completed";
 const ONBOARDING_DISMISSED_KEY = "ledgerful:onboarding-dismissed";
@@ -68,11 +70,12 @@ function DashboardContent({
     }
 
     fetchDashboardData(projectId)
-      .then((data) => {
+      .then((result) => {
+        const { data, source } = result;
         if (data.recentChanges.length === 0 && data.health.score === 100) {
-          setState({ status: "empty" });
+          setState({ status: "empty", source });
         } else {
-          setState({ status: "ready", data });
+          setState({ status: "ready", data, source });
         }
       })
       .catch(() => {
@@ -90,6 +93,10 @@ function DashboardContent({
 
   return (
     <PageLayout title="Dashboard">
+      <div className="flex items-center gap-3 mb-4" aria-live="polite" aria-busy={state.status === "loading"}>
+        {state.status === "ready" && <DataSourceBadge source={state.source} />}
+        {state.status === "empty" && state.source && <DataSourceBadge source={state.source} />}
+      </div>
       <div aria-live="polite" aria-busy={state.status === "loading"}>
         {state.status === "loading" && (
           <>

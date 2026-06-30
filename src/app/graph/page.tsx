@@ -3,24 +3,31 @@
 import { useEffect, useState } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { GraphData, GraphNode, fetchGraph } from "@/lib/graph-data";
+import { DataSource } from "@/lib/fallback";
 import { GraphCanvas } from "@/components/GraphCanvas";
 import { GraphDetailPanel } from "@/components/GraphDetailPanel";
+import { DataSourceBadge } from "@/components/DataSourceBadge";
 import { Search, Info } from "lucide-react";
 
 export default function GraphPage() {
   const [graphData, setGraphData] = useState<GraphData | null>(null);
+  const [source, setSource] = useState<DataSource>("live");
   const [loading, setLoading] = useState(true);
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
 
   useEffect(() => {
-    fetchGraph().then((data) => {
-      setGraphData(data);
+    fetchGraph().then((result) => {
+      setGraphData(result.data);
+      setSource(result.source);
       setLoading(false);
     });
   }, []);
 
   return (
     <PageLayout title="Knowledge Graph">
+      <div className="flex items-center gap-3 mb-4">
+        {!loading && <DataSourceBadge source={source} />}
+      </div>
       <div className="flex flex-col h-[calc(100vh-140px)]">
         <div className="flex items-center justify-between gap-4 mb-4">
           <div className="flex items-center gap-4">
