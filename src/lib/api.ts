@@ -50,7 +50,7 @@ export async function apiRequest<T>(
 
   try {
     return (await res.json()) as T;
-  } catch (err) {
+  } catch {
     throw new ApiError(500, "Invalid JSON response from server");
   }
 }

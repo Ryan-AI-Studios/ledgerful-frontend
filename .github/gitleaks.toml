@@ -1,0 +1,23 @@
+title = "Ledgerful Frontend Gitleaks Config"
+
+[extend]
+useDefault = true
+
+# v8.25.0+ uses [[allowlists]] (array of tables) instead of [allowlist].
+# Global allowlists have higher precedence than rule-specific allowlists.
+[[allowlists]]
+description = "ignore .ledgerful state directory (runtime state, not source)"
+paths = [
+  '''\.ledgerful\/''',
+]
+
+[[allowlists]]
+description = ".env.example placeholder values only — do NOT allowlist the whole file"
+# Target the extracted Secret value (default regexTarget is "secret").
+regexes = [
+  '''YOUR_[A-Z_]+_HERE''',
+  '''your-project\.supabase\.co''',
+]
+paths = [
+  '''\.env\.example$''',
+]
