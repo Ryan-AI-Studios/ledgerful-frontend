@@ -124,7 +124,7 @@ const FAQ = [
   },
   {
     q: "Is there a self-hosted Enterprise option?",
-    a: "Yes. Enterprise runs in your VPC with SSO/SAML, RBAC, and the compliance export. The hosted SaaS wrapper is optional and arrives after the local-first product is proven.",
+    a: "Yes. Enterprise runs in your VPC with the compliance export. SSO/SAML and RBAC are planned. The hosted SaaS wrapper is optional and arrives after the local-first product is proven.",
   },
 ];
 

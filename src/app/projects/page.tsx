@@ -2,12 +2,11 @@
 
 import { PageLayout } from "@/components/PageLayout";
 import { useProject } from "@/lib/ProjectContext";
-import { projects } from "@/lib/projects";
 import { StatusDot } from "@/components/StatusDot";
 import { Check, FolderGit2, AlertTriangle } from "lucide-react";
 
 export default function ProjectsPage() {
-  const { project, setProject } = useProject();
+  const { project, setProject, allProjects } = useProject();
 
   return (
     <PageLayout title="Projects">
@@ -18,7 +17,7 @@ export default function ProjectsPage() {
         </p>
 
         <div className="space-y-2">
-          {projects.map((p) => {
+          {allProjects.map((p) => {
             const active = p.id === project.id;
             const hasWarnings = p.validationWarnings.length > 0;
             return (

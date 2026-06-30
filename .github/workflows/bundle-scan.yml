@@ -1,21 +1,20 @@
-name: Bundle Secret Scan
+name: Bundle Secret Scan (Manual)
 
-# Scan the built Next.js bundle for secrets that may have leaked into the
-# browser. Reuses the gitleaks config from Track 0004. Runs on every CI build.
+# Manual full-bundle secret scan. The PR/push gate lives in ci.yml
+# (bundle-scan job) so pull requests are blocked on bundle leakage.
+# This workflow remains for on-demand or scheduled deep scans.
 
 permissions:
   contents: read
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
-    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"
 
 jobs:
   bundle-scan:
-    name: security/bundle-scan
+    name: security/bundle-scan-manual
     runs-on: ubuntu-latest
     permissions:
       contents: read

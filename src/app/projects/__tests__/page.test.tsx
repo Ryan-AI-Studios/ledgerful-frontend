@@ -2,19 +2,9 @@ import { render, screen } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import type ProjectsPage from "../page";
 
-vi.mock("@/lib/ProjectContext", () => ({
-  useProject: () => ({
-    project: {
-      id: "proj-1",
-      name: "Proj 1",
-      path: "C:\\proj-1",
-      status: "healthy",
-      lastScanAt: "2d ago",
-      healthScore: 90,
-      validationWarnings: [],
-    },
-    setProject: vi.fn(),
-  }),
+vi.mock("@/lib/DaemonStatusContext", () => ({
+  useDaemonStatus: () => false,
+  DaemonStatusProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 describe("ProjectsPage validation warnings", () => {
@@ -23,18 +13,31 @@ describe("ProjectsPage validation warnings", () => {
   });
 
   it("renders validation warnings when present", async () => {
-    vi.doMock("@/lib/projects", () => ({
-      projects: [
-        {
+    vi.doMock("@/lib/ProjectContext", () => ({
+      useProject: () => ({
+        project: {
           id: "proj-1",
           name: "Proj 1",
           path: "C:\\proj-1",
           status: "warning",
           lastScanAt: "2d ago",
           healthScore: 61,
-          validationWarnings: ["No lockfile pinned", "Outdated scan"],
+          validationWarnings: [],
         },
-      ],
+        setProject: vi.fn(),
+        allProjects: [
+          {
+            id: "proj-1",
+            name: "Proj 1",
+            path: "C:\\proj-1",
+            status: "warning",
+            lastScanAt: "2d ago",
+            healthScore: 61,
+            validationWarnings: ["No lockfile pinned", "Outdated scan"],
+          },
+        ],
+        isLoaded: true,
+      }),
     }));
 
     const { default: Page } = await import("../page") as { default: typeof ProjectsPage };
@@ -46,9 +49,9 @@ describe("ProjectsPage validation warnings", () => {
   });
 
   it("renders no warning section when validation warnings are empty", async () => {
-    vi.doMock("@/lib/projects", () => ({
-      projects: [
-        {
+    vi.doMock("@/lib/ProjectContext", () => ({
+      useProject: () => ({
+        project: {
           id: "proj-1",
           name: "Proj 1",
           path: "C:\\proj-1",
@@ -57,7 +60,20 @@ describe("ProjectsPage validation warnings", () => {
           healthScore: 90,
           validationWarnings: [],
         },
-      ],
+        setProject: vi.fn(),
+        allProjects: [
+          {
+            id: "proj-1",
+            name: "Proj 1",
+            path: "C:\\proj-1",
+            status: "healthy",
+            lastScanAt: "2d ago",
+            healthScore: 90,
+            validationWarnings: [],
+          },
+        ],
+        isLoaded: true,
+      }),
     }));
 
     const { default: Page } = await import("../page") as { default: typeof ProjectsPage };

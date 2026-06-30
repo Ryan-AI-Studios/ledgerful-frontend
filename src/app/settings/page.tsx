@@ -270,13 +270,14 @@ export default function SettingsPage() {
             </div>
             <button
               onClick={handleGithubConnect}
-              disabled={isGithubLoading}
+              disabled={isGithubLoading || githubSource !== "live"}
               className={`inline-flex items-center justify-center px-4 py-2 min-h-[44px] min-w-[120px] rounded-md text-sm font-semibold transition-colors duration-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] ${
                 githubStatus === "CONNECTED"
                   ? "bg-transparent border border-[var(--color-border)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-raised)]"
                   : "bg-[var(--color-primary)] text-[var(--color-text-inverse)] hover:bg-[var(--color-primary-muted)]"
-              } ${isGithubLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+              } ${(isGithubLoading || githubSource !== "live") ? "opacity-50 cursor-not-allowed" : ""}`}
               aria-label={githubStatus === "CONNECTED" ? "Disconnect from GitHub" : "Connect to GitHub"}
+              title={githubSource !== "live" ? "Connect/disconnect disabled — data source is mock" : undefined}
             >
               {isGithubLoading ? "..." : githubStatus === "CONNECTED" ? "Disconnect" : "Connect to GitHub"}
             </button>

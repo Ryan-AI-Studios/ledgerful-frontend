@@ -35,3 +35,43 @@ jobs:
 
       - name: Run unit tests
         run: npm run test:unit
+
+      - name: Upload build output for bundle scan
+        uses: actions/upload-artifact@b4b15b8c7c6ac0ea8f9af1a7254c7c7f4c30c1ae
+        with:
+          name: next-bundle
+          path: .next/
+          retention-days: 1
+
+  bundle-scan:
+    name: security/bundle-scan
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        # actions/checkout v4.2.2 -> 11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Download build output
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: next-bundle
+          path: .next/
+
+      - name: Scan built bundle with gitleaks
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/repo" \
+            -w /repo \
+            zricethezav/gitleaks:v8.30.1 detect \
+            --source .next/ \
+            --config .github/gitleaks.toml \
+            --no-git \
+            --verbose \
+            --redact
+
+      - name: Report clean
+        if: success()
+        run: echo "No secrets detected in the built bundle."

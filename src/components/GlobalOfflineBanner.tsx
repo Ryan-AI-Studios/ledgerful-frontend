@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AlertTriangle, X } from "lucide-react";
-import { fetchStatus } from "@/lib/status-data";
+import { useDaemonStatus } from "@/lib/DaemonStatusContext";
 
 const DISMISS_KEY = "ledgerful:offline-banner-dismissed";
 
 export function GlobalOfflineBanner() {
-  const [offline, setOffline] = useState(false);
+  const isDaemonOffline = useDaemonStatus();
   const [dismissed, setDismissed] = useState(() => {
     if (typeof window === "undefined") return false;
     try {
@@ -16,21 +16,6 @@ export function GlobalOfflineBanner() {
       return false;
     }
   });
-
-  useEffect(() => {
-    const check = async () => {
-      try {
-        await fetchStatus();
-        setOffline(false);
-      } catch {
-        setOffline(true);
-      }
-    };
-
-    check();
-    const interval = setInterval(check, 60000);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleDismiss = () => {
     try {
@@ -41,7 +26,7 @@ export function GlobalOfflineBanner() {
     setDismissed(true);
   };
 
-  if (!offline || dismissed) return null;
+  if (!isDaemonOffline || dismissed) return null;
 
   return (
     <div
