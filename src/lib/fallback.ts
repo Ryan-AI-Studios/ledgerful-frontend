@@ -1,4 +1,6 @@
-import { ApiError } from "./api";
+import { ApiError, isApiError } from "./api";
+
+export { isApiError };
 
 export type DataSource = "live" | "mock" | "stale" | "unavailable";
 

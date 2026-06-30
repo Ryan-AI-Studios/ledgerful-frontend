@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { PageLayout } from "@/components/PageLayout";
-import { Copy, CheckCircle2, GitPullRequest, ShieldCheck, Activity, Users } from "lucide-react";
+import { Copy, CheckCircle2, GitPullRequest, ShieldCheck, Activity, Users, AlertCircle } from "lucide-react";
 import { buildApiUrl } from "@/lib/utils";
 import { getGithubIntegrationStatus, connectGithub, disconnectGithub } from "@/lib/api/github";
 import { useProject } from "@/lib/ProjectContext";
@@ -41,6 +41,7 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<"daemon" | "integrations" | "sync" | "privacy">("daemon");
   const [config, setConfig] = useState<ConfigResponse>(defaultConfig);
   const [loading, setLoading] = useState(true);
+  const [configError, setConfigError] = useState(false);
 
   // GitHub State
   const [githubStatus, setGithubStatus] = useState<"CONNECTED" | "DISCONNECTED" | "PENDING" | "UNREACHABLE">("DISCONNECTED");
@@ -79,6 +80,7 @@ export default function SettingsPage() {
         }
       } catch {
         isDaemonUp = false;
+        if (mounted) setConfigError(true);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -220,35 +222,47 @@ export default function SettingsPage() {
 
       {activeTab === "daemon" && (
         <div className="bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-[var(--color-success)]" aria-hidden="true" />
+          {configError ? (
+            <div className="flex items-center gap-3 py-4">
+              <AlertCircle className="w-5 h-5 text-[var(--color-danger)] flex-shrink-0" aria-hidden="true" />
               <div>
-                <div className="text-sm text-[var(--color-text-secondary)]">Configuration resolved</div>
-                <div className="font-mono text-sm text-[var(--color-text-primary)]">
-                  {config.version}
-                </div>
+                <div className="text-sm font-semibold text-[var(--color-danger)]">Configuration unavailable</div>
+                <div className="text-sm text-[var(--color-text-secondary)]">The Ledgerful daemon could not be reached. Configuration values are not available.</div>
               </div>
             </div>
-            <button
-              onClick={copyConfig}
-              className="inline-flex items-center gap-2 px-4 py-2 min-h-[44px] rounded-md bg-[var(--color-primary)] text-[var(--color-text-inverse)] text-sm font-semibold hover:bg-[var(--color-primary-muted)] transition-colors duration-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)]"
-            >
-              <Copy className="w-4 h-4" aria-hidden="true" />
-              Copy as JSON
-            </button>
-          </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-[var(--color-success)]" aria-hidden="true" />
+                  <div>
+                    <div className="text-sm text-[var(--color-text-secondary)]">Configuration resolved</div>
+                    <div className="font-mono text-sm text-[var(--color-text-primary)]">
+                      {config.version}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={copyConfig}
+                  className="inline-flex items-center gap-2 px-4 py-2 min-h-[44px] rounded-md bg-[var(--color-primary)] text-[var(--color-text-inverse)] text-sm font-semibold hover:bg-[var(--color-primary-muted)] transition-colors duration-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)]"
+                >
+                  <Copy className="w-4 h-4" aria-hidden="true" />
+                  Copy as JSON
+                </button>
+              </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Setting label="Project" value={config.project} />
-            <Setting label="Repository path" value={config.repo_path} />
-            <Setting label="Ledger database" value={config.ledger_path} />
-            <Setting label="Graph database" value={config.graph_path} />
-            <Setting label="Signing key" value={config.signing_key_status} />
-            <Setting label="LLM backend" value={config.llm_backend} />
-            <Setting label="Dashboard polling" value={config.polling_interval} />
-            <Setting label="Telemetry" value={config.telemetry} />
-          </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Setting label="Project" value={config.project} />
+                <Setting label="Repository path" value={config.repo_path} />
+                <Setting label="Ledger database" value={config.ledger_path} />
+                <Setting label="Graph database" value={config.graph_path} />
+                <Setting label="Signing key" value={config.signing_key_status} />
+                <Setting label="LLM backend" value={config.llm_backend} />
+                <Setting label="Dashboard polling" value={config.polling_interval} />
+                <Setting label="Telemetry" value={config.telemetry} />
+              </div>
+            </>
+          )}
         </div>
       )}
 

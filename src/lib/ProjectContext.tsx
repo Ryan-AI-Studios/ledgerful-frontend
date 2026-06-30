@@ -9,7 +9,7 @@ import {
   useEffect,
 } from "react";
 import { Project, activeProject as defaultProject, fetchProjects } from "./projects";
-import { DataSource } from "./fallback";
+import { DataSource, isApiError } from "./fallback";
 import { getAuthToken } from "./utils";
 import { TokenPrompt } from "@/components/auth/TokenPrompt";
 
@@ -21,6 +21,7 @@ interface ProjectContextType {
   allProjects: Project[];
   isLoaded: boolean;
   projectsSource: DataSource;
+  loadError: string | null;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -29,6 +30,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   const [project, setProject] = useState<Project>(defaultProject);
   const [allProjects, setAllProjects] = useState<Project[]>([]);
   const [projectsSource, setProjectsSource] = useState<DataSource>("live");
+  const [loadError, setLoadError] = useState<string | null>(null);
   const hasToken = Boolean(getAuthToken());
   const [isLoaded, setIsLoaded] = useState(hasToken ? false : true);
   const [authRetry, setAuthRetry] = useState(0);
@@ -56,10 +58,16 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
           }
         }
       })
-      .catch(() => {
-        setAllProjects([defaultProject]);
-        setProjectsSource("mock");
-        setIsLoaded(true);
+      .catch((err) => {
+        if (isApiError(err) && (err.status === 401 || err.status === 403)) {
+          setLoadError("Authentication failed. Please check your token.");
+          setAllProjects([]);
+          setIsLoaded(true);
+        } else {
+          setAllProjects([defaultProject]);
+          setProjectsSource("mock");
+          setIsLoaded(true);
+        }
       });
     return () => {
       cancelled = true;
@@ -81,7 +89,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
 
   return (
     <ProjectContext.Provider
-      value={{ project, setProject: handleSetProject, allProjects, isLoaded, projectsSource }}
+      value={{ project, setProject: handleSetProject, allProjects, isLoaded, projectsSource, loadError }}
     >
       {children}
     </ProjectContext.Provider>
