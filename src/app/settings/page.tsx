@@ -63,7 +63,11 @@ export default function SettingsPage() {
 
     async function loadData() {
       const configPromise = fetch(buildApiUrl("/config")).then((res) => {
-        if (!res.ok) throw new Error("Config fetch failed");
+        if (!res.ok) {
+          const err = new Error("Config fetch failed");
+          (err as Error & { status?: number }).status = res.status;
+          throw err;
+        }
         return res.json() as Promise<ConfigResponse>;
       });
 
@@ -78,9 +82,14 @@ export default function SettingsPage() {
           setConfig(data);
           setTelemetryEnabled(data.telemetry === "enabled");
         }
-      } catch {
-        isDaemonUp = false;
-        if (mounted) setConfigError(true);
+      } catch (err) {
+        const status = (err as Error & { status?: number }).status;
+        if (status === 401 || status === 403) {
+          if (mounted) setConfigError(true);
+        } else {
+          isDaemonUp = false;
+          if (mounted) setConfigError(true);
+        }
       } finally {
         if (mounted) setLoading(false);
       }

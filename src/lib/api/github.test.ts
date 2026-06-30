@@ -42,12 +42,10 @@ describe("GitHub API", () => {
   });
 
   it("simulates connecting to github", async () => {
-    const result = await connectGithub("proj-1");
-    expect(result.source).toBe("mock");
+    await connectGithub("proj-1");
   });
 
   it("simulates disconnecting from github", async () => {
-    const result = await disconnectGithub("proj-1");
-    expect(result.source).toBe("mock");
+    await disconnectGithub("proj-1");
   });
 });

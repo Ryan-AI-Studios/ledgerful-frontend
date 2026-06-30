@@ -40,10 +40,10 @@ const TIERS: Tier[] = [
     highlight: true,
     features: [
       "Everything in Free",
-      "GitHub App (PR risk comments)",
+      "GitHub App (PR risk comments) — Planned",
       "Team dashboard (ledgerful web)",
-      "Slack webhooks",
-      "Merge blocking on unsigned tx",
+      "Slack webhooks — Planned",
+      "Merge blocking on unsigned tx — Planned",
       "Unlimited project history",
       "Priority email support",
     ],
@@ -86,10 +86,10 @@ const MATRIX: MatrixRow[] = [
   {
     category: "Team",
     items: [
-      { label: "GitHub App (PR comments)", free: false, pro: true, ent: true },
+      { label: "GitHub App (PR comments)", free: false, pro: "Planned", ent: "Planned" },
       { label: "Team dashboard (ledgerful web)", free: false, pro: true, ent: true },
-      { label: "Slack webhooks", free: false, pro: true, ent: true },
-      { label: "Merge blocking on unsigned tx", free: false, pro: true, ent: true },
+      { label: "Slack webhooks", free: false, pro: "Planned", ent: "Planned" },
+      { label: "Merge blocking on unsigned tx", free: false, pro: "Planned", ent: "Planned" },
       { label: "Seats", free: "1", pro: "5", ent: "unlimited" },
     ],
   },

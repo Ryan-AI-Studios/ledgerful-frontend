@@ -8,6 +8,7 @@ import {
   ReactNode,
 } from "react";
 import { fetchStatus } from "./status-data";
+import { isApiError } from "./fallback";
 
 interface DaemonStatusContextType {
   isDaemonOffline: boolean;
@@ -25,8 +26,12 @@ export function DaemonStatusProvider({ children }: { children: ReactNode }) {
       try {
         await fetchStatus();
         setIsDaemonOffline(false);
-      } catch {
-        setIsDaemonOffline(true);
+      } catch (err) {
+        if (isApiError(err) && (err.status === 401 || err.status === 403)) {
+          setIsDaemonOffline(false);
+        } else {
+          setIsDaemonOffline(true);
+        }
       }
     };
 

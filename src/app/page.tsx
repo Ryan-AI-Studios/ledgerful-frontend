@@ -34,7 +34,7 @@ const CHANNELS = [
   {
     icon: ShieldCheck,
     title: "GitHub App",
-    sub: "PR risk comments",
+    sub: "PR risk comments — Planned",
     body: "A bot comment per pull request: risk level, temporal couplings, unsigned transactions, predicted test failures.",
   },
   {
