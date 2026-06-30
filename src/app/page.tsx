@@ -18,6 +18,7 @@ export default function RootRedirect() {
       >
         Go to dashboard
       </a>
+      <meta httpEquiv="refresh" content="0;url=/dashboard" />
     </div>
   );
 }
