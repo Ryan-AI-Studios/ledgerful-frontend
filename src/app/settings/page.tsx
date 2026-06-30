@@ -104,6 +104,7 @@ export default function SettingsPage() {
       } catch {
         if (mounted) {
           setGithubStatus(isDaemonUp ? "DISCONNECTED" : "UNREACHABLE");
+          setGithubSource("mock");
         }
       } finally {
         if (mounted) setIsGithubLoading(false);
