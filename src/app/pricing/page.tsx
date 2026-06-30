@@ -35,7 +35,7 @@ const TIERS: Tier[] = [
     name: "Pro",
     price: "$19",
     period: "/mo · 5 seats",
-    blurb: "Teams that review together. GitHub App, dashboard, webhooks.",
+    blurb: "Teams that review together. Dashboard, webhooks, GitHub App (planned).",
     cta: { label: "Try Pro free", href: "/#install" },
     highlight: true,
     features: [
@@ -108,7 +108,7 @@ const MATRIX: MatrixRow[] = [
 const FAQ = [
   {
     q: "Does Ledgerful send my code or intent data anywhere?",
-    a: "Local-first by default. Opt-in telemetry, no default data egress. The Enterprise tier adds hosted options, but the local-first model is the default.",
+    a: "Local-first by default. Opt-in telemetry, no default data egress. The Enterprise tier will add hosted options (planned), but the local-first model is the default.",
   },
   {
     q: "How is this different from git?",
@@ -116,7 +116,7 @@ const FAQ = [
   },
   {
     q: "Do I need the GitHub App for the free tier?",
-    a: "No. The GitHub App is a Pro feature. The free tier is the local CLI plus the local dashboard. Teams that want PR risk comments and merge blocking upgrade to Pro.",
+    a: "No. The GitHub App is a planned Pro feature. The free tier is the local CLI plus the local dashboard. Teams that want PR risk comments and merge blocking upgrade to Pro.",
   },
   {
     q: "What does the SOC2 export include?",
@@ -124,7 +124,7 @@ const FAQ = [
   },
   {
     q: "Is there a self-hosted Enterprise option?",
-    a: "Yes. Enterprise runs in your VPC with the compliance export. SSO/SAML and RBAC are planned. The hosted SaaS wrapper is optional and arrives after the local-first product is proven.",
+    a: "Yes. Enterprise runs in your VPC with the compliance export. SSO/SAML and RBAC are planned. The hosted SaaS wrapper is planned and arrives after the local-first product is proven.",
   },
 ];
 

@@ -1,29 +1,42 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { DataTable, Column } from "@/components/DataTable";
 import { Hotspot, fetchHotspots } from "@/lib/hotspots-data";
 import { DataSource } from "@/lib/fallback";
 import { RiskBadge } from "@/components/RiskBadge";
 import { DataSourceBadge } from "@/components/DataSourceBadge";
-import { ArrowUpRight, Calendar, Clock } from "lucide-react";
+import { ArrowUpRight, Calendar, Clock, AlertCircle, RefreshCw } from "lucide-react";
+
+type HotspotsState =
+  | { status: "loading" }
+  | { status: "error"; message: string }
+  | { status: "ready"; data: Hotspot[]; source: DataSource };
 
 export default function HotspotsPage() {
   const router = useRouter();
-  const [hotspots, setHotspots] = useState<Hotspot[]>([]);
-  const [source, setSource] = useState<DataSource>("live");
+  const [state, setState] = useState<HotspotsState>({ status: "loading" });
   const [range, setRange] = useState(90);
-  const [loading, setLoading] = useState(true);
+
+  const load = useCallback((days: number) => {
+    setTimeout(() => setState({ status: "loading" }), 0);
+    fetchHotspots(days)
+      .then((result) => {
+        setState({ status: "ready", data: result.data, source: result.source });
+      })
+      .catch(() => {
+        setState({
+          status: "error",
+          message: "Could not load hotspots. The Ledgerful daemon may not be running.",
+        });
+      });
+  }, []);
 
   useEffect(() => {
-    fetchHotspots(range).then((result) => {
-      setHotspots(result.data);
-      setSource(result.source);
-      setLoading(false);
-    });
-  }, [range]);
+    load(range);
+  }, [load, range]);
 
   const columns: Column<Hotspot>[] = [
     {
@@ -98,9 +111,9 @@ export default function HotspotsPage() {
   ];
 
   return (
-    <PageLayout title={`Hotspots (${hotspots.length})`}>
+    <PageLayout title={`Hotspots (${state.status === "ready" ? state.data.length : 0})`}>
       <div className="flex items-center gap-3 mb-4">
-        {!loading && <DataSourceBadge source={source} />}
+        {state.status === "ready" && <DataSourceBadge source={state.source} />}
       </div>
       <div className="bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -113,8 +126,9 @@ export default function HotspotsPage() {
               <select 
                 value={range}
                 onChange={(e) => {
-                  setLoading(true);
-                  setRange(Number(e.target.value));
+                  const newRange = Number(e.target.value);
+                  setState({ status: "loading" });
+                  setRange(newRange);
                 }}
                 className="bg-transparent text-sm text-[var(--color-text-primary)] focus:outline-none cursor-pointer"
                 aria-label="Select date range"
@@ -127,16 +141,33 @@ export default function HotspotsPage() {
           </div>
         </div>
 
-        {loading ? (
+        {state.status === "loading" ? (
           <div className="space-y-4 animate-pulse">
             {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="h-16 rounded bg-[var(--color-surface-raised)]" />
             ))}
           </div>
+        ) : state.status === "error" ? (
+          <div className="bg-[var(--color-surface-alt)] border border-[var(--color-danger-muted)] rounded-lg p-6">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-[var(--color-danger)] flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <div>
+                <h2 className="text-[1rem] font-semibold text-[var(--color-danger)]">Failed to load</h2>
+                <p className="mt-1 text-[var(--color-text-secondary)]">{state.message}</p>
+                <button
+                  onClick={() => { setState({ status: "loading" }); load(range); }}
+                  className="mt-4 inline-flex items-center gap-2 px-3 py-2 rounded-md bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm font-medium hover:bg-[var(--color-surface-raised)] transition-colors duration-100"
+                >
+                  <RefreshCw className="w-4 h-4" aria-hidden="true" />
+                  Retry
+                </button>
+              </div>
+            </div>
+          </div>
         ) : (
           <DataTable
             columns={columns}
-            rows={hotspots}
+            rows={state.data}
             getRowKey={(row) => row.id}
             onRowClick={(row) => {
               router.push(`/graph?focus=${encodeURIComponent(row.filePath)}`);

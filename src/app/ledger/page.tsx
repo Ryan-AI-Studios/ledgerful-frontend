@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { DataTable, Column } from "@/components/DataTable";
 import { RiskBadge } from "@/components/RiskBadge";
@@ -8,21 +8,34 @@ import { LedgerStatusBadge } from "@/components/LedgerStatusBadge";
 import { LedgerEntry, fetchLedger } from "@/lib/ledger-data";
 import { DataSource } from "@/lib/fallback";
 import { DataSourceBadge } from "@/components/DataSourceBadge";
-import { Search } from "lucide-react";
+import { Search, AlertCircle, RefreshCw } from "lucide-react";
+
+type LedgerState =
+  | { status: "loading" }
+  | { status: "error"; message: string }
+  | { status: "ready"; data: LedgerEntry[]; source: DataSource };
 
 export default function LedgerPage() {
-  const [entries, setEntries] = useState<LedgerEntry[]>([]);
-  const [source, setSource] = useState<DataSource>("live");
-  const [loading, setLoading] = useState(true);
+  const [state, setState] = useState<LedgerState>({ status: "loading" });
   const [authorFilter, setAuthorFilter] = useState("All authors");
 
-  useEffect(() => {
-    fetchLedger().then((result) => {
-      setEntries(result.data);
-      setSource(result.source);
-      setLoading(false);
-    });
+  const load = useCallback(() => {
+    setTimeout(() => setState({ status: "loading" }), 0);
+    fetchLedger()
+      .then((result) => {
+        setState({ status: "ready", data: result.data, source: result.source });
+      })
+      .catch(() => {
+        setState({
+          status: "error",
+          message: "Could not load ledger. The Ledgerful daemon may not be running.",
+        });
+      });
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const columns: Column<LedgerEntry>[] = [
     {
@@ -106,9 +119,9 @@ export default function LedgerPage() {
   ];
 
   return (
-    <PageLayout title={`Ledger (${entries.length.toLocaleString()} entries)`}>
+    <PageLayout title={`Ledger (${state.status === "ready" ? state.data.length.toLocaleString() : "0"} entries)`}>
       <div className="flex items-center gap-3 mb-4">
-        {!loading && <DataSourceBadge source={source} />}
+        {state.status === "ready" && <DataSourceBadge source={state.source} />}
       </div>
       <div className="bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg p-6">
         <div className="flex items-center justify-between gap-4 mb-4">
@@ -134,22 +147,39 @@ export default function LedgerPage() {
             aria-label="Filter by author"
           >
             <option>All authors</option>
-            {Array.from(new Set(entries.map(e => e.author))).map(author => (
+            {state.status === "ready" && Array.from(new Set(state.data.map(e => e.author))).map(author => (
               <option key={author} value={author}>{author}</option>
             ))}
           </select>
         </div>
 
-        {loading ? (
+        {state.status === "loading" ? (
           <div className="space-y-3 animate-pulse">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="h-16 rounded bg-[var(--color-surface-raised)]" />
             ))}
           </div>
+        ) : state.status === "error" ? (
+          <div className="bg-[var(--color-surface-alt)] border border-[var(--color-danger-muted)] rounded-lg p-6">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-[var(--color-danger)] flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <div>
+                <h2 className="text-[1rem] font-semibold text-[var(--color-danger)]">Failed to load</h2>
+                <p className="mt-1 text-[var(--color-text-secondary)]">{state.message}</p>
+                <button
+                  onClick={() => { setState({ status: "loading" }); load(); }}
+                  className="mt-4 inline-flex items-center gap-2 px-3 py-2 rounded-md bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm font-medium hover:bg-[var(--color-surface-raised)] transition-colors duration-100"
+                >
+                  <RefreshCw className="w-4 h-4" aria-hidden="true" />
+                  Retry
+                </button>
+              </div>
+            </div>
+          </div>
         ) : (
           <DataTable
             columns={columns}
-            rows={entries.filter(e => authorFilter === "All authors" || e.author === authorFilter)}
+            rows={state.data.filter(e => authorFilter === "All authors" || e.author === authorFilter)}
             getRowKey={(row) => row.txId}
             onRowClick={(row) => {
               window.location.href = `/ledger/detail?txId=${encodeURIComponent(row.txId)}`;

@@ -26,6 +26,8 @@ export default function CompliancePage() {
         const source: DataSource =
           summaryResult.source === "mock" || entriesResult.source === "mock"
             ? "mock"
+            : summaryResult.source === "stale" || entriesResult.source === "stale"
+            ? "stale"
             : summaryResult.source === "unavailable" || entriesResult.source === "unavailable"
             ? "unavailable"
             : "live";

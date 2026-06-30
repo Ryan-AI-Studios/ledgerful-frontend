@@ -16,11 +16,17 @@ export function UserMenu() {
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    fetchSession().then((result) => {
-      setSession(result.data);
-      setSource(result.source);
-      setLoading(false);
-    });
+    fetchSession()
+      .then((result) => {
+        setSession(result.data);
+        setSource(result.source);
+      })
+      .catch(() => {
+        // Keep fallback avatar visible; don’t hang in loading state.
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { PageLayout } from "@/components/PageLayout";
 import { RiskBadge } from "@/components/RiskBadge";
@@ -8,8 +8,13 @@ import { LedgerStatusBadge } from "@/components/LedgerStatusBadge";
 import { LedgerEntry, fetchLedgerEntry } from "@/lib/ledger-data";
 import { DataSource } from "@/lib/fallback";
 import { DataSourceBadge } from "@/components/DataSourceBadge";
-import { Copy, FileJson, ArrowLeft } from "lucide-react";
+import { Copy, FileJson, ArrowLeft, AlertCircle, RefreshCw } from "lucide-react";
 import Link from "next/link";
+
+type LedgerDetailState =
+  | { status: "loading" }
+  | { status: "error"; message: string }
+  | { status: "ready"; entry: LedgerEntry; source: DataSource };
 
 export default function LedgerDetailPage() {
   return (
@@ -26,47 +31,80 @@ function LedgerDetail() {
 }
 
 function LedgerDetailContent({ txId }: { txId: string }) {
-  const [entry, setEntry] = useState<LedgerEntry | null>(null);
-  const [source, setSource] = useState<DataSource>("live");
-  const [loading, setLoading] = useState(Boolean(txId));
+  const [state, setState] = useState<LedgerDetailState>({ status: "loading" });
 
-  useEffect(() => {
-    if (!txId) return;
-    fetchLedgerEntry(txId).then((result) => {
-      setEntry(result.data || null);
-      setSource(result.source);
-      setLoading(false);
-    });
+  const load = useCallback(() => {
+    if (!txId) {
+      setTimeout(() => setState({ status: "error", message: "No transaction ID provided." }), 0);
+      return;
+    }
+    setTimeout(() => setState({ status: "loading" }), 0);
+    fetchLedgerEntry(txId)
+      .then((result) => {
+        if (!result.data) {
+          setState({ status: "error", message: "Transaction not found." });
+          return;
+        }
+        setState({ status: "ready", entry: result.data, source: result.source });
+      })
+      .catch(() => {
+        setState({
+          status: "error",
+          message: "Could not load transaction. The Ledgerful daemon may not be running.",
+        });
+      });
   }, [txId]);
 
-  if (loading) {
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  if (state.status === "loading") {
     return <DetailSkeleton />;
   }
 
-  if (!entry) {
+  if (state.status === "error") {
     return (
       <PageLayout title="Transaction not found">
-        <div className="bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg p-6">
-          <p className="text-[var(--color-text-secondary)]">
-            No transaction found for tx ID{" "}
-            <span className="font-mono text-[var(--color-text-primary)]">{txId || "missing"}</span>.
-          </p>
-          <Link
-            href="/ledger"
-            className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-muted)]"
-          >
-            <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-            Back to ledger
-          </Link>
+        <div className="bg-[var(--color-surface-alt)] border border-[var(--color-danger-muted)] rounded-lg p-6">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-[var(--color-danger)] flex-shrink-0 mt-0.5" aria-hidden="true" />
+            <div>
+              <h2 className="text-[1rem] font-semibold text-[var(--color-danger)]">Failed to load</h2>
+              <p className="mt-1 text-[var(--color-text-secondary)]">{state.message}</p>
+              {txId && (
+                <p className="mt-1 text-[var(--color-text-secondary)]">
+                  No transaction found for tx ID{" "}
+                  <span className="font-mono text-[var(--color-text-primary)]">{txId}</span>.
+                </p>
+              )}
+              <button
+                onClick={load}
+                className="mt-4 inline-flex items-center gap-2 px-3 py-2 rounded-md bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm font-medium hover:bg-[var(--color-surface-raised)] transition-colors duration-100"
+              >
+                <RefreshCw className="w-4 h-4" aria-hidden="true" />
+                Retry
+              </button>
+              <Link
+                href="/ledger"
+                className="mt-4 ml-3 inline-flex items-center gap-2 text-sm font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-muted)]"
+              >
+                <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+                Back to ledger
+              </Link>
+            </div>
+          </div>
         </div>
       </PageLayout>
     );
   }
 
+  const entry = state.entry;
+
   return (
     <PageLayout title={`Transaction ${entry.txId}`}>
       <div className="flex items-center gap-3 mb-4">
-        {!loading && <DataSourceBadge source={source} />}
+        {<DataSourceBadge source={state.source} />}
       </div>
       <div className="bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg p-6">
         <div className="flex items-start justify-between gap-4 mb-6">

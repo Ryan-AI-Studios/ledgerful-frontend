@@ -39,6 +39,8 @@ function VerifyContent() {
         const source: DataSource =
           healthResult.source === "mock" || historyResult.source === "mock" || stepsResult.source === "mock"
             ? "mock"
+            : healthResult.source === "stale" || historyResult.source === "stale" || stepsResult.source === "stale"
+            ? "stale"
             : healthResult.source === "unavailable" || historyResult.source === "unavailable" || stepsResult.source === "unavailable"
             ? "unavailable"
             : "live";

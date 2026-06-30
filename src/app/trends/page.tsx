@@ -1,28 +1,41 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { fetchTrends, TrendPoint } from "@/lib/trends-data";
 import { DataSource } from "@/lib/fallback";
 import { DataSourceBadge } from "@/components/DataSourceBadge";
-import { Calendar, Info, TrendingUp } from "lucide-react";
+import { Calendar, Info, TrendingUp, AlertCircle, RefreshCw } from "lucide-react";
+
+type TrendsState =
+  | { status: "loading" }
+  | { status: "error"; message: string }
+  | { status: "ready"; data: TrendPoint[]; source: DataSource };
 
 export default function TrendsPage() {
-  const [trends, setTrends] = useState<TrendPoint[]>([]);
-  const [source, setSource] = useState<DataSource>("live");
+  const [state, setState] = useState<TrendsState>({ status: "loading" });
   const [range, setRange] = useState(90);
-  const [loading, setLoading] = useState(true);
+
+  const load = useCallback((days: number) => {
+    setTimeout(() => setState({ status: "loading" }), 0);
+    fetchTrends(days)
+      .then((result) => {
+        setState({ status: "ready", data: result.data, source: result.source });
+      })
+      .catch(() => {
+        setState({
+          status: "error",
+          message: "Could not load trends. The Ledgerful daemon may not be running.",
+        });
+      });
+  }, []);
 
   useEffect(() => {
-    fetchTrends(range).then((result) => {
-      setTrends(result.data);
-      setSource(result.source);
-      setLoading(false);
-    });
-  }, [range]);
+    load(range);
+  }, [load, range]);
 
   const chartData = useMemo(() => {
-    if (trends.length === 0) return null;
+    if (state.status !== "ready" || state.data.length === 0) return null;
 
     const width = 1000;
     const height = 300;
@@ -31,10 +44,10 @@ export default function TrendsPage() {
     const minScore = 0;
     const maxScore = 100;
     
-    const xStep = (width - padding * 2) / (trends.length - 1);
+    const xStep = (width - padding * 2) / (state.data.length - 1);
     const yScale = (height - padding * 2) / (maxScore - minScore);
 
-    const points = trends.map((p, i) => ({
+    const points = state.data.map((p, i) => ({
       x: padding + i * xStep,
       y: height - padding - (p.score - minScore) * yScale,
       data: p
@@ -49,13 +62,15 @@ export default function TrendsPage() {
       points,
       pathData
     };
-  }, [trends]);
+  }, [state]);
+
+  const trends = state.status === "ready" ? state.data : [];
 
   return (
     <PageLayout title="Project Health Trends">
       <div className="space-y-6">
         <div className="flex items-center gap-3 mb-4">
-          {!loading && <DataSourceBadge source={source} />}
+          {state.status === "ready" && <DataSourceBadge source={state.source} />}
         </div>
         <div className="bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -71,15 +86,17 @@ export default function TrendsPage() {
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 px-3 h-9 rounded-md bg-[var(--color-surface)] border border-[var(--color-border-muted)]">
                 <Calendar className="w-4 h-4 text-[var(--color-text-muted)]" />
-                <select 
-                  value={range}
-                  onChange={(e) => {
-                    setLoading(true);
-                    setRange(Number(e.target.value));
-                  }}
-                  className="bg-transparent text-sm text-[var(--color-text-primary)] focus:outline-none cursor-pointer"
-                  aria-label="Select date range"
-                >
+              <select 
+                value={range}
+                onChange={(e) => {
+                  const newRange = Number(e.target.value);
+                  setState({ status: "loading" });
+                  setRange(newRange);
+                }}
+                className="bg-transparent text-sm text-[var(--color-text-primary)] focus:outline-none cursor-pointer"
+                aria-label="Select date range"
+              >
+
                   <option value={7}>Last 7 days</option>
                   <option value={30}>Last 30 days</option>
                   <option value={90}>Last 90 days</option>
@@ -88,9 +105,26 @@ export default function TrendsPage() {
             </div>
           </div>
 
-          {loading ? (
+          {state.status === "loading" ? (
             <div className="h-[300px] w-full bg-[var(--color-surface)] rounded-md animate-pulse border border-[var(--color-border-muted)] flex items-center justify-center">
               <span className="text-sm text-[var(--color-text-muted)]">Loading trend data...</span>
+            </div>
+          ) : state.status === "error" ? (
+            <div className="bg-[var(--color-surface-alt)] border border-[var(--color-danger-muted)] rounded-lg p-6">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-[var(--color-danger)] flex-shrink-0 mt-0.5" aria-hidden="true" />
+                <div>
+                  <h2 className="text-[1rem] font-semibold text-[var(--color-danger)]">Failed to load</h2>
+                  <p className="mt-1 text-[var(--color-text-secondary)]">{state.message}</p>
+                  <button
+                    onClick={() => { setState({ status: "loading" }); load(range); }}
+                    className="mt-4 inline-flex items-center gap-2 px-3 py-2 rounded-md bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm font-medium hover:bg-[var(--color-surface-raised)] transition-colors duration-100"
+                  >
+                    <RefreshCw className="w-4 h-4" aria-hidden="true" />
+                    Retry
+                  </button>
+                </div>
+              </div>
             </div>
           ) : chartData ? (
             <div className="relative group">
