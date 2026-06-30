@@ -38,7 +38,3 @@ export async function triggerSoc2Export(): Promise<void> {
     throw err;
   }
 }
-
-export function isMockMode(): boolean {
-  return shouldUseMock();
-}

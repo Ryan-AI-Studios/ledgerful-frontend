@@ -2,6 +2,7 @@
 
 import { TopNav } from "./TopNav";
 import { Sidebar } from "./Sidebar";
+import { GlobalOfflineBanner } from "./GlobalOfflineBanner";
 import { ReactNode, useState } from "react";
 import { usePathname } from "next/navigation";
 
@@ -30,6 +31,8 @@ export function PageLayout({ children, title }: PageLayoutProps) {
       </a>
 
       <TopNav onToggleMenu={() => setIsSidebarOpen(!isSidebarOpen)} isOpen={isSidebarOpen} />
+
+      <GlobalOfflineBanner />
 
       <div className="flex flex-1 relative">
         <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />

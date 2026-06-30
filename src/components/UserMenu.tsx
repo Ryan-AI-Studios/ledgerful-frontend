@@ -3,13 +3,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import { fetchSession } from "@/lib/session-data";
 import { UserSession } from "@/lib/types";
+import { DataSourceBadge } from "./DataSourceBadge";
 import { User, Settings, LogOut } from "lucide-react";
 import Link from "next/link";
 
 export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [session, setSession] = useState<UserSession | null>(null);
-  const [, setSource] = useState<import("@/lib/fallback").DataSource>("live");
+  const [source, setSource] = useState<import("@/lib/fallback").DataSource>("live");
   const [loading, setLoading] = useState(true);
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -140,7 +141,10 @@ export function UserMenu() {
           className="absolute right-0 mt-2 w-56 bg-[var(--color-surface-raised)] border border-[var(--color-border)] rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.4)] py-1 z-50 focus:outline-none"
         >
           <div className="px-3 py-2 border-b border-[var(--color-border-muted)] mb-1">
-            <p className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{session?.name}</p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{session?.name}</p>
+              <DataSourceBadge source={source} />
+            </div>
             <p className="text-xs text-[var(--color-text-muted)] truncate">{session?.email}</p>
             {session?.role && (
               <span className="inline-block mt-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[var(--color-surface-alt)] text-[var(--color-primary)] border border-[var(--color-border-muted)]">
