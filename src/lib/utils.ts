@@ -5,38 +5,37 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-const TOKEN_KEY = "ledgerful:token";
+let inMemoryToken: string | null = null;
+
+export function resetInMemoryToken(): void {
+  inMemoryToken = null;
+}
 
 export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
 
+  if (inMemoryToken) return inMemoryToken;
+
   const fromUrl = new URLSearchParams(window.location.search).get("token");
   if (fromUrl) {
-    try {
-      window.sessionStorage.setItem(TOKEN_KEY, fromUrl);
-    } catch {
-      // ignore storage errors.
-    }
+    inMemoryToken = fromUrl;
+    const cleanUrl = window.location.pathname + window.location.hash;
+    window.history.replaceState(null, "", cleanUrl);
     return fromUrl;
   }
 
-  try {
-    const stored = window.sessionStorage.getItem(TOKEN_KEY);
-    if (stored) return stored;
-  } catch {
-    // sessionStorage may be unavailable in private mode.
-  }
-
   return null;
+}
+
+export function setAuthToken(token: string): void {
+  inMemoryToken = token;
 }
 
 export function buildApiUrl(
   path: string,
   params?: Record<string, string | undefined>,
 ): string {
-  const token = getAuthToken();
   const search = new URLSearchParams();
-  if (token) search.set("token", token);
 
   if (params) {
     Object.entries(params).forEach(([key, value]) => {

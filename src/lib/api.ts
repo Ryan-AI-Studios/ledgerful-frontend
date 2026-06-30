@@ -1,4 +1,4 @@
-import { buildApiUrl } from "./utils";
+import { buildApiUrl, getAuthToken } from "./utils";
 
 export class ApiError extends Error {
   status: number;
@@ -29,9 +29,17 @@ export async function apiRequest<T>(
   params?: Record<string, string | undefined>,
 ): Promise<T> {
   const init: RequestInit = { method, signal: AbortSignal.timeout(5000) };
+  const token = getAuthToken();
+
+  if (token) {
+    init.headers = { ...(init.headers || {}), Authorization: `Bearer ${token}` };
+  }
 
   if (method === "POST" && body !== undefined) {
-    init.headers = { "Content-Type": "application/json" };
+    init.headers = {
+      ...init.headers,
+      "Content-Type": "application/json",
+    };
     init.body = JSON.stringify(body);
   }
 

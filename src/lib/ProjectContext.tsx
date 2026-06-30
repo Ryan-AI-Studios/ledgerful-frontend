@@ -9,6 +9,8 @@ import {
   useEffect,
 } from "react";
 import { Project, activeProject as defaultProject, fetchProjects } from "./projects";
+import { getAuthToken } from "./utils";
+import { TokenPrompt } from "@/components/auth/TokenPrompt";
 
 const STORAGE_KEY = "ledgerful:active-project";
 
@@ -24,9 +26,14 @@ const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 export function ProjectProvider({ children }: { children: ReactNode }) {
   const [project, setProject] = useState<Project>(defaultProject);
   const [allProjects, setAllProjects] = useState<Project[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const hasToken = Boolean(getAuthToken());
+  const [isLoaded, setIsLoaded] = useState(hasToken ? false : true);
+  const [authRetry, setAuthRetry] = useState(0);
 
   useEffect(() => {
+    if (!hasToken) {
+      return;
+    }
     let cancelled = false;
     fetchProjects()
       .then((loaded) => {
@@ -45,14 +52,13 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         }
       })
       .catch(() => {
-        // Fallback to default if load fails
         setAllProjects([defaultProject]);
         setIsLoaded(true);
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [hasToken, authRetry]);
 
   const handleSetProject = useCallback((next: Project) => {
     setProject(next);
@@ -62,6 +68,10 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       // ignore storage errors.
     }
   }, []);
+
+  if (!hasToken) {
+    return <TokenPrompt onAuthed={() => setAuthRetry((n) => n + 1)} />;
+  }
 
   return (
     <ProjectContext.Provider

@@ -2,20 +2,18 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { apiGet, apiPost, ApiError, isApiError } from "./api";
 import { fetchDashboardData } from "./data";
 import { fetchLedgerEntry } from "./ledger-data";
+import { resetInMemoryToken } from "./utils";
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
 describe("apiRequest", () => {
   beforeEach(() => {
+    resetInMemoryToken();
     mockFetch.mockReset();
     vi.stubGlobal("window", {
-      sessionStorage: {
-        getItem: vi.fn(),
-        setItem: vi.fn(),
-        removeItem: vi.fn(),
-      },
-      location: { search: "" },
+      location: { search: "", pathname: "/", hash: "" },
+      history: { replaceState: vi.fn() },
     });
   });
 
@@ -33,10 +31,10 @@ describe("apiRequest", () => {
 
     const result = await apiGet<{ message: string }>("/status");
     expect(result).toEqual({ message: "ok" });
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining("/api/status"),
-      { method: "GET" },
-    );
+    const url = mockFetch.mock.calls[0][0] as string;
+    expect(url).toContain("/api/status");
+    const init = mockFetch.mock.calls[0][1] as RequestInit;
+    expect(init.method).toBe("GET");
   });
 
   it("throws ApiError with parsed message on 4xx", async () => {
@@ -92,19 +90,20 @@ describe("apiRequest", () => {
 
     await apiPost<{ id: string }>("/ledger", { txId: "tx-1" });
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining("/api/ledger"),
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ txId: "tx-1" }),
-      },
+    const init = mockFetch.mock.calls[0][1] as RequestInit;
+    expect(init.method).toBe("POST");
+    expect(init.body).toBe(JSON.stringify({ txId: "tx-1" }));
+    expect(init.headers).toEqual(
+      expect.objectContaining({ "Content-Type": "application/json" }),
     );
   });
 
-  it("appends token from sessionStorage when present", async () => {
+  it("sends Authorization header from in-memory token", async () => {
     const token = "test-token-123";
-    (window.sessionStorage.getItem as ReturnType<typeof vi.fn>).mockReturnValue(token);
+    vi.stubGlobal("window", {
+      location: { search: `?token=${token}`, pathname: "/", hash: "" },
+      history: { replaceState: vi.fn() },
+    });
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -113,8 +112,10 @@ describe("apiRequest", () => {
     } as Response);
 
     await apiGet("/status");
-    const url = mockFetch.mock.calls[0][0] as string;
-    expect(url).toContain("token=test-token-123");
+    const init = mockFetch.mock.calls[0][1] as RequestInit;
+    expect(init.headers).toEqual(
+      expect.objectContaining({ Authorization: `Bearer ${token}` }),
+    );
   });
 
   it("does not send a body for GET", async () => {
@@ -141,19 +142,34 @@ describe("apiRequest", () => {
     expect(url).toContain("days=0");
     expect(url).not.toContain("limit=");
   });
+
+  it("does not append token to URL", async () => {
+    const token = "url-token-456";
+    vi.stubGlobal("window", {
+      location: { search: `?token=${token}`, pathname: "/", hash: "" },
+      history: { replaceState: vi.fn() },
+    });
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({}),
+    } as Response);
+
+    await apiGet("/status");
+    const url = mockFetch.mock.calls[0][0] as string;
+    expect(url).not.toContain("token=");
+  });
 });
 
 describe("buildApiUrl", () => {
   beforeEach(() => {
+    resetInMemoryToken();
     mockFetch.mockReset();
     delete process.env.NEXT_PUBLIC_LEDGERFUL_API_URL;
     vi.stubGlobal("window", {
-      sessionStorage: {
-        getItem: vi.fn(),
-        setItem: vi.fn(),
-        removeItem: vi.fn(),
-      },
-      location: { search: "" },
+      location: { search: "", pathname: "/", hash: "" },
+      history: { replaceState: vi.fn() },
     });
   });
 
@@ -175,15 +191,11 @@ describe("buildApiUrl", () => {
     expect(url).toContain("http://127.0.0.1:52001/api/status");
   });
 
-  it("reads token from URL query parameter on first load", async () => {
+  it("reads token from URL query parameter on first load and sends header", async () => {
     const token = "url-token-456";
     vi.stubGlobal("window", {
-      sessionStorage: {
-        getItem: vi.fn(),
-        setItem: vi.fn(),
-        removeItem: vi.fn(),
-      },
-      location: { search: `?token=${token}` },
+      location: { search: `?token=${token}`, pathname: "/", hash: "" },
+      history: { replaceState: vi.fn() },
     });
 
     mockFetch.mockResolvedValueOnce({
@@ -193,12 +205,19 @@ describe("buildApiUrl", () => {
     } as Response);
 
     await apiGet("/status");
-    const url = mockFetch.mock.calls[0][0] as string;
-    expect(url).toContain(`token=${token}`);
+    const init = mockFetch.mock.calls[0][1] as RequestInit;
+    expect(init.headers).toEqual(
+      expect.objectContaining({ Authorization: `Bearer ${token}` }),
+    );
   });
 });
 
 describe("domain wrappers with fallback", () => {
+  beforeEach(() => {
+    resetInMemoryToken();
+    mockFetch.mockReset();
+  });
+
   afterEach(() => {
     delete process.env.NEXT_PUBLIC_LEDGERFUL_USE_MOCK;
   });
