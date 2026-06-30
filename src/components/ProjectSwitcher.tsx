@@ -83,6 +83,12 @@ export function ProjectSwitcher() {
                 <div className="text-xs text-[var(--color-text-muted)] mt-1">
                   Health {p.healthScore}/100 · scanned {p.lastScanAt}
                 </div>
+                {p.validationWarnings.length > 0 && (
+                  <div className="flex items-center gap-1 mt-1 text-[0.6875rem] text-[var(--color-warning)]">
+                    <AlertTriangle className="w-3 h-3" aria-hidden="true" />
+                    <span>{p.validationWarnings.length} warning{p.validationWarnings.length > 1 ? "s" : ""}</span>
+                  </div>
+                )}
               </div>
             </button>
           ))}

@@ -15,7 +15,7 @@ interface ConfigResponse {
   repo_path: string;
   ledger_path: string;
   graph_path: string;
-  signing_key: string;
+  signing_key_status: string;
   llm_backend: string;
   polling_interval: string;
   telemetry: string;
@@ -27,7 +27,7 @@ const defaultConfig: ConfigResponse = {
   repo_path: "",
   ledger_path: "",
   graph_path: "",
-  signing_key: "",
+  signing_key_status: "not configured",
   llm_backend: "none",
   polling_interval: "30s",
   telemetry: "disabled",
@@ -244,7 +244,7 @@ export default function SettingsPage() {
             <Setting label="Repository path" value={config.repo_path} />
             <Setting label="Ledger database" value={config.ledger_path} />
             <Setting label="Graph database" value={config.graph_path} />
-            <Setting label="Signing key" value={config.signing_key} />
+            <Setting label="Signing key" value={config.signing_key_status} />
             <Setting label="LLM backend" value={config.llm_backend} />
             <Setting label="Dashboard polling" value={config.polling_interval} />
             <Setting label="Telemetry" value={config.telemetry} />

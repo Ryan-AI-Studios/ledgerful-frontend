@@ -37,6 +37,7 @@ describe("ProjectsPage validation warnings", () => {
           },
         ],
         isLoaded: true,
+        projectsSource: "live",
       }),
     }));
 
@@ -73,6 +74,7 @@ describe("ProjectsPage validation warnings", () => {
           },
         ],
         isLoaded: true,
+        projectsSource: "live",
       }),
     }));
 

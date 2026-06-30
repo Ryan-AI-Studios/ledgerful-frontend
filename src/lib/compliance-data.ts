@@ -5,8 +5,7 @@ import {
 } from "@/lib/api/compliance";
 import {
   fetchComplianceSummary as fetchMockComplianceSummary,
-  fetchSignatureEntries as fetchMockSignatureEntries,
-  triggerSoc2Export as triggerMockSoc2Export
+  fetchSignatureEntries as fetchMockSignatureEntries
 } from "@/lib/mock/compliance";
 import { withFallback, shouldUseMock, WithSource } from "@/lib/fallback";
 import { ComplianceSummary, SignatureEntry } from "@/lib/types";
@@ -27,14 +26,7 @@ export async function fetchSignatureEntries(): Promise<WithSource<SignatureEntry
 
 export async function triggerSoc2Export(): Promise<void> {
   if (shouldUseMock()) {
-    return triggerMockSoc2Export();
+    throw new Error("SOC2 export is not available in mock mode");
   }
-  try {
-    return await triggerLiveSoc2Export();
-  } catch (err) {
-    if (err instanceof TypeError) {
-      return triggerMockSoc2Export();
-    }
-    throw err;
-  }
+  return triggerLiveSoc2Export();
 }

@@ -9,6 +9,7 @@ import {
   useEffect,
 } from "react";
 import { Project, activeProject as defaultProject, fetchProjects } from "./projects";
+import { DataSource } from "./fallback";
 import { getAuthToken } from "./utils";
 import { TokenPrompt } from "@/components/auth/TokenPrompt";
 
@@ -19,6 +20,7 @@ interface ProjectContextType {
   setProject: (project: Project) => void;
   allProjects: Project[];
   isLoaded: boolean;
+  projectsSource: DataSource;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -26,6 +28,7 @@ const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 export function ProjectProvider({ children }: { children: ReactNode }) {
   const [project, setProject] = useState<Project>(defaultProject);
   const [allProjects, setAllProjects] = useState<Project[]>([]);
+  const [projectsSource, setProjectsSource] = useState<DataSource>("live");
   const hasToken = Boolean(getAuthToken());
   const [isLoaded, setIsLoaded] = useState(hasToken ? false : true);
   const [authRetry, setAuthRetry] = useState(0);
@@ -40,6 +43,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         if (cancelled) return;
         const loaded = result.data;
         setAllProjects(loaded);
+        setProjectsSource(result.source);
         setIsLoaded(true);
 
         if (loaded.length > 0) {
@@ -54,6 +58,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       })
       .catch(() => {
         setAllProjects([defaultProject]);
+        setProjectsSource("mock");
         setIsLoaded(true);
       });
     return () => {
@@ -76,7 +81,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
 
   return (
     <ProjectContext.Provider
-      value={{ project, setProject: handleSetProject, allProjects, isLoaded }}
+      value={{ project, setProject: handleSetProject, allProjects, isLoaded, projectsSource }}
     >
       {children}
     </ProjectContext.Provider>

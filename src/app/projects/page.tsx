@@ -3,13 +3,17 @@
 import { PageLayout } from "@/components/PageLayout";
 import { useProject } from "@/lib/ProjectContext";
 import { StatusDot } from "@/components/StatusDot";
+import { DataSourceBadge } from "@/components/DataSourceBadge";
 import { Check, FolderGit2, AlertTriangle } from "lucide-react";
 
 export default function ProjectsPage() {
-  const { project, setProject, allProjects } = useProject();
+  const { project, setProject, allProjects, projectsSource } = useProject();
 
   return (
     <PageLayout title="Projects">
+      <div className="flex items-center gap-3 mb-4">
+        <DataSourceBadge source={projectsSource} />
+      </div>
       <div className="bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg p-6">
         <p className="text-sm text-[var(--color-text-secondary)] mb-4">
           Select the project to analyze. Ledgerful scans the active project and
