@@ -19,7 +19,7 @@ import { AlertCircle, RefreshCw } from "lucide-react";
 type VerifyState =
   | { status: "loading" }
   | { status: "error"; message: string }
-  | { status: "ready"; health: VerificationHealth; history: VerificationTrendPoint[]; steps: VerificationStep[]; source: DataSource };
+  | { status: "ready"; health: VerificationHealth; history: VerificationTrendPoint[]; steps: VerificationStep[]; healthSource: DataSource; historySource: DataSource; stepsSource: DataSource };
 
 export default function VerifyPage() {
   const { project } = useProject();
@@ -36,20 +36,14 @@ function VerifyContent() {
       fetchVerificationSteps()
     ])
       .then(([healthResult, historyResult, stepsResult]) => {
-        const source: DataSource =
-          healthResult.source === "mock" || historyResult.source === "mock" || stepsResult.source === "mock"
-            ? "mock"
-            : healthResult.source === "stale" || historyResult.source === "stale" || stepsResult.source === "stale"
-            ? "stale"
-            : healthResult.source === "unavailable" || historyResult.source === "unavailable" || stepsResult.source === "unavailable"
-            ? "unavailable"
-            : "live";
         setState({
           status: "ready",
           health: healthResult.data,
           history: historyResult.data,
           steps: stepsResult.data,
-          source,
+          healthSource: healthResult.source,
+          historySource: historyResult.source,
+          stepsSource: stepsResult.source,
         });
       })
       .catch(() => {
@@ -67,9 +61,6 @@ function VerifyContent() {
 
   return (
     <PageLayout title="Verification History">
-      <div className="flex items-center gap-3 mb-4" aria-live="polite" aria-busy={state.status === "loading"}>
-        {state.status === "ready" && <DataSourceBadge source={state.source} />}
-      </div>
       <div aria-live="polite" aria-busy={state.status === "loading"}>
         {state.status === "loading" && (
           <div className="flex flex-col gap-6 animate-pulse">
@@ -107,13 +98,22 @@ function VerifyContent() {
 
         {state.status === "ready" && (
           <div className="flex flex-col gap-8">
+            <div className="flex items-center gap-3">
+              <DataSourceBadge source={state.healthSource} />
+            </div>
             <VerificationHealthCard health={state.health} />
-            
+
             <section className="flex flex-col gap-4">
-              <h2 className="text-lg font-semibold">Verification Trend (90 Days)</h2>
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg font-semibold">Verification Trend (90 Days)</h2>
+                <DataSourceBadge source={state.historySource} />
+              </div>
               <VerificationTrendSparkline data={state.history} />
             </section>
 
+            <div className="flex items-center gap-3">
+              <DataSourceBadge source={state.stepsSource} />
+            </div>
             <VerificationStepsTable steps={state.steps} />
           </div>
         )}

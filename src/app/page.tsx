@@ -41,7 +41,7 @@ const CHANNELS = [
     icon: Network,
     title: "Local dashboard",
     sub: "ledgerful web",
-    body: "http://localhost:52001 — the manager's view. Dashboard, changes, ledger, hotspots, compliance. Zero egress.",
+    body: "http://localhost:52001 — the manager's view. Dashboard, changes, ledger, hotspots, compliance. No default data egress.",
   },
 ] as const;
 

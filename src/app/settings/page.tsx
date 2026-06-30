@@ -357,7 +357,11 @@ export default function SettingsPage() {
           </div>
 
           <div>
-            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-2">Live Payload Preview</h3>
+            <div className="flex items-center gap-3 mb-2">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Example Payload</h3>
+              <DataSourceBadge source="mock" />
+            </div>
+            <p className="text-xs text-[var(--color-text-muted)] mb-3">Illustrative shape of the anonymous data sent when telemetry is enabled. Not a live capture.</p>
             <div className="bg-[var(--color-surface)] rounded-md p-4 overflow-x-auto border border-[var(--color-border-muted)]">
               <pre className="text-xs text-[var(--color-text-secondary)] font-mono whitespace-pre-wrap">
                 {JSON.stringify(telemetryPayload, null, 2)}

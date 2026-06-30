@@ -14,7 +14,7 @@ import { AlertCircle, RefreshCw, Loader2 } from "lucide-react";
 type ComplianceState =
   | { status: "loading" }
   | { status: "error"; message: string }
-  | { status: "ready"; summary: ComplianceSummary; entries: SignatureEntry[]; source: DataSource };
+  | { status: "ready"; summary: ComplianceSummary; entries: SignatureEntry[]; summarySource: DataSource; entriesSource: DataSource };
 
 export default function CompliancePage() {
   const [state, setState] = useState<ComplianceState>({ status: "loading" });
@@ -23,15 +23,7 @@ export default function CompliancePage() {
     setState({ status: "loading" });
     Promise.all([fetchComplianceSummary(), fetchSignatureEntries()])
       .then(([summaryResult, entriesResult]) => {
-        const source: DataSource =
-          summaryResult.source === "mock" || entriesResult.source === "mock"
-            ? "mock"
-            : summaryResult.source === "stale" || entriesResult.source === "stale"
-            ? "stale"
-            : summaryResult.source === "unavailable" || entriesResult.source === "unavailable"
-            ? "unavailable"
-            : "live";
-        setState({ status: "ready", summary: summaryResult.data, entries: entriesResult.data, source });
+        setState({ status: "ready", summary: summaryResult.data, entries: entriesResult.data, summarySource: summaryResult.source, entriesSource: entriesResult.source });
       })
       .catch((err) => {
         setState({
@@ -46,7 +38,7 @@ export default function CompliancePage() {
     return () => clearTimeout(timeout);
   }, []);
 
-  const exportDisabled = state.status === "ready" && state.source === "mock";
+  const exportDisabled = state.status === "ready" && (state.summarySource === "mock" || state.entriesSource === "mock");
 
   const handleRetry = () => {
     load();
@@ -61,7 +53,6 @@ export default function CompliancePage() {
             signature validity verification, and architectural decision records for compliance reporting.
           </p>
           <div className="flex items-center gap-3">
-            {state.status === "ready" && <DataSourceBadge source={state.source} />}
             <Soc2ExportButton disabled={exportDisabled} />
           </div>
         </div>
@@ -94,7 +85,13 @@ export default function CompliancePage() {
 
         {state.status === "ready" && (
           <>
+            <div className="flex items-center gap-3">
+              <DataSourceBadge source={state.summarySource} />
+            </div>
             <ComplianceSummaryCards summary={state.summary} />
+            <div className="flex items-center gap-3">
+              <DataSourceBadge source={state.entriesSource} />
+            </div>
             <SignatureValidationTable entries={state.entries} />
           </>
         )}
