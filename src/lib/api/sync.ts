@@ -1,6 +1,7 @@
 import { apiGet } from "../api";
 import { SyncStatus } from "@/lib/types";
 
+// Coverage boundary: not in generated schema — feature-gated (see 0011 deferred). Hand-declared.
 interface SyncStatusApiResponse {
   device_id: string | null;
   last_extract_at: string | null;

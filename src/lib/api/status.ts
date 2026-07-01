@@ -1,17 +1,11 @@
 import { apiGet } from "../api";
 import { StatusResponse } from "@/lib/types";
+import type { ExtractResponse } from "./contract-types";
 
-interface StatusApiResponse {
-  index_ready: boolean;
-  graph_ready: boolean;
-  pending_transactions: number;
-  unaudited_drift: number;
-  embedding_model_reachable: boolean;
-  completion_model_reachable: boolean;
-}
+type StatusWire = ExtractResponse<"/api/status", "get">;
 
 export async function fetchStatus(): Promise<StatusResponse> {
-  const data = await apiGet<StatusApiResponse>("/status");
+  const data = await apiGet<StatusWire>("/status");
   if (!data || typeof data !== "object") {
     throw new Error("Invalid status response: expected object");
   }

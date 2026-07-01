@@ -1,18 +1,11 @@
 import { apiGet } from "../api";
 import { Project } from "@/lib/types";
+import type { ExtractResponse } from "./contract-types";
 
-interface ProjectApiItem {
-  id: string;
-  name: string;
-  path: string;
-  status: string;
-  last_scan_at: string | null;
-  health_score: number;
-  validation_warnings: string[];
-}
+type ProjectWire = ExtractResponse<"/api/projects", "get">;
 
 export async function fetchProjects(): Promise<Project[]> {
-  const data = await apiGet<ProjectApiItem[]>("/projects");
+  const data = await apiGet<ProjectWire>("/projects");
   if (!Array.isArray(data)) {
     throw new Error("Invalid projects response: expected array");
   }

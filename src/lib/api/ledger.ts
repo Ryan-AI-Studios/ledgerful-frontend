@@ -1,18 +1,9 @@
 import { apiGet } from "../api";
 import { LedgerEntry, LedgerStatus, RiskLevel } from "@/lib/types";
+import type { ExtractResponse } from "./contract-types";
 
-interface LedgerApiEntry {
-  tx_id: string;
-  category: string;
-  entry_type: string;
-  summary: string;
-  reason: string;
-  author: string;
-  committed_at: string;
-  risk?: string;
-  signature?: string;
-  public_key?: string;
-}
+type LedgerWire = ExtractResponse<"/api/ledger", "get">;
+type LedgerDetailWire = ExtractResponse<"/api/ledger/{tx_id}", "get">;
 
 function formatTimeAgo(committedAt: string): string {
   const date = new Date(committedAt);
@@ -28,7 +19,7 @@ function formatTimeAgo(committedAt: string): string {
   return `${Math.floor(days / 30)}mo ago`;
 }
 
-function toLedgerEntry(item: LedgerApiEntry): LedgerEntry {
+function toLedgerEntry(item: LedgerWire[number]): LedgerEntry {
   const status: LedgerStatus = item.entry_type === "PENDING" ? "PENDING" : "COMMITTED";
 
   return {
@@ -49,8 +40,22 @@ function toLedgerEntry(item: LedgerApiEntry): LedgerEntry {
   };
 }
 
+function toLedgerEntryDetail(item: LedgerDetailWire): LedgerEntry {
+  return {
+    ...toLedgerEntry(item),
+    files: (item.files ?? []).map((f) => ({
+      path: f.path,
+      additions: f.additions,
+      deletions: f.deletions,
+    })),
+    hotspotsCrossed: item.hotspots_crossed ?? 0,
+    testsRun: item.tests_run ?? 0,
+    flakes: item.flakes ?? 0,
+  };
+}
+
 export async function fetchLedger(): Promise<LedgerEntry[]> {
-  const data = await apiGet<LedgerApiEntry[]>("/ledger", { limit: "50" });
+  const data = await apiGet<LedgerWire>("/ledger", { limit: "50" });
   if (!Array.isArray(data)) {
     throw new Error("Invalid ledger response: expected array");
   }
@@ -58,9 +63,9 @@ export async function fetchLedger(): Promise<LedgerEntry[]> {
 }
 
 export async function fetchLedgerEntry(txId: string): Promise<LedgerEntry> {
-  const data = await apiGet<LedgerApiEntry>(`/ledger/${encodeURIComponent(txId)}`);
+  const data = await apiGet<LedgerDetailWire>(`/ledger/${encodeURIComponent(txId)}`);
   if (!data || typeof data !== "object") {
     throw new Error("Invalid ledger entry response: expected object");
   }
-  return toLedgerEntry(data);
+  return toLedgerEntryDetail(data);
 }

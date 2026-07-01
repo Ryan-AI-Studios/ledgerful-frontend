@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated API contract types:
+    "src/lib/api/generated.d.ts",
+    "src/lib/api/contract/openapi.json",
   ]),
 ]);
 

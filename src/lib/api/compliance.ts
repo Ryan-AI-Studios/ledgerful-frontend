@@ -1,13 +1,20 @@
 import { apiGet, ApiError } from "../api";
 import { ComplianceSummary, SignatureEntry } from "@/lib/types";
 import { buildApiUrl } from "../utils";
+import type { ExtractResponse } from "./contract-types";
+
+// ComplianceSummaryResponse matches the UI type directly (some mock-only fields are absent live).
+type ComplianceSummaryWire = ExtractResponse<"/api/compliance/summary", "get">;
+
+type SignatureEntriesWire = ExtractResponse<"/api/compliance/signatures", "get">;
 
 export async function fetchComplianceSummary(): Promise<ComplianceSummary> {
-  return await apiGet<ComplianceSummary>("/compliance/summary");
+  return await apiGet<ComplianceSummaryWire>("/compliance/summary");
 }
 
 export async function fetchSignatureEntries(): Promise<SignatureEntry[]> {
-  return await apiGet<SignatureEntry[]>("/compliance/signatures");
+  const data = await apiGet<SignatureEntriesWire>("/compliance/signatures");
+  return [...data] as SignatureEntry[];
 }
 
 export async function triggerSoc2Export(): Promise<void> {

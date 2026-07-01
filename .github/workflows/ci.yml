@@ -9,6 +9,26 @@ on:
   pull_request:
 
 jobs:
+  contract-check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Set up Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check API contract is up-to-date and no hand-declared wire interfaces remain
+        run: npm run contract:check
+
   build:
     runs-on: windows-latest
 

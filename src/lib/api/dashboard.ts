@@ -1,14 +1,18 @@
 import { apiGet } from "../api";
 import { DashboardData, ProjectHealth, RecentChange, RiskLevel } from "@/lib/types";
+import type { ExtractResponse } from "./contract-types";
 
-interface SnapshotResponse {
-  project_id: string;
-  overall_risk: string;
-  pending_transactions: number;
-  unaudited_drift: number;
-  recent_changes: Array<{
+type SnapshotWire = ExtractResponse<"/api/snapshot", "get">;
+
+type RecentChangeWire = SnapshotWire["recent_changes"][number];
+
+function toRecentChange(item: RecentChangeWire, index: number): RecentChange {
+  // recent_changes is `readonly unknown[]` in the generated schema because the
+  // backend declares the items as opaque `{}`. Guard and cast the fields the
+  // UI expects, falling back when they are missing.
+  const record = item as Partial<{
     id?: string;
-    path: string;
+    path?: string;
     status?: string;
     summary?: string;
     author?: string;
@@ -16,20 +20,15 @@ interface SnapshotResponse {
     fileCount?: number;
     risk?: string;
   }>;
-}
-
-function toRecentChange(
-  item: SnapshotResponse["recent_changes"][number],
-  index: number,
-): RecentChange {
+  const path = record.path ?? "unknown";
   return {
-    id: item.id ?? `${item.path}:${index}`,
-    filePath: item.path,
-    summary: item.summary ?? `${item.status ?? "changed"}: ${item.path}`,
-    author: item.author ?? "unknown",
-    timeAgo: item.timeAgo ?? "now",
-    fileCount: item.fileCount ?? 1,
-    risk: (item.risk ?? "LOW").toUpperCase() as RiskLevel,
+    id: record.id ?? `${path}:${index}`,
+    filePath: path,
+    summary: record.summary ?? `${record.status ?? "changed"}: ${path}`,
+    author: record.author ?? "unknown",
+    timeAgo: record.timeAgo ?? "now",
+    fileCount: record.fileCount ?? 1,
+    risk: (record.risk ?? "LOW").toUpperCase() as RiskLevel,
   };
 }
 
@@ -37,7 +36,7 @@ export async function fetchDashboardData(projectId?: string): Promise<DashboardD
   const params: Record<string, string | undefined> = {};
   if (projectId) params.project_id = projectId;
 
-  const data = await apiGet<SnapshotResponse>("/snapshot", params);
+  const data = await apiGet<SnapshotWire>("/snapshot", params);
   if (!data || typeof data !== "object") {
     throw new Error("Invalid dashboard response: expected object");
   }

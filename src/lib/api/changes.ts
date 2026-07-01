@@ -1,18 +1,8 @@
 import { apiGet } from "../api";
 import { ChangeEntry, RiskLevel } from "@/lib/types";
+import type { ExtractResponse } from "./contract-types";
 
-interface ChangeApiItem {
-  id?: string;
-  path: string;
-  status: string;
-  summary?: string;
-  author: string;
-  timeAgo?: string;
-  fileCount?: number;
-  additions?: number;
-  deletions?: number;
-  risk?: string;
-}
+type ChangeWire = ExtractResponse<"/api/changes", "get">;
 
 function inferRisk(status: string): RiskLevel {
   switch (status.toLowerCase()) {
@@ -25,7 +15,7 @@ function inferRisk(status: string): RiskLevel {
   }
 }
 
-function toChangeEntry(item: ChangeApiItem, index: number): ChangeEntry {
+function toChangeEntry(item: ChangeWire[number], index: number): ChangeEntry {
   const status = item.status ?? "modified";
   return {
     id: item.id ?? `${item.path}:${index}`,
@@ -42,7 +32,7 @@ function toChangeEntry(item: ChangeApiItem, index: number): ChangeEntry {
 }
 
 export async function fetchChanges(days = 7): Promise<ChangeEntry[]> {
-  const data = await apiGet<ChangeApiItem[]>("/changes", { days: String(days) });
+  const data = await apiGet<ChangeWire>("/changes", { days: String(days) });
   if (!Array.isArray(data)) {
     throw new Error("Invalid changes response: expected array");
   }
