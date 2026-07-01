@@ -4,37 +4,22 @@ import type { ExtractResponse } from "./contract-types";
 
 type SnapshotWire = ExtractResponse<"/api/snapshot", "get">;
 
-type RecentChangeWire = SnapshotWire["recent_changes"][number];
-
 function normalizeRiskLevel(risk: string): RiskLevel {
   const upper = risk.toUpperCase();
   if (upper === "HIGH" || upper === "MEDIUM" || upper === "LOW" || upper === "TRIVIAL") return upper;
   return "LOW";
 }
 
-function toRecentChange(item: RecentChangeWire, index: number): RecentChange {
-  // recent_changes is `readonly unknown[]` in the generated schema because the
-  // backend declares the items as opaque `{}`. Guard and cast the fields the
-  // UI expects, falling back when they are missing.
-  const record = item as Partial<{
-    id?: string;
-    path?: string;
-    status?: string;
-    summary?: string;
-    author?: string;
-    timeAgo?: string;
-    fileCount?: number;
-    risk?: string;
-  }>;
-  const path = record.path ?? "unknown";
+function toRecentChange(item: SnapshotWire["recent_changes"][number], index: number): RecentChange {
+  const path = item.path ?? "unknown";
   return {
-    id: record.id ?? `${path}:${index}`,
+    id: item.id ?? `${path}:${index}`,
     filePath: path,
-    summary: record.summary ?? `${record.status ?? "changed"}: ${path}`,
-    author: record.author ?? "unknown",
-    timeAgo: record.timeAgo ?? "now",
-    fileCount: record.fileCount ?? 1,
-    risk: normalizeRiskLevel(record.risk ?? "LOW"),
+    summary: item.summary ?? `${item.status ?? "changed"}: ${path}`,
+    author: item.author ?? "unknown",
+    timeAgo: item.timeAgo ?? "now",
+    fileCount: item.fileCount ?? 1,
+    risk: normalizeRiskLevel(item.risk ?? "LOW"),
   };
 }
 

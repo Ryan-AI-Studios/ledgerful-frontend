@@ -361,6 +361,30 @@ export type paths = {
         readonly patch?: never;
         readonly trace?: never;
     };
+    readonly "/api/sync/status": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        /**
+         * `GET /api/sync/status` — local M0 sync state.
+         * @description **Feature gate:** the route is **always registered** (track 0013 DoD-1).
+         *     When built **with** `sync`, the handler reads `SyncState` from the ledger
+         *     DB and returns real sync metadata. When built **without** `sync`, it
+         *     returns a `501 Not Implemented` — the schema documents the route, and the
+         *     runtime honors it: no documented-but-unserved route, no dangling handler.
+         */
+        readonly get: operations["getSyncStatus"];
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
     readonly "/api/verify/health": {
         readonly parameters: {
             readonly query?: never;
@@ -662,6 +686,21 @@ export type components = {
             readonly offset?: number | null;
             readonly q?: string | null;
         };
+        /**
+         * @description RFC 7807 problem-detail object. Additional members are allowed; this shape
+         *     supplies the core fields required by the track contract.
+         *
+         *     Track 0013: `ToSchema` + `pub(crate)` so the OpenAPI can document error
+         *     response bodies (e.g. the 501 from `/api/sync/status` when built without
+         *     the `sync` feature).
+         */
+        readonly ProblemDetail: {
+            readonly detail: string;
+            /** Format: int32 */
+            readonly status: number;
+            readonly title: string;
+            readonly type: string;
+        };
         readonly ProjectResponse: {
             /** Format: int32 */
             readonly health_score: number;
@@ -691,8 +730,8 @@ export type components = {
             readonly overall_risk: string;
             readonly pending_transactions: number;
             readonly project_id: string;
-            readonly recent_changes: readonly unknown[];
-            readonly top_hotspots: readonly unknown[];
+            readonly recent_changes: readonly components["schemas"]["ChangeResponse"][];
+            readonly top_hotspots: readonly components["schemas"]["HotspotResponse"][];
             readonly unaudited_drift: number;
         };
         readonly StatusResponse: {
@@ -702,6 +741,22 @@ export type components = {
             readonly index_ready: boolean;
             readonly pending_transactions: number;
             readonly unaudited_drift: number;
+        };
+        /**
+         * @description `SyncStatusResponse` DTO — local M0 sync state.
+         *
+         *     Deliberately **not** gated on `#[cfg(feature = "sync")]` so the OpenAPI
+         *     schema can document the route in all builds (schema/runtime consistency,
+         *     track 0013 DoD-1). Only the sync-specific *logic* (reading `SyncState`
+         *     from the ledger DB) is feature-gated; the DTO and the route are always
+         *     present. When built without `sync`, the handler returns a clean
+         *     `501 Not Implemented` (see `sync_status_handler`).
+         */
+        readonly SyncStatusResponse: {
+            readonly device_id?: string | null;
+            readonly last_apply_at?: string | null;
+            readonly last_extract_at?: string | null;
+            readonly last_run_at?: string | null;
         };
         readonly UserSession: {
             readonly email: string;
@@ -1213,6 +1268,35 @@ export interface operations {
                 };
                 content: {
                     readonly "application/json": components["schemas"]["StatusResponse"];
+                };
+            };
+        };
+    };
+    readonly getSyncStatus: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Local sync state */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["SyncStatusResponse"];
+                };
+            };
+            /** @description Sync feature not enabled in this build — rebuild with --features sync */
+            readonly 501: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetail"];
                 };
             };
         };

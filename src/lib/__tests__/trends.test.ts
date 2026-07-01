@@ -1,5 +1,4 @@
-import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
-import { fetchTrends } from "../api/trends";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { fetchTrends as fetchTrendsData } from "../trends-data";
 import { apiGet } from "../api";
 
@@ -14,41 +13,29 @@ vi.mock("../api", () => ({
   },
 }));
 
-describe("Trends API", () => {
+describe("Trends Data — Planned (track 0013)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("fetchTrends calls the correct endpoint with default days", async () => {
-    (apiGet as Mock).mockResolvedValueOnce([]);
-    await fetchTrends();
-    expect(apiGet).toHaveBeenCalledWith("/trends", { days: "90" });
+  it("returns the planned state synchronously (no fetch fires)", async () => {
+    const result = await fetchTrendsData(90);
+    expect(result.source).toBe("planned");
+    expect(result.data).toEqual([]);
+    expect(apiGet).not.toHaveBeenCalled();
   });
 
-  it("fetchTrends calls the correct endpoint with custom days", async () => {
-    (apiGet as Mock).mockResolvedValueOnce([]);
-    await fetchTrends(30);
-    expect(apiGet).toHaveBeenCalledWith("/trends", { days: "30" });
-  });
-});
-
-describe("Trends Data Fallback", () => {
-  it("fetchTrendsData returns live data with source", async () => {
-    const mockData = [{ date: "2026-06-16", score: 85, changes: 5, highRiskCount: 0 }];
-    (apiGet as Mock).mockResolvedValueOnce(mockData);
-    
+  it("returns the planned state regardless of days parameter", async () => {
     const result = await fetchTrendsData(30);
-    expect(result.source).toBe("live");
-    expect(result.data).toEqual(mockData);
+    expect(result.source).toBe("planned");
+    expect(result.data).toEqual([]);
+    expect(apiGet).not.toHaveBeenCalled();
   });
 
-  it("fetchTrendsData falls back to mock data with source", async () => {
-    const { ApiError } = await import("../api");
-    (apiGet as Mock).mockRejectedValueOnce(new ApiError(500, "Network Error"));
-    
-    const result = await fetchTrendsData(30);
-    expect(result.source).toBe("mock");
-    expect(result.data.length).toBeGreaterThan(0);
-    expect(result.data[0]).toHaveProperty("score");
+  it("never fires a request to /api/trends (guaranteed 404)", async () => {
+    await fetchTrendsData(7);
+    await fetchTrendsData(30);
+    await fetchTrendsData(90);
+    expect(apiGet).not.toHaveBeenCalled();
   });
 });

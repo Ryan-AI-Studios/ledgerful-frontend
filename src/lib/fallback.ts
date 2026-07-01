@@ -2,7 +2,7 @@ import { ApiError, isApiError } from "./api";
 
 export { isApiError };
 
-export type DataSource = "live" | "mock" | "stale" | "unavailable";
+export type DataSource = "live" | "mock" | "stale" | "unavailable" | "planned";
 
 export interface WithSource<T> {
   data: T;

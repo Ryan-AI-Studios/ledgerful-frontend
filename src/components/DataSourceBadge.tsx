@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleDot, Database, AlertCircle, WifiOff } from "lucide-react";
+import { CircleDot, Database, AlertCircle, WifiOff, Rocket } from "lucide-react";
 import { DataSource } from "@/lib/fallback";
 import { useDaemonStatus } from "@/lib/DaemonStatusContext";
 
@@ -35,6 +35,12 @@ const sourceConfig: Record<
     icon: WifiOff,
     dotClass: "bg-[var(--color-text-muted)]",
     ariaLabel: "Data source: unavailable",
+  },
+  planned: {
+    label: "Planned",
+    icon: Rocket,
+    dotClass: "bg-[var(--color-accent)]",
+    ariaLabel: "Data source: planned (not yet shipped)",
   },
 };
 

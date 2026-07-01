@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { PageLayout } from "@/components/PageLayout";
-import { fetchTrends, TrendPoint } from "@/lib/trends-data";
+import { TrendPoint } from "@/lib/trends-data";
 import { DataSource } from "@/lib/fallback";
 import { DataSourceBadge } from "@/components/DataSourceBadge";
 import { Calendar, Info, TrendingUp, AlertCircle, RefreshCw } from "lucide-react";
@@ -10,29 +10,19 @@ import { Calendar, Info, TrendingUp, AlertCircle, RefreshCw } from "lucide-react
 type TrendsState =
   | { status: "loading" }
   | { status: "error"; message: string }
-  | { status: "ready"; data: TrendPoint[]; source: DataSource };
+  | { status: "ready"; data: TrendPoint[]; source: DataSource }
+  | { status: "planned" };
 
 export default function TrendsPage() {
-  const [state, setState] = useState<TrendsState>({ status: "loading" });
+  // /api/trends is PLANNED, not shipped (track 0013 DoD-4). fetchTrends
+  // returns synchronously — no loading state, no fetch, no 404 log spam.
+  // When /api/trends is built, replace this with the live + fallback flow.
+  const [state, setState] = useState<TrendsState>(() => {
+    // Synchronous init — fetchTrends returns immediately with source: "planned"
+    // This avoids a loading flash since no async fetch happens.
+    return { status: "planned" };
+  });
   const [range, setRange] = useState(90);
-
-  const load = useCallback((days: number) => {
-    setTimeout(() => setState({ status: "loading" }), 0);
-    fetchTrends(days)
-      .then((result) => {
-        setState({ status: "ready", data: result.data, source: result.source });
-      })
-      .catch(() => {
-        setState({
-          status: "error",
-          message: "Could not load trends. The Ledgerful daemon may not be running.",
-        });
-      });
-  }, []);
-
-  useEffect(() => {
-    load(range);
-  }, [load, range]);
 
   const chartData = useMemo(() => {
     if (state.status !== "ready" || state.data.length === 0) return null;
@@ -71,6 +61,7 @@ export default function TrendsPage() {
       <div className="space-y-6">
         <div className="flex items-center gap-3 mb-4">
           {state.status === "ready" && <DataSourceBadge source={state.source} />}
+          {state.status === "planned" && <DataSourceBadge source="planned" />}
         </div>
         <div className="bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -89,12 +80,11 @@ export default function TrendsPage() {
               <select 
                 value={range}
                 onChange={(e) => {
-                  const newRange = Number(e.target.value);
-                  setState({ status: "loading" });
-                  setRange(newRange);
+                  setRange(Number(e.target.value));
                 }}
                 className="bg-transparent text-sm text-[var(--color-text-primary)] focus:outline-none cursor-pointer"
                 aria-label="Select date range"
+                disabled
               >
 
                   <option value={7}>Last 7 days</option>
@@ -109,6 +99,18 @@ export default function TrendsPage() {
             <div className="h-[300px] w-full bg-[var(--color-surface)] rounded-md animate-pulse border border-[var(--color-border-muted)] flex items-center justify-center">
               <span className="text-sm text-[var(--color-text-muted)]">Loading trend data...</span>
             </div>
+          ) : state.status === "planned" ? (
+            <div className="h-[300px] flex items-center justify-center border border-dashed border-[var(--color-border)] rounded-lg">
+              <div className="text-center space-y-3 max-w-md">
+                <TrendingUp className="w-8 h-8 text-[var(--color-text-muted)] mx-auto" aria-hidden="true" />
+                <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Trends analytics is planned</h3>
+                <p className="text-sm text-[var(--color-text-muted)]">
+                  The <code className="text-xs bg-[var(--color-surface)] px-1 py-0.5 rounded">/api/trends</code> endpoint
+                  has not been built yet. This feature is planned for a future release with a real per-day risk score
+                  and change-count data source.
+                </p>
+              </div>
+            </div>
           ) : state.status === "error" ? (
             <div className="bg-[var(--color-surface-alt)] border border-[var(--color-danger-muted)] rounded-lg p-6">
               <div className="flex items-start gap-3">
@@ -117,7 +119,7 @@ export default function TrendsPage() {
                   <h2 className="text-[1rem] font-semibold text-[var(--color-danger)]">Failed to load</h2>
                   <p className="mt-1 text-[var(--color-text-secondary)]">{state.message}</p>
                   <button
-                    onClick={() => { setState({ status: "loading" }); load(range); }}
+                    onClick={() => { setState({ status: "planned" }); }}
                     className="mt-4 inline-flex items-center gap-2 px-3 py-2 rounded-md bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm font-medium hover:bg-[var(--color-surface-raised)] transition-colors duration-100"
                   >
                     <RefreshCw className="w-4 h-4" aria-hidden="true" />
