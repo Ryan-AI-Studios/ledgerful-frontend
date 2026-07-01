@@ -19,6 +19,12 @@ function formatTimeAgo(committedAt: string): string {
   return `${Math.floor(days / 30)}mo ago`;
 }
 
+function normalizeRiskLevel(risk: string): RiskLevel {
+  const upper = risk.toUpperCase();
+  if (upper === "HIGH" || upper === "MEDIUM" || upper === "LOW" || upper === "TRIVIAL") return upper;
+  return "LOW";
+}
+
 function toLedgerEntry(item: LedgerWire[number]): LedgerEntry {
   const status: LedgerStatus = item.entry_type === "PENDING" ? "PENDING" : "COMMITTED";
 
@@ -34,7 +40,7 @@ function toLedgerEntry(item: LedgerWire[number]): LedgerEntry {
     hotspotsCrossed: 0,
     testsRun: 0,
     flakes: 0,
-    risk: (item.risk ?? "LOW").toUpperCase() as RiskLevel,
+    risk: normalizeRiskLevel(item.risk ?? "LOW"),
     signature: item.signature ?? "",
     publicKey: item.public_key ?? "",
   };

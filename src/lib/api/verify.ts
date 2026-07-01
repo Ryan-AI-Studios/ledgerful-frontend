@@ -29,10 +29,21 @@ export async function fetchVerificationHealth(): Promise<VerificationHealth> {
 
 export async function fetchVerificationHistory(days = 90): Promise<VerificationTrendPoint[]> {
   const data = await apiGet<VerificationHistoryWire>("/verify/history", { days: String(days) });
-  return [...data] as VerificationTrendPoint[];
+  return data.map((point) => ({
+    date: point.date,
+    passed: point.passed,
+    failed: point.failed,
+  }));
 }
 
 export async function fetchVerificationSteps(): Promise<VerificationStep[]> {
   const data = await apiGet<VerificationStepsWire>("/verify/steps");
-  return [...data] as VerificationStep[];
+  return data.map((step) => ({
+    id: step.id,
+    name: step.name,
+    lastRunAt: step.lastRunAt,
+    averageDurationMs: step.averageDurationMs,
+    passRatePercent: step.passRatePercent,
+    recentFailures: step.recentFailures,
+  }));
 }

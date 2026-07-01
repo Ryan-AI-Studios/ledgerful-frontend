@@ -15,6 +15,12 @@ function inferRisk(status: string): RiskLevel {
   }
 }
 
+function normalizeRiskLevel(risk: string): RiskLevel {
+  const upper = risk.toUpperCase();
+  if (upper === "HIGH" || upper === "MEDIUM" || upper === "LOW" || upper === "TRIVIAL") return upper;
+  return "MEDIUM";
+}
+
 function toChangeEntry(item: ChangeWire[number], index: number): ChangeEntry {
   const status = item.status ?? "modified";
   return {
@@ -27,7 +33,7 @@ function toChangeEntry(item: ChangeWire[number], index: number): ChangeEntry {
     filesChanged: item.fileCount ?? 1,
     additions: item.additions ?? 0,
     deletions: item.deletions ?? 0,
-    risk: (item.risk ?? inferRisk(status)).toUpperCase() as RiskLevel,
+    risk: item.risk ? normalizeRiskLevel(item.risk) : inferRisk(status),
   };
 }
 

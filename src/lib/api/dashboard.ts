@@ -6,6 +6,12 @@ type SnapshotWire = ExtractResponse<"/api/snapshot", "get">;
 
 type RecentChangeWire = SnapshotWire["recent_changes"][number];
 
+function normalizeRiskLevel(risk: string): RiskLevel {
+  const upper = risk.toUpperCase();
+  if (upper === "HIGH" || upper === "MEDIUM" || upper === "LOW" || upper === "TRIVIAL") return upper;
+  return "LOW";
+}
+
 function toRecentChange(item: RecentChangeWire, index: number): RecentChange {
   // recent_changes is `readonly unknown[]` in the generated schema because the
   // backend declares the items as opaque `{}`. Guard and cast the fields the
@@ -28,7 +34,7 @@ function toRecentChange(item: RecentChangeWire, index: number): RecentChange {
     author: record.author ?? "unknown",
     timeAgo: record.timeAgo ?? "now",
     fileCount: record.fileCount ?? 1,
-    risk: (record.risk ?? "LOW").toUpperCase() as RiskLevel,
+    risk: normalizeRiskLevel(record.risk ?? "LOW"),
   };
 }
 
@@ -43,7 +49,7 @@ export async function fetchDashboardData(projectId?: string): Promise<DashboardD
 
   const pending = data.pending_transactions ?? 0;
   const drift = data.unaudited_drift ?? 0;
-  const risk = (data.overall_risk ?? "LOW").toUpperCase() as RiskLevel;
+  const risk = normalizeRiskLevel(data.overall_risk ?? "LOW");
 
   const health: ProjectHealth = {
     score: Math.max(0, 100 - pending * 5 - drift * 10),

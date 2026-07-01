@@ -12,9 +12,21 @@ export async function fetchComplianceSummary(): Promise<ComplianceSummary> {
   return await apiGet<ComplianceSummaryWire>("/compliance/summary");
 }
 
+function normalizeSignatureStatus(status: string): SignatureEntry["status"] {
+  if (status === "VALID" || status === "INVALID" || status === "SKIPPED") return status;
+  return "INVALID";
+}
+
 export async function fetchSignatureEntries(): Promise<SignatureEntry[]> {
   const data = await apiGet<SignatureEntriesWire>("/compliance/signatures");
-  return [...data] as SignatureEntry[];
+  return data.map((entry) => ({
+    txId: entry.txId,
+    entity: entry.entity,
+    summary: entry.summary,
+    committedAt: entry.committedAt,
+    status: normalizeSignatureStatus(entry.status),
+    category: entry.category,
+  }));
 }
 
 export async function triggerSoc2Export(): Promise<void> {
