@@ -49,15 +49,13 @@ jobs:
       # We run the standalone gitleaks binary (MIT-licensed) instead of
       # gitleaks/gitleaks-action@v2, which carries a commercial EULA and may
       # require a paid GITLEAKS_LICENSE secret on private repositories.
-      # Pin the binary to a specific release tag so scans are reproducible.
-      # TODO: pin by digest for immutability (requires `docker pull` + `docker inspect`).
-      # Tag pin is reproducible but not immutable.
+      # Pin the binary by digest for reproducibility and immutability.
       - name: Run gitleaks
         run: |
           docker run --rm \
             -v "${{ github.workspace }}:/repo" \
             -w /repo \
-            zricethezav/gitleaks:v8.30.1 git \
+            zricethezav/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f git \
             --verbose \
             --redact \
             --config /repo/.github/gitleaks.toml \
@@ -74,15 +72,20 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Run Semgrep
-        # returntocorp/semgrep-action v1 -> 713efdd345f3035192eaa63f56867b88e63e4e5d
-        # NOTE: CodeQL is unavailable on private repos without GHAS. This legacy
-        # Semgrep OSS action is used as the SAST floor. SAST is necessary-but-not-
-        # sufficient for an AI-generated codebase; findings must be triaged manually.
-        uses: returntocorp/semgrep-action@713efdd345f3035192eaa63f56867b88e63e4e5d
-        env:
-          SEMGREP_SEND_METRICS: off
-        with:
-          config: >-
-            p/typescript
-            p/react
-            p/owasp-top-ten
+        # NOTE: CodeQL is unavailable on private repos without GHAS. Semgrep is
+        # used as the SAST floor. SAST is necessary-but-not-sufficient for an
+        # AI-generated codebase; findings must be triaged manually.
+        # The deprecated returntocorp/semgrep-action has been replaced with a
+        # direct run of the official semgrep/semgrep image pinned by digest.
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/src" \
+            -w /src \
+            -e SEMGREP_SEND_METRICS=off \
+            semgrep/semgrep:1.168.0@sha256:59fbed6127ea7c5dde3ba6a85142733bb20ea9aaa36120c953904f1539aaf66e \
+            semgrep scan \
+            --config p/typescript \
+            --config p/react \
+            --config p/owasp-top-ten \
+            --metrics=off \
+            .

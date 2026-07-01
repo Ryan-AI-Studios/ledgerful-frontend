@@ -33,6 +33,3 @@ export function fetchSignatureEntries(): Promise<SignatureEntry[]> {
   ]);
 }
 
-export async function triggerSoc2Export(): Promise<void> {
-  await new Promise(resolve => setTimeout(resolve, 2000));
-}

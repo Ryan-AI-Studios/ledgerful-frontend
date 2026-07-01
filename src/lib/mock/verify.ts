@@ -1,4 +1,4 @@
-import { VerificationHealth, VerificationTrendPoint, VerificationStep, SlowCommand } from "../types";
+import { VerificationHealth, VerificationTrendPoint, VerificationStep } from "../types";
 
 export const MOCK_VERIFICATION_HEALTH: VerificationHealth = {
   status: "HEALTHY",
@@ -67,8 +67,3 @@ export const MOCK_VERIFICATION_STEPS: VerificationStep[] = [
   },
 ];
 
-export const MOCK_SLOW_COMMANDS: SlowCommand[] = [
-  { name: "npm run test:e2e", averageDurationMs: 180000 },
-  { name: "npm run build", averageDurationMs: 45000 },
-  { name: "npm run test:unit", averageDurationMs: 25000 },
-];

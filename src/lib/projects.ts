@@ -4,7 +4,7 @@ import { withFallback, WithSource } from "@/lib/fallback";
 
 export type { Project } from "@/lib/types";
 
-export const projects: import("@/lib/types").Project[] = [
+const projects: import("@/lib/types").Project[] = [
   {
     id: "ledgerful",
     name: "ledgerful",

@@ -184,7 +184,3 @@ export interface VerificationStep {
   recentFailures: number;
 }
 
-export interface SlowCommand {
-  name: string;
-  averageDurationMs: number;
-}

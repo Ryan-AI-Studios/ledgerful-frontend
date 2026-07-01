@@ -24,15 +24,13 @@ jobs:
       # We run the standalone gitleaks binary (MIT-licensed) instead of
       # gitleaks/gitleaks-action@v2, which carries a commercial EULA and may
       # require a paid GITLEAKS_LICENSE secret on private repositories.
-      # Pin the binary to a specific release tag so scans are reproducible.
-      # TODO: pin by digest for immutability (requires `docker pull` + `docker inspect`).
-      # Tag pin is reproducible but not immutable.
+      # Pin the binary by digest for reproducibility and immutability.
       - name: Run gitleaks over full git history
         run: |
           docker run --rm \
             -v "${{ github.workspace }}:/repo" \
             -w /repo \
-            zricethezav/gitleaks:v8.30.1 git \
+            zricethezav/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f git \
             --verbose \
             --redact \
             --config /repo/.github/gitleaks.toml \

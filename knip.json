@@ -1,0 +1,19 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "next": true,
+  "entry": [
+    "scripts/*.{js,mjs}",
+    "supabase/functions/**/index.ts"
+  ],
+  "ignore": [
+    "src/lib/api/trends.ts"
+  ],
+  "ignoreDependencies": [
+    "openapi-typescript"
+  ],
+  "ignoreIssues": {
+    "src/lib/api.ts": ["exports"],
+    "src/lib/api/contract-types.ts": ["types"],
+    "src/lib/types.ts": ["types"]
+  }
+}
