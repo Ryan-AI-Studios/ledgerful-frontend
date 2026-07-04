@@ -74,17 +74,51 @@ When Codex hits a usage limit, rate limit, or is unavailable, fall back to
 Anthropic Claude for the cross-model pass. Claude is a different model family
 (Anthropic vs OpenAI) and catches a different set of issues.
 
+### Auth: usually zero setup
+
+On a machine with a valid interactive `claude login` session already on
+disk, `claude -p` reuses those stored credentials automatically — no
+`ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN` needed. Verified empirically
+(both Git Bash and PowerShell, no env vars set): a plain
+`claude -p "Reply with exactly: OK" --output-format json` returned in ~2.5s.
+If you're already logged in on this machine, just run the command below —
+don't add token setup as a precondition.
+
 ```powershell
 New-Item -ItemType Directory -Force -Path output
-claude -p "Run 'git diff HEAD~3..HEAD --stat' then 'git diff HEAD~3..HEAD' in this repo and review the changes. Output P0/P1/P2 findings with file:line, issue, fix. Focus: TypeScript strictness, React render safety, accessibility, design-system conformance, mock/live contract parity. Read-only review — do not edit files." --allowedTools "Read,Edit,Bash" 2>&1 | Out-File -FilePath output/claude-review.md -Encoding utf8 -Width 4096
+claude -p "YOUR COMMAND HERE" --allowedTools "Read,Edit,Bash" --output-format json 2>&1 | Out-File -FilePath output/claude-review.md -Encoding utf8 -Width 4096
 ```
 
+### If it hangs anyway
+
+A hang with zero output is *not* automatically "needs a token" — treat it as
+a symptom to diagnose, not a known cause:
+
+1. **Check for a stale/conflicting interactive `claude` process first.** A
+   already-running interactive session can hold a lock on the credential
+   file that a nested headless call blocks on. Find and consider closing it
+   (`Get-Process claude` / Task Manager) before assuming an auth problem.
+2. **Check the stored login is actually valid**, not expired — run a plain
+   interactive `claude` and confirm it doesn't prompt to re-login.
+3. **Only if both of those check out**, fall back to an explicit credential
+   that bypasses the stored-login path entirely:
+   ```powershell
+   claude setup-token   # one-time; mints a ~1-year token off your subscription
+   $env:CLAUDE_CODE_OAUTH_TOKEN = "<token from setup-token>"
+   ```
+   `$env:` assignments are session-scoped — to avoid re-pasting it every new
+   terminal, persist it once instead:
+   ```powershell
+   [Environment]::SetEnvironmentVariable("CLAUDE_CODE_OAUTH_TOKEN", "<token>", "User")
+   ```
+   An `ANTHROPIC_API_KEY` also works and takes precedence if you'd rather
+   bill per-token through the Console instead of riding the subscription.
+
 > [!IMPORTANT]
-> - Claude `-p` is non-interactive but slow (2-10 min). Give it a generous timeout (600000ms+).
+> - Claude `-p` is non-interactive but can be slow (2-10 min) on substantive prompts even when auth is fine. Give it a generous timeout (600000ms+); there's also a built-in background-wait cap (~10 min by default since v2.1.182), overridable via `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS`.
 > - The `--allowedTools "Read,Edit,Bash"` flags are required so Claude can run `git diff` and read files.
-> - Claude writes the full output at the end (not streamed), so an empty file during execution is normal.
+> - Claude writes the full output at the end (not streamed), so an empty file during execution is normal for the first couple minutes — don't kill it prematurely.
 > - If reviewing a committed range, pre-stage the diff (`git diff HEAD~3..HEAD > output/review-diff.txt`) and tell Claude to read that file instead of running git — more reliable on Windows.
-> - If Claude hangs with no output after 10 min, kill the process and retry; it's a Windows stdin/pipe issue, not a prompt-size problem.
 
 ### Claude Flags
 
@@ -92,7 +126,17 @@ claude -p "Run 'git diff HEAD~3..HEAD --stat' then 'git diff HEAD~3..HEAD' in th
 |------|---------|
 | `-p "<prompt>"` | Non-interactive print mode (required) |
 | `--allowedTools "Read,Edit,Bash"` | Tool allowlist (required for git/file access) |
+| `--output-format json` | Structured output; easier to parse than raw text (optional) |
+| `--bare` | Skip OAuth/keychain reads entirely — pairs with an explicit `ANTHROPIC_API_KEY` in CI-style environments with no user profile (optional) |
 | `--dangerously-skip-permissions` | Bypass permission prompts (optional, faster) |
+
+### Environment / Auth
+
+| Variable | Purpose |
+|---|---|
+| `CLAUDE_CODE_OAUTH_TOKEN` | Long-lived token from `claude setup-token`, rides your existing subscription. **Preferred for this workflow.** |
+| `ANTHROPIC_API_KEY` | Console API key; takes precedence over subscription OAuth if set. Bills per-token separately from your subscription. |
+| `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS` | Override the ~10 min default background-wait cap for `-p` (`0` = unlimited) |
 
 ### Choosing Codex vs Claude
 
@@ -188,7 +232,8 @@ Ask Codex or Claude to focus on:
 | Codex output file is empty or only contains the version banner | Add `2>&1` or capture stderr explicitly |
 | Codex: `You've hit your usage limit` | Fall back to Claude (see above); Codex resets at the stated time |
 | Codex command hangs | Codex may be waiting on stdin; run from a normal terminal first to confirm behavior |
-| Claude `-p` hangs with empty output after 10 min | Kill the process and retry; Windows stdin/pipe issue. Pre-stage the diff to a file and tell Claude to read it instead of running git. |
+| Claude `-p` hangs with empty output, no auth error | Do NOT assume "needs a token" — verified empirically that a logged-in machine needs no env var at all. Check for a stale/conflicting interactive `claude` process first (it can hold a credential-file lock); confirm the stored login isn't expired by running plain interactive `claude`; only then fall back to `CLAUDE_CODE_OAUTH_TOKEN`/`ANTHROPIC_API_KEY` (see "If it hangs anyway" above). |
+| Claude `-p` still hangs after ruling out stale processes, expired login, and setting an explicit token | Kill the process and retry; suspect a Windows stdin/pipe issue. Pre-stage the diff to a file and tell Claude to read it instead of running git. |
 | Claude output is truncated or mangled | Ensure the prompt is a single quoted string; spaces in unquoted args get split on Windows |
 
 ## Cost Awareness
