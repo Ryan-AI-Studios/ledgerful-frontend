@@ -45,6 +45,36 @@ serve(async (req)=>{
         }
       });
     }
+
+    // Rate Limiting (Upstash Redis)
+    const upstashUrl = Deno.env.get("UPSTASH_REDIS_REST_URL");
+    const upstashToken = Deno.env.get("UPSTASH_REDIS_REST_TOKEN");
+    if (upstashUrl && upstashToken) {
+      const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
+      if (ip !== "unknown") {
+        const res = await fetch(`${upstashUrl}/incr/rate_limit:${ip}`, {
+          headers: { Authorization: `Bearer ${upstashToken}` }
+        });
+        if (res.ok) {
+          const count = await res.json();
+          if (count.result === 1) {
+            const expRes = await fetch(`${upstashUrl}/expire/rate_limit:${ip}/60`, {
+              headers: { Authorization: `Bearer ${upstashToken}` }
+            });
+            if (!expRes.ok) {
+              await fetch(`${upstashUrl}/del/rate_limit:${ip}`, {
+                headers: { Authorization: `Bearer ${upstashToken}` }
+              });
+              return new Response(JSON.stringify({ error: "Internal rate limit error" }), { status: 500, headers: { "Content-Type": "application/json" } });
+            }
+          }
+          if (count.result > 30) {
+            return new Response(JSON.stringify({ error: "Rate limit exceeded" }), { status: 429, headers: { "Content-Type": "application/json" } });
+          }
+        }
+      }
+    }
+
     const decoder = new TextDecoder();
     const payload = JSON.parse(decoder.decode(body));
     // 2. Schema Validation (matches Ledgerful M7)
@@ -69,6 +99,19 @@ serve(async (req)=>{
       "features_enabled",
       "active_days_in_window"
     ];
+    const allowedFields = new Set([...requiredFields, "schema_version"]);
+    for (const key of Object.keys(payload)) {
+      if (!allowedFields.has(key)) {
+        return new Response(JSON.stringify({
+          error: `Unknown field: ${key}`
+        }), {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+      }
+    }
     for (const field of requiredFields){
       if (!(field in payload)) {
         return new Response(JSON.stringify({
@@ -124,9 +167,23 @@ serve(async (req)=>{
         }
       });
     }
-    if (typeof payload.active_days_in_window !== "number") {
+    if (typeof payload.active_days_in_window !== "number" || payload.active_days_in_window < 0) {
       return new Response(JSON.stringify({
-        error: "Invalid active_days_in_window: must be a number"
+        error: "Invalid active_days_in_window: must be a non-negative number"
+      }), {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+    }
+
+    const sentAt = new Date(payload.sent_at);
+    const windowStart = new Date(payload.window_start);
+    const windowEnd = new Date(payload.window_end);
+    if (sentAt < windowStart || windowEnd < windowStart) {
+      return new Response(JSON.stringify({
+        error: "Invalid date range: sent_at and window_end must be >= window_start"
       }), {
         status: 400,
         headers: {
