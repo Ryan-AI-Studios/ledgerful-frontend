@@ -21,3 +21,12 @@ regexes = [
 paths = [
   '''\.env\.example$''',
 ]
+
+[[allowlists]]
+description = "Next.js preview-mode keys are auto-generated build artifacts (inert under output: export)"
+paths = [
+  '''\.next\/prerender-manifest\.json''',
+  '''\.next\/cache/\.previewinfo''',
+  '''\.next\/cache/\.rscinfo''',
+  '''\.next\/server/server-reference-manifest\.json''',
+]
