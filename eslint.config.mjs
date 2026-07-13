@@ -16,6 +16,11 @@ const eslintConfig = defineConfig([
     "src/lib/api/generated.d.ts",
     "src/lib/api/contract/openapi.json",
   ]),
+  {
+    settings: {
+      react: { version: "19" },
+    },
+  },
 ]);
 
 export default eslintConfig;
