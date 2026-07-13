@@ -60,6 +60,14 @@ next-env.d.ts
 AGENTS.md
 CLAUDE.md
 
+# internal process docs (not for public)
+docs/AI-CODE-REVIEW-PROTOCOL.md
+docs/Backend-Notes.md
+docs/tracks-12-13-review.md
+
+# internal ops scripts (not for public)
+scripts/apply-branch-protection.ps1
+
 # ledgerful derived state
 /.ledgerful/
 
