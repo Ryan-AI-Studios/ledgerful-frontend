@@ -48,13 +48,17 @@ next-env.d.ts
 /.claude/
 /.ai-brains/
 
-# agent state
-.agents/worktrees/
-.codex/worktrees/
-.agents/review_*.md
-.codex/review_*.md
-.agents/*.lock
-.codex/*.lock
+# agent state (internal orchestration — not for public)
+.agents/
+.codex/
+.vscode/
+
+# conductor tracks (internal planning — not for public)
+/conductor/
+
+# agent instructions (internal — not for public)
+AGENTS.md
+CLAUDE.md
 
 # ledgerful derived state
 /.ledgerful/
