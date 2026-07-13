@@ -57,7 +57,8 @@ jobs:
         run: npm run test:unit
 
       - name: Upload build output for bundle scan
-        uses: actions/upload-artifact@b4b15b8c7c6ac0ea8f9af1a7254c7c7f4c30c1ae
+        # actions/upload-artifact v4.6.2 -> ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: next-bundle
           path: .next/
