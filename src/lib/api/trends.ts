@@ -1,8 +1,15 @@
-// /api/trends is PLANNED, not shipped (coordination.md §3.2, track 0013).
-// The backend has no /api/trends route. This module is retained for the
-// type export only — do NOT call apiGet('/trends') (guaranteed 404 + log
-// spam). When /api/trends is built, replace this with the live fetch.
-//
-// See trends-data.ts for the synchronous planned/unavailable state.
+import { apiGet } from "../api";
+import { TrendPoint } from "@/lib/types";
+import type { ExtractResponse } from "./contract-types";
 
-export { type TrendPoint } from "@/lib/types";
+type TrendsWire = ExtractResponse<"/api/trends", "get">;
+
+export async function fetchTrends(days = 90): Promise<TrendPoint[]> {
+  const res = await apiGet<TrendsWire>("/trends", { days: String(days) });
+  return res.data.map((p) => ({
+    date: p.date,
+    score: p.score,
+    changes: p.changes,
+    highRiskCount: p.highRiskCount,
+  }));
+}

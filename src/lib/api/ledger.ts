@@ -51,8 +51,9 @@ function toLedgerEntryDetail(item: LedgerDetailWire): LedgerEntry {
     ...toLedgerEntry(item),
     files: (item.files ?? []).map((f) => ({
       path: f.path,
-      additions: f.additions,
-      deletions: f.deletions,
+      additions: f.additions ?? null,
+      deletions: f.deletions ?? null,
+      isBinary: f.is_binary ?? false,
     })),
     hotspotsCrossed: item.hotspots_crossed ?? 0,
     testsRun: item.tests_run ?? 0,

@@ -674,6 +674,42 @@
         }
       }
     },
+    "/api/trends": {
+      "get": {
+        "tags": [
+          "trends"
+        ],
+        "summary": "`GET /api/trends` — project-level trend series from the cached daily rollup.",
+        "operationId": "getTrends",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project-level trend data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrendsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/verify/health": {
       "get": {
         "tags": [
@@ -700,7 +736,7 @@
         "tags": [
           "verify"
         ],
-        "summary": "`GET /api/verify/history` — pass/fail trend over time.",
+        "summary": "`GET /api/verify/history?days=30` — per-date pass/fail counts over the\nlast `days` days (default 30, accepts 90). Returns a bare JSON array of\n`{ date, passed, failed }` sorted ascending by date. Dates with no runs\nare omitted (deterministic: only dates that have at least one run appear).\n`GET /api/verify/history` — pass/fail trend over time.",
         "operationId": "getVerifyHistory",
         "parameters": [
           {
@@ -867,18 +903,28 @@
       "ChangedFileResponse": {
         "type": "object",
         "required": [
-          "path",
-          "additions",
-          "deletions"
+          "path"
         ],
         "properties": {
           "additions": {
-            "type": "integer",
-            "format": "int64"
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "`None` for pre-m48 legacy rows or binary files whose stats are\nunavailable.  Serialized as `null` so the frontend can distinguish\n\"unknown\" from a real zero."
           },
           "deletions": {
-            "type": "integer",
-            "format": "int64"
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "See `additions`."
+          },
+          "is_binary": {
+            "type": "boolean",
+            "description": "`true` when the file was detected as binary by git numstat (`-\\t-`).\nLets the frontend render \"binary\" instead of the generic \"—\" used\nfor pre-m48 legacy rows."
           },
           "path": {
             "type": "string"
@@ -1683,6 +1729,59 @@
           }
         }
       },
+      "TrendPointDto": {
+        "type": "object",
+        "required": [
+          "date",
+          "score",
+          "changes",
+          "highRiskCount"
+        ],
+        "properties": {
+          "changes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "date": {
+            "type": "string"
+          },
+          "highRiskCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "score": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "TrendsQuery": {
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "minimum": 0
+          }
+        }
+      },
+      "TrendsResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrendPointDto"
+            }
+          }
+        }
+      },
       "UserSession": {
         "type": "object",
         "required": [
@@ -1791,7 +1890,6 @@
       },
       "VerifyHistoryQuery": {
         "type": "object",
-        "description": "`GET /api/verify/history?days=30` — per-date pass/fail counts over the\nlast `days` days (default 30, accepts 90). Returns a bare JSON array of\n`{ date, passed, failed }` sorted ascending by date. Dates with no runs\nare omitted (deterministic: only dates that have at least one run appear).",
         "properties": {
           "days": {
             "type": [
@@ -1865,6 +1963,10 @@
     {
       "name": "config",
       "description": "Daemon configuration"
+    },
+    {
+      "name": "trends",
+      "description": "Project-level trend series"
     },
     {
       "name": "sync",

@@ -42,7 +42,7 @@ export interface LedgerEntry {
   reason: string;
   author: string;
   timeAgo: string;
-  files: { path: string; additions: number; deletions: number }[];
+  files: { path: string; additions: number | null; deletions: number | null; isBinary?: boolean }[];
   hotspotsCrossed: number;
   testsRun: number;
   flakes: number;

@@ -1,15 +1,20 @@
-import { WithSource } from "@/lib/fallback";
+import { fetchTrends as fetchLiveTrends } from "@/lib/api/trends";
+import { fetchMockTrends } from "@/lib/mock/trends";
+import { withFallback, WithSource } from "@/lib/fallback";
+import { ApiError } from "@/lib/api";
 
 export type { TrendPoint } from "@/lib/types";
 
-// /api/trends is PLANNED, not shipped (coordination.md §3.2, track 0013).
-// The backend has no /api/trends route — firing a request would be a
-// guaranteed 404 + log spam. Return the planned/unavailable state
-// synchronously instead. When /api/trends is built (future track), replace
-// this with the live fetch + withFallback call.
-export async function fetchTrends(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _days = 90,
-): Promise<WithSource<import("@/lib/types").TrendPoint[]>> {
-  return { data: [], source: "planned" };
+export async function fetchTrends(days = 90): Promise<WithSource<import("@/lib/types").TrendPoint[]>> {
+  try {
+    return await withFallback(
+      () => fetchLiveTrends(days),
+      () => fetchMockTrends(days),
+    );
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) {
+      return { data: await fetchMockTrends(days), source: "mock" };
+    }
+    throw err;
+  }
 }

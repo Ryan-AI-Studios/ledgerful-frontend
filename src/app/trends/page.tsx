@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { PageLayout } from "@/components/PageLayout";
-import { TrendPoint } from "@/lib/trends-data";
+import { TrendPoint, fetchTrends } from "@/lib/trends-data";
 import { DataSource } from "@/lib/fallback";
 import { DataSourceBadge } from "@/components/DataSourceBadge";
 import { Calendar, Info, TrendingUp, AlertCircle, RefreshCw } from "lucide-react";
@@ -10,19 +10,50 @@ import { Calendar, Info, TrendingUp, AlertCircle, RefreshCw } from "lucide-react
 type TrendsState =
   | { status: "loading" }
   | { status: "error"; message: string }
-  | { status: "ready"; data: TrendPoint[]; source: DataSource }
-  | { status: "planned" };
+  | { status: "ready"; data: TrendPoint[]; source: DataSource };
 
 export default function TrendsPage() {
-  // /api/trends is PLANNED, not shipped (track 0013 DoD-4). fetchTrends
-  // returns synchronously — no loading state, no fetch, no 404 log spam.
-  // When /api/trends is built, replace this with the live + fallback flow.
-  const [state, setState] = useState<TrendsState>(() => {
-    // Synchronous init — fetchTrends returns immediately with source: "planned"
-    // This avoids a loading flash since no async fetch happens.
-    return { status: "planned" };
-  });
+  const [state, setState] = useState<TrendsState>({ status: "loading" });
   const [range, setRange] = useState(90);
+  const reqIdRef = useRef(0);
+
+  useEffect(() => {
+    const reqId = ++reqIdRef.current;
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      if (!cancelled && reqId === reqIdRef.current) {
+        setState({ status: "loading" });
+      }
+    }, 0);
+    fetchTrends(range)
+      .then((result) => {
+        clearTimeout(timer);
+        if (reqId !== reqIdRef.current) return;
+        setState({ status: "ready", data: result.data, source: result.source });
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        if (reqId !== reqIdRef.current) return;
+        const message = err instanceof Error ? err.message : "Failed to load trend data";
+        setState({ status: "error", message });
+      });
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [range]);
+
+  const reload = () => {
+    const reqId = ++reqIdRef.current;
+    setState({ status: "loading" });
+    fetchTrends(range)
+      .then((result) => {
+        if (reqId !== reqIdRef.current) return;
+        setState({ status: "ready", data: result.data, source: result.source });
+      })
+      .catch((err) => {
+        if (reqId !== reqIdRef.current) return;
+        const message = err instanceof Error ? err.message : "Failed to load trend data";
+        setState({ status: "error", message });
+      });
+  };
 
   const chartData = useMemo(() => {
     if (state.status !== "ready" || state.data.length === 0) return null;
@@ -33,8 +64,8 @@ export default function TrendsPage() {
 
     const minScore = 0;
     const maxScore = 100;
-    
-    const xStep = (width - padding * 2) / (state.data.length - 1);
+
+    const xStep = state.data.length > 1 ? (width - padding * 2) / (state.data.length - 1) : 0;
     const yScale = (height - padding * 2) / (maxScore - minScore);
 
     const points = state.data.map((p, i) => ({
@@ -56,37 +87,36 @@ export default function TrendsPage() {
 
   const trends = state.status === "ready" ? state.data : [];
 
+  const labelIndices = chartData && chartData.points.length > 0
+    ? [...new Set([0, Math.floor(chartData.points.length / 2), chartData.points.length - 1])]
+    : [];
+
   return (
-    <PageLayout title="Project Health Trends">
+    <PageLayout title="Hotspot Trends">
       <div className="space-y-6">
         <div className="flex items-center gap-3 mb-4">
           {state.status === "ready" && <DataSourceBadge source={state.source} />}
-          {state.status === "planned" && <DataSourceBadge source="planned" />}
         </div>
         <div className="bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div className="space-y-1">
               <h2 className="text-lg font-medium text-[var(--color-text-primary)] flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-[var(--color-primary)]" />
-                90-Day Health History
+                {range}-Day Hotspot History
               </h2>
               <p className="text-sm text-[var(--color-text-muted)] max-w-md">
-                Tracking project health score and high-risk change anomalies over time.
+                Tracking project hotspot score and high-risk change anomalies over time.
               </p>
             </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 px-3 h-9 rounded-md bg-[var(--color-surface)] border border-[var(--color-border-muted)]">
                 <Calendar className="w-4 h-4 text-[var(--color-text-muted)]" />
-              <select 
-                value={range}
-                onChange={(e) => {
-                  setRange(Number(e.target.value));
-                }}
-                className="bg-transparent text-sm text-[var(--color-text-primary)] focus:outline-none cursor-pointer"
-                aria-label="Select date range"
-                disabled
-              >
-
+                <select
+                  value={range}
+                  onChange={(e) => setRange(Number(e.target.value))}
+                  className="bg-transparent text-sm text-[var(--color-text-primary)] focus:outline-none cursor-pointer"
+                  aria-label="Select date range"
+                >
                   <option value={7}>Last 7 days</option>
                   <option value={30}>Last 30 days</option>
                   <option value={90}>Last 90 days</option>
@@ -99,18 +129,6 @@ export default function TrendsPage() {
             <div className="h-[300px] w-full bg-[var(--color-surface)] rounded-md animate-pulse border border-[var(--color-border-muted)] flex items-center justify-center">
               <span className="text-sm text-[var(--color-text-muted)]">Loading trend data...</span>
             </div>
-          ) : state.status === "planned" ? (
-            <div className="h-[300px] flex items-center justify-center border border-dashed border-[var(--color-border)] rounded-lg">
-              <div className="text-center space-y-3 max-w-md">
-                <TrendingUp className="w-8 h-8 text-[var(--color-text-muted)] mx-auto" aria-hidden="true" />
-                <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Trends analytics is planned</h3>
-                <p className="text-sm text-[var(--color-text-muted)]">
-                  The <code className="text-xs bg-[var(--color-surface)] px-1 py-0.5 rounded">/api/trends</code> endpoint
-                  has not been built yet. This feature is planned for a future release with a real per-day risk score
-                  and change-count data source.
-                </p>
-              </div>
-            </div>
           ) : state.status === "error" ? (
             <div className="bg-[var(--color-surface-alt)] border border-[var(--color-danger-muted)] rounded-lg p-6">
               <div className="flex items-start gap-3">
@@ -119,7 +137,7 @@ export default function TrendsPage() {
                   <h2 className="text-[1rem] font-semibold text-[var(--color-danger)]">Failed to load</h2>
                   <p className="mt-1 text-[var(--color-text-secondary)]">{state.message}</p>
                   <button
-                    onClick={() => { setState({ status: "planned" }); }}
+                    onClick={reload}
                     className="mt-4 inline-flex items-center gap-2 px-3 py-2 rounded-md bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm font-medium hover:bg-[var(--color-surface-raised)] transition-colors duration-100"
                   >
                     <RefreshCw className="w-4 h-4" aria-hidden="true" />
@@ -130,31 +148,31 @@ export default function TrendsPage() {
             </div>
           ) : chartData ? (
             <div className="relative group">
-              <svg 
+              <svg
                 viewBox={`0 0 ${chartData.width} ${chartData.height}`}
                 className="w-full h-auto overflow-visible"
                 preserveAspectRatio="none"
                 role="img"
-                aria-label="90-Day Health History Chart"
+                aria-label={`${range}-Day Hotspot History Chart`}
               >
                 {/* Grid Lines */}
                 {[0, 25, 50, 75, 100].map((level) => {
                   const y = chartData.height - chartData.padding - (level * (chartData.height - chartData.padding * 2) / 100);
                   return (
                     <g key={level}>
-                      <line 
-                        x1={chartData.padding} 
-                        y1={y} 
-                        x2={chartData.width - chartData.padding} 
-                        y2={y} 
-                        stroke="var(--color-border-muted)" 
+                      <line
+                        x1={chartData.padding}
+                        y1={y}
+                        x2={chartData.width - chartData.padding}
+                        y2={y}
+                        stroke="var(--color-border-muted)"
                         strokeWidth="1"
                         strokeDasharray="4 4"
                       />
-                      <text 
-                        x={chartData.padding - 10} 
-                        y={y} 
-                        textAnchor="end" 
+                      <text
+                        x={chartData.padding - 10}
+                        y={y}
+                        textAnchor="end"
                         alignmentBaseline="middle"
                         className="text-[10px] fill-[var(--color-text-muted)] font-mono"
                       >
@@ -164,9 +182,10 @@ export default function TrendsPage() {
                   );
                 })}
 
-                {/* X Axis Labels (start, mid, end) */}
-                {[0, Math.floor(trends.length / 2), trends.length - 1].map((idx) => {
+                {/* X Axis Labels (start, mid, end — deduped) */}
+                {labelIndices.map((idx) => {
                   const p = chartData.points[idx];
+                  if (!p) return null;
                   return (
                     <text
                       key={idx}
@@ -191,11 +210,13 @@ export default function TrendsPage() {
                 />
 
                 {/* Area under the line */}
-                <path
-                  d={`${chartData.pathData} L ${chartData.points[chartData.points.length - 1].x} ${chartData.height - chartData.padding} L ${chartData.points[0].x} ${chartData.height - chartData.padding} Z`}
-                  fill="url(#gradient)"
-                  className="opacity-10"
-                />
+                {chartData.points.length > 0 && (
+                  <path
+                    d={`${chartData.pathData} L ${chartData.points[chartData.points.length - 1].x} ${chartData.height - chartData.padding} L ${chartData.points[0].x} ${chartData.height - chartData.padding} Z`}
+                    fill="url(#gradient)"
+                    className="opacity-10"
+                  />
+                )}
 
                 {/* Anomaly Markers */}
                 {chartData.points.filter(p => p.data.highRiskCount > 0).map((p, i) => (
@@ -226,11 +247,11 @@ export default function TrendsPage() {
                   </linearGradient>
                 </defs>
               </svg>
-              
+
               <div className="mt-8 flex items-center gap-6 justify-center">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-[var(--color-primary)]"></div>
-                  <span className="text-xs text-[var(--color-text-secondary)] font-medium text-nowrap">Health Score</span>
+                  <span className="text-xs text-[var(--color-text-secondary)] font-medium text-nowrap">Hotspot Score</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-[var(--color-accent)] animate-pulse"></div>
@@ -264,7 +285,7 @@ export default function TrendsPage() {
           <div className="bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg p-5">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-3">High Risk Anomalies</h3>
             <div className="text-2xl font-mono text-[var(--color-accent)]">
-              {trends.filter(p => p.highRiskCount > 0).length}
+              {trends.reduce((acc, curr) => acc + curr.highRiskCount, 0)}
             </div>
           </div>
         </div>

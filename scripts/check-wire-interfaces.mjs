@@ -2,12 +2,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const apiDir = resolve(process.cwd(), "src", "lib", "api");
-const allowedDeclarations = new Map([
-  // /api/trends is PLANNED (not shipped) — trends.ts uses TrendPoint from
-  // src/lib/types.ts (outside src/lib/api/), so it isn't caught by this scan.
-  // When /api/trends is built, remove the hand-declared type and adopt
-  // ExtractResponse<"/api/trends","get">.
-]);
+const allowedDeclarations = new Map();
 
 const declarationPattern = /(?:^|\n)(?:export\s+)?(?:interface|type)\s+([A-Za-z][A-Za-z0-9_]*(?:Api|ApiResponse|ApiItem|Response)(?:[A-Za-z0-9_]*))/g;
 

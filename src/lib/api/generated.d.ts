@@ -385,6 +385,23 @@ export type paths = {
         readonly patch?: never;
         readonly trace?: never;
     };
+    readonly "/api/trends": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        /** `GET /api/trends` — project-level trend series from the cached daily rollup. */
+        readonly get: operations["getTrends"];
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
     readonly "/api/verify/health": {
         readonly parameters: {
             readonly query?: never;
@@ -409,7 +426,13 @@ export type paths = {
             readonly path?: never;
             readonly cookie?: never;
         };
-        /** `GET /api/verify/history` — pass/fail trend over time. */
+        /**
+         * `GET /api/verify/history?days=30` — per-date pass/fail counts over the
+         *     last `days` days (default 30, accepts 90). Returns a bare JSON array of
+         *     `{ date, passed, failed }` sorted ascending by date. Dates with no runs
+         *     are omitted (deterministic: only dates that have at least one run appear).
+         *     `GET /api/verify/history` — pass/fail trend over time.
+         */
         readonly get: operations["getVerifyHistory"];
         readonly put?: never;
         readonly post?: never;
@@ -479,10 +502,24 @@ export type components = {
             readonly timeAgo: string;
         };
         readonly ChangedFileResponse: {
-            /** Format: int64 */
-            readonly additions: number;
-            /** Format: int64 */
-            readonly deletions: number;
+            /**
+             * Format: int64
+             * @description `None` for pre-m48 legacy rows or binary files whose stats are
+             *     unavailable.  Serialized as `null` so the frontend can distinguish
+             *     "unknown" from a real zero.
+             */
+            readonly additions?: number | null;
+            /**
+             * Format: int64
+             * @description See `additions`.
+             */
+            readonly deletions?: number | null;
+            /**
+             * @description `true` when the file was detected as binary by git numstat (`-\t-`).
+             *     Lets the frontend render "binary" instead of the generic "—" used
+             *     for pre-m48 legacy rows.
+             */
+            readonly is_binary?: boolean;
             readonly path: string;
         };
         readonly ChangesQuery: {
@@ -758,6 +795,22 @@ export type components = {
             readonly last_extract_at?: string | null;
             readonly last_run_at?: string | null;
         };
+        readonly TrendPointDto: {
+            /** Format: int64 */
+            readonly changes: number;
+            readonly date: string;
+            /** Format: int64 */
+            readonly highRiskCount: number;
+            /** Format: double */
+            readonly score: number;
+        };
+        readonly TrendsQuery: {
+            /** Format: int64 */
+            readonly days?: number | null;
+        };
+        readonly TrendsResponse: {
+            readonly data: readonly components["schemas"]["TrendPointDto"][];
+        };
         readonly UserSession: {
             readonly email: string;
             readonly id: string;
@@ -821,12 +874,6 @@ export type components = {
             /** Format: int64 */
             readonly passed: number;
         };
-        /**
-         * @description `GET /api/verify/history?days=30` — per-date pass/fail counts over the
-         *     last `days` days (default 30, accepts 90). Returns a bare JSON array of
-         *     `{ date, passed, failed }` sorted ascending by date. Dates with no runs
-         *     are omitted (deterministic: only dates that have at least one run appear).
-         */
         readonly VerifyHistoryQuery: {
             /** Format: int64 */
             readonly days?: number | null;
@@ -1297,6 +1344,28 @@ export interface operations {
                 };
                 content: {
                     readonly "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    readonly getTrends: {
+        readonly parameters: {
+            readonly query?: {
+                readonly days?: number | null;
+            };
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Project-level trend data */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["TrendsResponse"];
                 };
             };
         };

@@ -153,7 +153,7 @@ function LedgerDetailContent({ txId }: { txId: string }) {
                   {file.path}
                 </span>
                 <span className="font-mono text-sm text-[var(--color-text-muted)]">
-                  +{file.additions} -{file.deletions}
+                  {file.isBinary ? "binary" : file.additions == null && file.deletions == null ? "—" : `${file.additions == null ? "—" : `+${file.additions}`} ${file.deletions == null ? "—" : `-${file.deletions}`}`}
                 </span>
               </li>
             ))}
