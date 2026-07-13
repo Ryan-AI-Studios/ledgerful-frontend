@@ -13,13 +13,13 @@
     "contract:check": "npm run contract:generate && git diff --exit-code src/lib/api/generated.d.ts && node scripts/check-wire-interfaces.mjs"
   },
   "dependencies": {
-    "@playwright/test": "^1.61.0",
+    "@playwright/test": "^1.61.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "lucide-react": "^1.18.0",
-    "next": "16.2.9",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
+    "lucide-react": "^1.24.0",
+    "next": "16.2.10",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
