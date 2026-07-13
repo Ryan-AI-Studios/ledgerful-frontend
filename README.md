@@ -9,9 +9,9 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:52001](http://localhost:52001) with your browser to see the dashboard.
+The dev server starts on port 52001. The dashboard connects to the Ledgerful daemon at the URL specified by `NEXT_PUBLIC_LEDGERFUL_API_URL` (default `http://127.0.0.1:52001`, see `.env.example`). If the daemon is unavailable, the dashboard falls back to mock data so the UI remains functional for development.
 
-The dashboard connects to the Ledgerful daemon at `http://127.0.0.1:52001`. If the daemon is unavailable, it falls back to mock data so the UI remains functional for development.
+> **Note:** The dev server and daemon both default to port 52001. For live-data development, either run the daemon on a different port and set `NEXT_PUBLIC_LEDGERFUL_API_URL` accordingly, or start the dev server on an alternate port (`npm run dev -- --port 3000`).
 
 ## Build
 
