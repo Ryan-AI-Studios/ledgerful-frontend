@@ -63,6 +63,7 @@ jobs:
           name: next-bundle
           path: .next/
           retention-days: 1
+          include-hidden-files: true
 
   bundle-scan:
     name: security/bundle-scan
