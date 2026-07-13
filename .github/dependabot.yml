@@ -39,6 +39,13 @@ updates:
       - dependencies
       - github-actions
     groups:
-      actions:
+      checkout:
+        patterns:
+          - "actions/checkout"
+      artifact-actions:
+        patterns:
+          - "actions/upload-artifact"
+          - "actions/download-artifact"
+      other:
         patterns:
           - "*"
