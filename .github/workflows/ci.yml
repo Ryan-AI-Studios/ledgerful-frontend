@@ -77,7 +77,8 @@ jobs:
       - name: Set up Deno
         uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2.0.3
         with:
-          deno-version: v2.1.4
+          # Must understand lockfile version 5 (Deno ≥2.2); pin matches local 2.9.x LTS
+          deno-version: v2.9.3
 
       - name: Set up Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
