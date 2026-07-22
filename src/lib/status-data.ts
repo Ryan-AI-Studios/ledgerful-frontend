@@ -1,13 +1,18 @@
 import { fetchStatus as fetchLiveStatus } from "@/lib/api/status";
 import { fetchStatus as fetchMockStatus } from "@/lib/mock/status";
-import { shouldUseMock } from "@/lib/fallback";
+import { shouldUseMock, WithSource } from "@/lib/fallback";
+import type { StatusResponse } from "@/lib/types";
 
 export type { StatusResponse } from "@/lib/types";
 
-export async function fetchStatus(): Promise<import("@/lib/types").StatusResponse> {
-  // Status is a health surface: surfacing daemon failures is more useful than
-  // silently substituting healthy mock data, so it stays live except when the
-  // explicit mock-data mode is enabled.
-  if (shouldUseMock()) return fetchMockStatus();
-  return fetchLiveStatus();
+/**
+ * Status is a health surface: when mock mode is off, live failures rethrow
+ * (fail-loud on 5xx). When mock mode is on, return mock with source tag.
+ * DaemonStatusContext only needs connectivity; source is optional there.
+ */
+export async function fetchStatus(): Promise<WithSource<StatusResponse>> {
+  if (shouldUseMock()) {
+    return { data: await fetchMockStatus(), source: "mock" };
+  }
+  return { data: await fetchLiveStatus(), source: "live" };
 }

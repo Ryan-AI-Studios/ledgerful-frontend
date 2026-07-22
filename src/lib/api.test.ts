@@ -226,7 +226,11 @@ describe("domain wrappers with fallback", () => {
     process.env.NEXT_PUBLIC_LEDGERFUL_USE_MOCK = "true";
     const result = await fetchDashboardData();
     expect(result.source).toBe("mock");
-    expect(result.data.health.score).toBe(61);
+    // UI-derived: 100 - 3*5 - 2*10 = 65
+    expect(result.data.health.score).toBe(65);
+    expect(result.data.health.scoreDerived).toBe(true);
+    expect(result.data.health.delta).toBeNull();
+    expect(result.data.health.gateClean).toBe(false);
     expect(result.data.recentChanges.length).toBeGreaterThan(0);
   });
 
@@ -234,7 +238,7 @@ describe("domain wrappers with fallback", () => {
     mockFetch.mockRejectedValueOnce(new ApiError(503, "daemon offline"));
     const result = await fetchDashboardData();
     expect(result.source).toBe("mock");
-    expect(result.data.health.score).toBe(61);
+    expect(result.data.health.score).toBe(65);
     expect(result.data.recentChanges.length).toBeGreaterThan(0);
   });
 
@@ -242,7 +246,7 @@ describe("domain wrappers with fallback", () => {
     mockFetch.mockRejectedValueOnce(new TypeError("Failed to fetch"));
     const result = await fetchDashboardData();
     expect(result.source).toBe("mock");
-    expect(result.data.health.score).toBe(61);
+    expect(result.data.health.score).toBe(65);
   });
 
   it("returns undefined with source=unavailable for a 404 ledger entry", async () => {

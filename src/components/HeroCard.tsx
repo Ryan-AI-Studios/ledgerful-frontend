@@ -1,6 +1,6 @@
 "use client";
 
-import { ProjectHealth, RiskLevel } from "@/lib/types";
+import { ProjectHealth, UiRiskLevel } from "@/lib/types";
 import {
   CheckCircle2,
   AlertTriangle,
@@ -13,7 +13,7 @@ interface HeroCardProps {
   onExplain?: () => void;
 }
 
-function riskColor(risk: RiskLevel) {
+function riskColor(risk: UiRiskLevel) {
   switch (risk) {
     case "HIGH":
       return "text-[var(--color-risk-high)]";
@@ -23,12 +23,23 @@ function riskColor(risk: RiskLevel) {
       return "text-[var(--color-risk-low)]";
     case "TRIVIAL":
       return "text-[var(--color-risk-trivial)]";
+    case "UNKNOWN":
+      return "text-[var(--color-text-muted)]";
   }
 }
 
 export function HeroCard({ health, onExplain }: HeroCardProps) {
-  const deltaPositive = health.delta >= 0;
   const scoreColor = riskColor(health.currentRisk);
+  const deltaLabel =
+    health.delta === null
+      ? "delta unavailable"
+      : `${health.delta >= 0 ? "↑" : "↓"} ${Math.abs(health.delta)} from last week`;
+  const deltaClass =
+    health.delta === null
+      ? "text-[var(--color-text-muted)]"
+      : health.delta >= 0
+        ? "text-[var(--color-success)]"
+        : "text-[var(--color-danger)]";
 
   return (
     <section
@@ -39,10 +50,10 @@ export function HeroCard({ health, onExplain }: HeroCardProps) {
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") onExplain?.();
       }}
-      aria-label={`Project health: ${health.score} out of 100. Current risk ${health.currentRisk}. Click for breakdown.`}
+      aria-label={`Project health: ${health.score} out of 100, UI-derived. Current risk ${health.currentRisk}. Click for breakdown.`}
     >
       <div className="flex items-start justify-between gap-6">
-        <div className="flex items-baseline gap-3">
+        <div className="flex items-baseline gap-3 flex-wrap">
           <span
             className={`text-[2.25rem] font-semibold leading-none tracking-[-0.022em] ${scoreColor}`}
             aria-hidden={true}
@@ -53,11 +64,13 @@ export function HeroCard({ health, onExplain }: HeroCardProps) {
             / 100
           </span>
           <span
-            className={`ml-3 text-sm font-medium ${
-              deltaPositive ? "text-[var(--color-success)]" : "text-[var(--color-danger)]"
-            }`}
+            className="ml-1 px-1.5 py-0.5 rounded text-[0.625rem] font-semibold uppercase tracking-wider border border-[var(--color-border-muted)] text-[var(--color-text-muted)]"
+            title="Score is computed in the UI from pending and drift counts"
           >
-            {deltaPositive ? "↑" : "↓"} {Math.abs(health.delta)} from last week
+            UI-derived
+          </span>
+          <span className={`ml-2 text-sm font-medium ${deltaClass}`}>
+            {deltaLabel}
           </span>
         </div>
 
@@ -79,9 +92,9 @@ export function HeroCard({ health, onExplain }: HeroCardProps) {
       <div className="mt-6 grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-x-4 gap-y-6 sm:gap-6">
         <Indicator
           icon={ShieldCheck}
-          label="Verified"
-          value={health.verified ? "Yes" : "No"}
-          tone={health.verified ? "success" : "warning"}
+          label="Gate clean"
+          value={health.gateClean ? "Yes" : "No"}
+          tone={health.gateClean ? "success" : "warning"}
         />
         <Indicator
           icon={AlertTriangle}
@@ -103,8 +116,10 @@ export function HeroCard({ health, onExplain }: HeroCardProps) {
             health.currentRisk === "HIGH"
               ? "danger"
               : health.currentRisk === "MEDIUM"
-              ? "warning"
-              : "success"
+                ? "warning"
+                : health.currentRisk === "UNKNOWN"
+                  ? "warning"
+                  : "success"
           }
         />
       </div>
@@ -124,8 +139,8 @@ function Indicator({ icon: Icon, label, value, tone }: IndicatorProps) {
     tone === "success"
       ? "text-[var(--color-success)]"
       : tone === "warning"
-      ? "text-[var(--color-warning)]"
-      : "text-[var(--color-danger)]";
+        ? "text-[var(--color-warning)]"
+        : "text-[var(--color-danger)]";
 
   return (
     <div className="flex items-center gap-2">

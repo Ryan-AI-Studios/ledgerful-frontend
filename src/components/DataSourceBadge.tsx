@@ -2,7 +2,6 @@
 
 import { CircleDot, Database, AlertCircle, WifiOff, Rocket } from "lucide-react";
 import { DataSource } from "@/lib/fallback";
-import { useDaemonStatus } from "@/lib/DaemonStatusContext";
 
 interface DataSourceBadgeProps {
   source: DataSource;
@@ -45,10 +44,8 @@ const sourceConfig: Record<
 };
 
 export function DataSourceBadge({ source }: DataSourceBadgeProps) {
-  const isDaemonOffline = useDaemonStatus();
-
-  if (isDaemonOffline && source === "mock") return null;
-
+  // Always show the badge, including Mock when offline (FE-H9).
+  // The offline banner is additive; never hide Mock provenance.
   const config = sourceConfig[source];
   const Icon = config.icon;
 

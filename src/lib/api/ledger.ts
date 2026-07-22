@@ -1,5 +1,6 @@
 import { apiGet } from "../api";
-import { LedgerEntry, LedgerStatus, RiskLevel } from "@/lib/types";
+import { LedgerEntry, LedgerStatus } from "@/lib/types";
+import { normalizeRiskLevel } from "@/lib/risk";
 import type { ExtractResponse } from "./contract-types";
 
 type LedgerWire = ExtractResponse<"/api/ledger", "get">;
@@ -19,30 +20,38 @@ function formatTimeAgo(committedAt: string): string {
   return `${Math.floor(days / 30)}mo ago`;
 }
 
-function normalizeRiskLevel(risk: string): RiskLevel {
-  const upper = risk.toUpperCase();
-  if (upper === "HIGH" || upper === "MEDIUM" || upper === "LOW" || upper === "TRIVIAL") return upper;
-  return "LOW";
+function normalizeEntryType(entryType: string): {
+  status: LedgerStatus;
+  entryTypeRaw?: string;
+} {
+  const upper = (entryType ?? "").toUpperCase();
+  if (upper === "PENDING") return { status: "PENDING" };
+  if (upper === "ROLLED_BACK" || upper === "ROLLEDBACK") return { status: "ROLLED_BACK" };
+  if (upper === "COMMITTED" || upper === "COMMIT") return { status: "COMMITTED" };
+  return { status: "OTHER", entryTypeRaw: entryType || "OTHER" };
 }
 
 function toLedgerEntry(item: LedgerWire[number]): LedgerEntry {
-  const status: LedgerStatus = item.entry_type === "PENDING" ? "PENDING" : "COMMITTED";
+  const { status, entryTypeRaw } = normalizeEntryType(item.entry_type);
 
   return {
     txId: item.tx_id,
     category: item.category,
     status,
+    entryTypeRaw,
     summary: item.summary,
     reason: item.reason,
     author: item.author,
     timeAgo: formatTimeAgo(item.committed_at),
     files: [],
-    hotspotsCrossed: 0,
-    testsRun: 0,
-    flakes: 0,
-    risk: normalizeRiskLevel(item.risk ?? "LOW"),
-    signature: item.signature ?? "",
-    publicKey: item.public_key ?? "",
+    // List endpoint has no detail metrics — null, never invent 0
+    hotspotsCrossed: null,
+    testsRun: null,
+    flakes: null,
+    risk: normalizeRiskLevel(item.risk),
+    signature: item.signature ?? undefined,
+    publicKey: item.public_key ?? undefined,
+    verificationStatus: item.verification_status ?? null,
   };
 }
 
@@ -55,9 +64,10 @@ function toLedgerEntryDetail(item: LedgerDetailWire): LedgerEntry {
       deletions: f.deletions ?? null,
       isBinary: f.is_binary ?? false,
     })),
-    hotspotsCrossed: item.hotspots_crossed ?? 0,
-    testsRun: item.tests_run ?? 0,
-    flakes: item.flakes ?? 0,
+    // Detail may still honestly return 0 when the engine lacks the metric
+    hotspotsCrossed: item.hotspots_crossed ?? null,
+    testsRun: item.tests_run ?? null,
+    flakes: item.flakes ?? null,
   };
 }
 

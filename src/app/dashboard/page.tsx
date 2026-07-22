@@ -72,7 +72,13 @@ function DashboardContent({
     fetchDashboardData(projectId)
       .then((result) => {
         const { data, source } = result;
-        if (data.recentChanges.length === 0 && data.health.score === 100) {
+        // Empty/init: no changes and clean gate posture — not score===100
+        // (score is UI-derived and must not gate onboarding UX).
+        const isEmpty =
+          data.recentChanges.length === 0 &&
+          data.health.pendingCount === 0 &&
+          data.health.driftCount === 0;
+        if (isEmpty) {
           setState({ status: "empty", source });
         } else {
           setState({ status: "ready", data, source });

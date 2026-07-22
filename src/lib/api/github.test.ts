@@ -1,6 +1,7 @@
 import { getGithubIntegrationStatus, connectGithub, disconnectGithub } from "./github";
 import * as projectsMock from "../mock/projects";
 import { vi, describe, beforeEach, afterAll, it, expect } from "vitest";
+import { ApiError } from "../api";
 
 vi.mock("../mock/projects", () => ({
   fetchProjects: vi.fn(),
@@ -18,7 +19,7 @@ describe("GitHub API", () => {
     process.env.NEXT_PUBLIC_LEDGERFUL_USE_MOCK = originalEnv;
   });
 
-  it("returns integration status with source for an existing project", async () => {
+  it("returns integration status with source=mock for an existing project under mock mode", async () => {
     (projectsMock.fetchProjects as import("vitest").Mock).mockResolvedValue([
       { id: "proj-1", integrationStatus: "CONNECTED", githubRepo: "acme/frontend" },
     ]);
@@ -28,9 +29,9 @@ describe("GitHub API", () => {
     expect(result.data.repo).toBe("acme/frontend");
   });
 
-  it("returns DISCONNECTED for missing project or missing status", async () => {
+  it("returns DISCONNECTED for missing project or missing status under mock mode", async () => {
     (projectsMock.fetchProjects as import("vitest").Mock).mockResolvedValue([
-      { id: "proj-1" }, // missing status
+      { id: "proj-1" },
       { id: "proj-2", integrationStatus: "PENDING" },
     ]);
     const res1 = await getGithubIntegrationStatus("proj-1");
@@ -41,11 +42,24 @@ describe("GitHub API", () => {
     expect(res3.data.status).toBe("DISCONNECTED");
   });
 
-  it("simulates connecting to github", async () => {
+  it("short-circuits to source=planned when not in mock mode (no CONNECTED theater)", async () => {
+    process.env.NEXT_PUBLIC_LEDGERFUL_USE_MOCK = "false";
+    const result = await getGithubIntegrationStatus("proj-1");
+    expect(result.source).toBe("planned");
+    expect(result.data.status).toBe("DISCONNECTED");
+  });
+
+  it("allows connect under mock mode", async () => {
     await connectGithub("proj-1");
   });
 
-  it("simulates disconnecting from github", async () => {
+  it("allows disconnect under mock mode", async () => {
     await disconnectGithub("proj-1");
+  });
+
+  it("rejects connect/disconnect with 501 when not in mock mode", async () => {
+    process.env.NEXT_PUBLIC_LEDGERFUL_USE_MOCK = "false";
+    await expect(connectGithub("proj-1")).rejects.toBeInstanceOf(ApiError);
+    await expect(disconnectGithub("proj-1")).rejects.toBeInstanceOf(ApiError);
   });
 });

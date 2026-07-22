@@ -1,16 +1,15 @@
 import { apiGet } from "../api";
-import { DashboardData, ProjectHealth, RecentChange, RiskLevel } from "@/lib/types";
+import { DashboardData, ProjectHealth, RecentChange } from "@/lib/types";
+import { normalizeRiskLevel } from "@/lib/risk";
+import { computeUiHealthScore } from "@/lib/health-score";
 import type { ExtractResponse } from "./contract-types";
 
 type SnapshotWire = ExtractResponse<"/api/snapshot", "get">;
 
-function normalizeRiskLevel(risk: string): RiskLevel {
-  const upper = risk.toUpperCase();
-  if (upper === "HIGH" || upper === "MEDIUM" || upper === "LOW" || upper === "TRIVIAL") return upper;
-  return "LOW";
-}
-
-function toRecentChange(item: SnapshotWire["recent_changes"][number], index: number): RecentChange {
+function toRecentChange(
+  item: SnapshotWire["recent_changes"][number],
+  index: number,
+): RecentChange {
   const path = item.path ?? "unknown";
   return {
     id: item.id ?? `${path}:${index}`,
@@ -19,7 +18,7 @@ function toRecentChange(item: SnapshotWire["recent_changes"][number], index: num
     author: item.author ?? "unknown",
     timeAgo: item.timeAgo ?? "now",
     fileCount: item.fileCount ?? 1,
-    risk: normalizeRiskLevel(item.risk ?? "LOW"),
+    risk: normalizeRiskLevel(item.risk),
   };
 }
 
@@ -34,15 +33,16 @@ export async function fetchDashboardData(projectId?: string): Promise<DashboardD
 
   const pending = data.pending_transactions ?? 0;
   const drift = data.unaudited_drift ?? 0;
-  const risk = normalizeRiskLevel(data.overall_risk ?? "LOW");
+  const risk = normalizeRiskLevel(data.overall_risk);
 
   const health: ProjectHealth = {
-    score: Math.max(0, 100 - pending * 5 - drift * 10),
-    delta: 0,
-    verified: pending === 0 && drift === 0,
+    score: computeUiHealthScore(pending, drift),
+    delta: null,
+    gateClean: pending === 0 && drift === 0,
     driftCount: drift,
     pendingCount: pending,
     currentRisk: risk,
+    scoreDerived: true,
   };
 
   return { health, recentChanges: (data.recent_changes ?? []).map(toRecentChange) };

@@ -21,11 +21,11 @@ describe("Hotspots API", () => {
 
   it("fetchHotspots populates ranks if missing", async () => {
     const mockHotspots = [
-      { id: "1", filePath: "src/a.ts", riskScore: 90 },
-      { id: "2", filePath: "src/b.ts", riskScore: 80 },
+      { id: "1", filePath: "src/a.ts", riskScore: 90, riskLevel: "HIGH", changeCount: 1 },
+      { id: "2", filePath: "src/b.ts", riskScore: 80, riskLevel: "MEDIUM", changeCount: 1 },
     ];
     (apiGet as Mock).mockResolvedValueOnce(mockHotspots);
-    
+
     const data = await fetchHotspots();
     expect(data[0].rank).toBe(1);
     expect(data[1].rank).toBe(2);
@@ -33,12 +33,48 @@ describe("Hotspots API", () => {
 
   it("fetchHotspots preserves existing ranks", async () => {
     const mockHotspots = [
-      { id: "1", filePath: "src/a.ts", riskScore: 90, rank: 5 },
+      { id: "1", filePath: "src/a.ts", riskScore: 90, riskLevel: "HIGH", rank: 5, changeCount: 1 },
     ];
     (apiGet as Mock).mockResolvedValueOnce(mockHotspots);
-    
+
     const data = await fetchHotspots();
     expect(data[0].rank).toBe(5);
+  });
+
+  it("maps missing risk to UNKNOWN and preserves null lastTouchedAt", async () => {
+    const mockHotspots = [
+      {
+        id: "1",
+        filePath: "src/a.ts",
+        riskScore: 90,
+        // riskLevel omitted / empty
+        riskLevel: "",
+        lastTouchedAt: null,
+        changeCount: 3,
+      },
+    ];
+    (apiGet as Mock).mockResolvedValueOnce(mockHotspots);
+
+    const data = await fetchHotspots();
+    expect(data[0].riskLevel).toBe("UNKNOWN");
+    expect(data[0].lastTouchedAt).toBeNull();
+  });
+
+  it("maps CRITICAL risk to HIGH", async () => {
+    (apiGet as Mock).mockResolvedValueOnce([
+      {
+        id: "1",
+        filePath: "src/a.ts",
+        riskScore: 99,
+        riskLevel: "CRITICAL",
+        lastTouchedAt: "2026-01-01T00:00:00Z",
+        changeCount: 10,
+      },
+    ]);
+
+    const data = await fetchHotspots();
+    expect(data[0].riskLevel).toBe("HIGH");
+    expect(data[0].lastTouchedAt).toBe("2026-01-01T00:00:00Z");
   });
 });
 
