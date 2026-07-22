@@ -3,115 +3,113 @@
 import { useEffect, useState } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { Copy, CheckCircle2, GitPullRequest, ShieldCheck, Activity, Users, AlertCircle } from "lucide-react";
-import { buildApiUrl } from "@/lib/utils";
+import { apiGet } from "@/lib/api";
 import { getGithubIntegrationStatus, connectGithub, disconnectGithub } from "@/lib/api/github";
 import { useProject } from "@/lib/ProjectContext";
 import { fetchSyncStatus, SyncStatus } from "@/lib/sync-data";
 import { DataSource } from "@/lib/fallback";
 import { DataSourceBadge } from "@/components/DataSourceBadge";
+import type { ExtractResponse } from "@/lib/api/contract-types";
 
-interface ConfigResponse {
+type ConfigWire = ExtractResponse<"/api/config", "get">;
+
+interface ConfigView {
   project: string;
   repo_path: string;
   ledger_path: string;
   graph_path: string;
-  signing_key_status: string;
+  signing_key: string;
   llm_backend: string;
   polling_interval: string;
   telemetry: string;
   version: string;
 }
 
-const defaultConfig: ConfigResponse = {
-  project: "unknown",
-  repo_path: "",
-  ledger_path: "",
-  graph_path: "",
-  signing_key_status: "not configured",
-  llm_backend: "none",
-  polling_interval: "30s",
-  telemetry: "disabled",
-  version: "ledgerful",
-};
+function mapConfig(data: ConfigWire): ConfigView {
+  return {
+    project: data.project,
+    repo_path: data.repo_path,
+    ledger_path: data.ledger_path,
+    graph_path: data.graph_path,
+    signing_key: data.signing_key,
+    llm_backend: data.llm_backend,
+    polling_interval: data.polling_interval,
+    telemetry: data.telemetry,
+    version: data.version,
+  };
+}
+
+async function fetchConfigLive(): Promise<ConfigView> {
+  const data = await apiGet<ConfigWire>("/config");
+  return mapConfig(data);
+}
 
 export default function SettingsPage() {
   const { project } = useProject();
   const projectId = project?.id || "unknown";
 
   const [activeTab, setActiveTab] = useState<"daemon" | "integrations" | "sync" | "privacy">("daemon");
-  const [config, setConfig] = useState<ConfigResponse>(defaultConfig);
+  const [config, setConfig] = useState<ConfigView | null>(null);
+  const [configSource, setConfigSource] = useState<DataSource | null>(null);
   const [loading, setLoading] = useState(true);
   const [configError, setConfigError] = useState(false);
 
-  // GitHub State
   const [githubStatus, setGithubStatus] = useState<"CONNECTED" | "DISCONNECTED" | "PENDING" | "UNREACHABLE">("DISCONNECTED");
   const [githubRepo, setGithubRepo] = useState<string | undefined>(undefined);
   const [isGithubLoading, setIsGithubLoading] = useState(true);
+  const [githubSource, setGithubSource] = useState<DataSource>("planned");
 
-  // Sync State
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
   const [syncSource, setSyncSource] = useState<DataSource>("live");
 
-  // GitHub State source
-  const [githubSource, setGithubSource] = useState<DataSource>("live");
-
-  // Privacy State
-  const [telemetryEnabled, setTelemetryEnabled] = useState(false);
+  // Display-only from config; no UI write (engine has no telemetry PATCH)
+  const telemetryEnabled = config?.telemetry === "enabled";
 
   useEffect(() => {
     let mounted = true;
 
     async function loadData() {
-      const configPromise = fetch(buildApiUrl("/config")).then((res) => {
-        if (!res.ok) {
-          const err = new Error("Config fetch failed");
-          (err as Error & { status?: number }).status = res.status;
-          throw err;
-        }
-        return res.json() as Promise<ConfigResponse>;
-      });
-
-      const githubPromise = getGithubIntegrationStatus(projectId);
-      const syncPromise = fetchSyncStatus();
-
-      let isDaemonUp = true;
-
+      // FE-H4: shared client + generated signing_key; no default object on error
       try {
-        const data = await configPromise;
+        const data = await fetchConfigLive();
         if (mounted) {
           setConfig(data);
-          setTelemetryEnabled(data.telemetry === "enabled");
+          setConfigSource("live");
+          setConfigError(false);
         }
-      } catch (err) {
-        const status = (err as Error & { status?: number }).status;
-        if (status === 401 || status === 403) {
-          if (mounted) setConfigError(true);
-        } else {
-          isDaemonUp = false;
-          if (mounted) setConfigError(true);
+      } catch {
+        if (mounted) {
+          setConfig(null);
+          setConfigSource(null);
+          setConfigError(true);
         }
       } finally {
         if (mounted) setLoading(false);
       }
 
       try {
-        const { data, source } = await githubPromise;
+        const { data, source } = await getGithubIntegrationStatus(projectId);
         if (mounted) {
           setGithubSource(source);
-          setGithubStatus(!isDaemonUp ? "UNREACHABLE" : (data.status || "DISCONNECTED"));
-          setGithubRepo(data.repo);
+          if (source === "planned") {
+            setGithubStatus("DISCONNECTED");
+            setGithubRepo(undefined);
+          } else {
+            setGithubStatus(data.status || "DISCONNECTED");
+            setGithubRepo(data.repo);
+          }
         }
       } catch {
         if (mounted) {
-          setGithubStatus(isDaemonUp ? "DISCONNECTED" : "UNREACHABLE");
-          setGithubSource("mock");
+          setGithubStatus("UNREACHABLE");
+          setGithubSource("unavailable");
         }
       } finally {
         if (mounted) setIsGithubLoading(false);
       }
 
       try {
-        const result = await syncPromise;
+        const result = await fetchSyncStatus();
         if (mounted) {
           setSyncStatus(result.data);
           setSyncSource(result.source);
@@ -129,10 +127,13 @@ export default function SettingsPage() {
   }, [projectId]);
 
   const copyConfig = () => {
+    if (!config) return;
     navigator.clipboard.writeText(JSON.stringify(config, null, 2));
   };
 
   const handleGithubConnect = async () => {
+    // Only interactive under explicit mock mode
+    if (githubSource !== "mock") return;
     setIsGithubLoading(true);
     try {
       if (githubStatus === "CONNECTED") {
@@ -151,11 +152,13 @@ export default function SettingsPage() {
 
   const telemetryPayload = {
     anonymousId: "user-1234",
-    appVersion: config.version,
+    appVersion: config?.version ?? "unknown",
     os: "windows",
     totalChanges: 42,
     activeIntegrations: githubStatus === "CONNECTED" ? ["github"] : [],
   };
+
+  const githubActionsDisabled = isGithubLoading || githubSource !== "mock";
 
   if (loading) {
     return (
@@ -172,8 +175,9 @@ export default function SettingsPage() {
   return (
     <PageLayout title="Settings">
       <div className="flex items-center gap-3 mb-4">
-        {!loading && syncStatus && <DataSourceBadge source={syncSource} />}
-        {!loading && githubStatus !== "UNREACHABLE" && <DataSourceBadge source={githubSource} />}
+        {configSource && <DataSourceBadge source={configSource} />}
+        {syncStatus && <DataSourceBadge source={syncSource} />}
+        {githubSource && <DataSourceBadge source={githubSource} />}
       </div>
       <div className="flex gap-4 mb-6 border-b border-[var(--color-border)]">
         <button
@@ -232,7 +236,7 @@ export default function SettingsPage() {
 
       {activeTab === "daemon" && (
         <div className="bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg p-6">
-          {configError ? (
+          {configError || !config ? (
             <div className="flex items-center gap-3 py-4">
               <AlertCircle className="w-5 h-5 text-[var(--color-danger)] flex-shrink-0" aria-hidden="true" />
               <div>
@@ -266,7 +270,7 @@ export default function SettingsPage() {
                 <Setting label="Repository path" value={config.repo_path} />
                 <Setting label="Ledger database" value={config.ledger_path} />
                 <Setting label="Graph database" value={config.graph_path} />
-                <Setting label="Signing key" value={config.signing_key_status} />
+                <Setting label="Signing key" value={config.signing_key} />
                 <Setting label="LLM backend" value={config.llm_backend} />
                 <Setting label="Dashboard polling" value={config.polling_interval} />
                 <Setting label="Telemetry" value={config.telemetry} />
@@ -284,26 +288,59 @@ export default function SettingsPage() {
               <GitPullRequest className="w-6 h-6 text-[var(--color-text-primary)]" aria-hidden="true" />
               <div>
                 <div className="text-sm font-medium text-[var(--color-text-primary)]">GitHub App</div>
-                <div className="text-xs text-[var(--color-text-secondary)] mt-1 flex items-center gap-2">
-                  <span aria-label={`GitHub status: ${githubStatus}`}>
-                    Status: <strong className={githubStatus === "CONNECTED" ? "text-[var(--color-success)]" : ""}>{githubStatus}</strong>
-                  </span>
-                  {githubStatus === "CONNECTED" && <span>• Linked: <code className="font-mono bg-[var(--color-surface-raised)] px-1 rounded">{githubRepo || "unknown/repo"}</code></span>}
+                <div className="text-xs text-[var(--color-text-secondary)] mt-1 flex items-center gap-2 flex-wrap">
+                  {githubSource === "planned" ? (
+                    <span aria-label="GitHub status: Planned">
+                      Status: <strong>Planned</strong> — not yet available on this daemon
+                    </span>
+                  ) : (
+                    <>
+                      <span aria-label={`GitHub status: ${githubStatus}`}>
+                        Status: <strong className={githubStatus === "CONNECTED" ? "text-[var(--color-success)]" : ""}>{githubStatus}</strong>
+                      </span>
+                      {githubStatus === "CONNECTED" && (
+                        <span>
+                          • Linked:{" "}
+                          <code className="font-mono bg-[var(--color-surface-raised)] px-1 rounded">
+                            {githubRepo || "unknown/repo"}
+                          </code>
+                        </span>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
             </div>
             <button
               onClick={handleGithubConnect}
-              disabled={isGithubLoading || githubSource !== "live"}
+              disabled={githubActionsDisabled}
               className={`inline-flex items-center justify-center px-4 py-2 min-h-[44px] min-w-[120px] rounded-md text-sm font-semibold transition-colors duration-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] ${
                 githubStatus === "CONNECTED"
                   ? "bg-transparent border border-[var(--color-border)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-raised)]"
                   : "bg-[var(--color-primary)] text-[var(--color-text-inverse)] hover:bg-[var(--color-primary-muted)]"
-              } ${(isGithubLoading || githubSource !== "live") ? "opacity-50 cursor-not-allowed" : ""}`}
-              aria-label={githubStatus === "CONNECTED" ? "Disconnect from GitHub" : "Connect to GitHub"}
-              title={githubSource !== "live" ? "Connect/disconnect disabled — data source is mock" : undefined}
+              } ${githubActionsDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+              aria-label={
+                githubSource === "planned"
+                  ? "GitHub connect planned"
+                  : githubStatus === "CONNECTED"
+                    ? "Disconnect from GitHub"
+                    : "Connect to GitHub"
+              }
+              title={
+                githubSource === "planned"
+                  ? "Planned — GitHub integration is not available yet"
+                  : githubSource !== "mock"
+                    ? "Connect/disconnect disabled — not in mock mode"
+                    : undefined
+              }
             >
-              {isGithubLoading ? "..." : githubStatus === "CONNECTED" ? "Disconnect" : "Connect to GitHub"}
+              {isGithubLoading
+                ? "..."
+                : githubSource === "planned"
+                  ? "Planned"
+                  : githubStatus === "CONNECTED"
+                    ? "Disconnect"
+                    : "Connect to GitHub"}
             </button>
           </div>
         </div>
@@ -330,30 +367,38 @@ export default function SettingsPage() {
       {activeTab === "privacy" && (
         <div className="bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg p-6">
           <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Privacy & Telemetry</h2>
-          
+
           <div className="flex items-start justify-between mb-6 bg-[var(--color-surface)] border border-[var(--color-border-muted)] rounded-md p-4">
             <div>
               <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Anonymous Usage Metrics</h3>
               <p className="text-xs text-[var(--color-text-secondary)] mt-1 max-w-xl">
                 Help improve Ledgerful by sending anonymous usage data. This data never includes sensitive information like codebase contents, secrets, or PII.
               </p>
+              <p className="text-xs text-[var(--color-text-muted)] mt-2">
+                Managed by CLI (<code className="font-mono">ledgerful usage</code> /{" "}
+                <code className="font-mono">ledgerful config</code>). The dashboard cannot change this setting.
+              </p>
             </div>
-            <div className="flex items-center justify-center min-h-[44px] min-w-[44px]">
+            <div className="flex flex-col items-end gap-1 min-h-[44px] min-w-[44px]">
               <button
                 role="switch"
                 aria-checked={telemetryEnabled}
-                aria-label="Toggle anonymous usage metrics"
-                onClick={() => setTelemetryEnabled(!telemetryEnabled)}
-                className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] ${
-                  telemetryEnabled ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]'
+                aria-disabled="true"
+                aria-label="Anonymous usage metrics (managed by CLI)"
+                disabled
+                className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors opacity-50 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] ${
+                  telemetryEnabled ? "bg-[var(--color-primary)]" : "bg-[var(--color-border)]"
                 }`}
               >
                 <span
                   className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
-                    telemetryEnabled ? 'translate-x-6' : 'translate-x-1'
+                    telemetryEnabled ? "translate-x-6" : "translate-x-1"
                   }`}
                 />
               </button>
+              <span className="text-[0.625rem] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
+                CLI-owned
+              </span>
             </div>
           </div>
 
@@ -362,7 +407,9 @@ export default function SettingsPage() {
               <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Example Payload</h3>
               <DataSourceBadge source="mock" />
             </div>
-            <p className="text-xs text-[var(--color-text-muted)] mb-3">Illustrative shape of the anonymous data sent when telemetry is enabled. Not a live capture.</p>
+            <p className="text-xs text-[var(--color-text-muted)] mb-3">
+              Illustrative shape of the anonymous data sent when telemetry is enabled. Not a live capture.
+            </p>
             <div className="bg-[var(--color-surface)] rounded-md p-4 overflow-x-auto border border-[var(--color-border-muted)]">
               <pre className="text-xs text-[var(--color-text-secondary)] font-mono whitespace-pre-wrap">
                 {JSON.stringify(telemetryPayload, null, 2)}

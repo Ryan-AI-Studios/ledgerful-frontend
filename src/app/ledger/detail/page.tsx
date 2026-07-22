@@ -110,7 +110,7 @@ function LedgerDetailContent({ txId }: { txId: string }) {
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <LedgerStatusBadge status={entry.status} />
+              <LedgerStatusBadge status={entry.status} entryTypeRaw={entry.entryTypeRaw} />
               <RiskBadge risk={entry.risk} />
               <span className="text-[0.6875rem] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
                 {entry.category}
@@ -133,10 +133,23 @@ function LedgerDetailContent({ txId }: { txId: string }) {
         <div className="grid grid-cols-3 gap-4 mb-6">
           <Metric label="Author" value={entry.author} />
           <Metric label="When" value={entry.timeAgo} />
-          <Metric label="Hotspots crossed" value={entry.hotspotsCrossed.toString()} />
-          <Metric label="Tests" value={`${entry.testsRun} run · ${entry.flakes} flakes`} />
+          <Metric
+            label="Hotspots crossed"
+            value={entry.hotspotsCrossed == null ? "—" : entry.hotspotsCrossed.toString()}
+          />
+          <Metric
+            label="Tests"
+            value={
+              entry.testsRun == null && entry.flakes == null
+                ? "—"
+                : `${entry.testsRun ?? "—"} run · ${entry.flakes ?? "—"} flakes`
+            }
+          />
           <Metric label="Files changed" value={entry.files.length.toString()} />
-          <Metric label="Verification" value={entry.testsRun > 0 ? "Passed" : "N/A"} />
+          <Metric
+            label="Verification"
+            value={entry.verificationStatus?.trim() ? entry.verificationStatus : "—"}
+          />
         </div>
 
         <div className="border-t border-[var(--color-border-muted)] pt-6">
@@ -169,9 +182,9 @@ function LedgerDetailContent({ txId }: { txId: string }) {
               <span className="text-[var(--color-text-muted)]">algo:</span>
               <span className="text-[var(--color-text-primary)]">Ed25519</span>
               <span className="text-[var(--color-text-muted)]">sig:</span>
-              <span className="text-[var(--color-text-primary)]">{entry.signature}</span>
+              <span className="text-[var(--color-text-primary)]">{entry.signature ?? "—"}</span>
               <span className="text-[var(--color-text-muted)]">key:</span>
-              <span className="text-[var(--color-text-primary)]">{entry.publicKey}</span>
+              <span className="text-[var(--color-text-primary)]">{entry.publicKey ?? "—"}</span>
             </div>
           </div>
         </div>

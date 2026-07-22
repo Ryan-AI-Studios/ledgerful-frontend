@@ -1,15 +1,19 @@
 import { DashboardData } from "@/lib/types";
+import { computeUiHealthScore } from "@/lib/health-score";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function fetchDashboardData(_projectId?: string): Promise<DashboardData> {
+  const pendingCount = 3;
+  const driftCount = 2;
   return Promise.resolve({
     health: {
-      score: 61,
-      delta: 0,
-      verified: false,
-      driftCount: 2,
-      pendingCount: 3,
+      score: computeUiHealthScore(pendingCount, driftCount),
+      delta: null,
+      gateClean: false,
+      driftCount,
+      pendingCount,
       currentRisk: "MEDIUM",
+      scoreDerived: true,
     },
     recentChanges: [
       {

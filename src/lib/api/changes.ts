@@ -1,25 +1,9 @@
 import { apiGet } from "../api";
-import { ChangeEntry, RiskLevel } from "@/lib/types";
+import { ChangeEntry } from "@/lib/types";
+import { normalizeRiskLevel } from "@/lib/risk";
 import type { ExtractResponse } from "./contract-types";
 
 type ChangeWire = ExtractResponse<"/api/changes", "get">;
-
-function inferRisk(status: string): RiskLevel {
-  switch (status.toLowerCase()) {
-    case "deleted":
-      return "HIGH";
-    case "added":
-      return "MEDIUM";
-    default:
-      return "LOW";
-  }
-}
-
-function normalizeRiskLevel(risk: string): RiskLevel {
-  const upper = risk.toUpperCase();
-  if (upper === "HIGH" || upper === "MEDIUM" || upper === "LOW" || upper === "TRIVIAL") return upper;
-  return "MEDIUM";
-}
 
 function toChangeEntry(item: ChangeWire[number], index: number): ChangeEntry {
   const status = item.status ?? "modified";
@@ -33,7 +17,8 @@ function toChangeEntry(item: ChangeWire[number], index: number): ChangeEntry {
     filesChanged: item.fileCount ?? 1,
     additions: item.additions ?? 0,
     deletions: item.deletions ?? 0,
-    risk: item.risk ? normalizeRiskLevel(item.risk) : inferRisk(status),
+    // Missing/null/unknown risk → UNKNOWN (never invent LOW via status)
+    risk: normalizeRiskLevel(item.risk),
   };
 }
 

@@ -1,13 +1,9 @@
 import { apiGet } from "../api";
 import { Hotspot } from "@/lib/types";
+import { normalizeHotspotRiskLevel } from "@/lib/risk";
 import type { ExtractResponse } from "./contract-types";
 
 type HotspotWire = ExtractResponse<"/api/hotspots", "get">;
-
-function normalizeRiskLevel(level: string): Hotspot["riskLevel"] {
-  if (level === "HIGH" || level === "MEDIUM" || level === "LOW" || level === "TRIVIAL") return level;
-  return "MEDIUM";
-}
 
 export async function fetchHotspots(days: number = 90): Promise<Hotspot[]> {
   const hotspots = await apiGet<HotspotWire>("/hotspots", { days: days.toString() });
@@ -15,12 +11,12 @@ export async function fetchHotspots(days: number = 90): Promise<Hotspot[]> {
   return hotspots.map((h, i) => ({
     id: h.id,
     filePath: h.filePath,
-    riskLevel: normalizeRiskLevel(h.riskLevel),
+    riskLevel: normalizeHotspotRiskLevel(h.riskLevel),
     riskScore: h.riskScore,
-    // Fallback to empty string or current date if null to satisfy the UI interface
-    lastTouchedAt: h.lastTouchedAt ?? new Date().toISOString(),
+    // Preserve null — never invent a timestamp
+    lastTouchedAt: h.lastTouchedAt ?? null,
     contributor: h.contributor ?? undefined,
     changeCount: h.changeCount,
-    rank: h.rank ?? i + 1
+    rank: h.rank ?? i + 1,
   }));
 }

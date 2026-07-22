@@ -62,7 +62,9 @@ export default function LedgerPage() {
       key: "status",
       header: "Status",
       width: "110px",
-      cell: (row) => <LedgerStatusBadge status={row.status} />,
+      cell: (row) => (
+        <LedgerStatusBadge status={row.status} entryTypeRaw={row.entryTypeRaw} />
+      ),
     },
     {
       key: "summary",

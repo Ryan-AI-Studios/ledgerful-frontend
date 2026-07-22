@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { UI_HEALTH_SCORE_FORMULA } from "@/lib/health-score";
 
 interface ExplainScoreModalProps {
   isOpen: boolean;
@@ -41,17 +42,17 @@ export function ExplainScoreModal({ isOpen, onClose }: ExplainScoreModalProps) {
         </div>
 
         <p className="text-[var(--color-text-secondary)] mb-4">
-          The score is computed from the current ledger and risk state. Lower
-          scores mean more pending work, drift, or high-risk changes.
+          This is a <strong className="font-semibold text-[var(--color-text-primary)]">UI-derived</strong>{" "}
+          gate posture score computed from pending transactions and unaudited drift.
+          It is not cryptographic verification and does not mean the project is &quot;Verified.&quot;
         </p>
 
         <div className="font-mono text-sm bg-[var(--color-surface)] border border-[var(--color-border-muted)] rounded-md p-4 overflow-x-auto">
-          <div>score = 100</div>
-          <div className="pl-4">- (HIGH_risks × 10)</div>
-          <div className="pl-4">- (pending_txs × 2)</div>
-          <div className="pl-4">- (drift_count × 5)</div>
-          <div className="pl-4">- (stale_days × 0.5)</div>
-          <div>clamped to [0, 100]</div>
+          {UI_HEALTH_SCORE_FORMULA.map((line, i) => (
+            <div key={i} className={line.startsWith("  ") ? "pl-4" : undefined}>
+              {line.trim() === "" ? "\u00A0" : line.trimStart()}
+            </div>
+          ))}
         </div>
 
         <div className="mt-6 flex justify-end">

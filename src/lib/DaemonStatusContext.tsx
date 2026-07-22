@@ -24,6 +24,7 @@ export function DaemonStatusProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const check = async () => {
       try {
+        // Connectivity-only: discard data/source; failures mean offline.
         await fetchStatus();
         setIsDaemonOffline(false);
       } catch (err) {

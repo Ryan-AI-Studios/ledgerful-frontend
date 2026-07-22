@@ -88,7 +88,7 @@ export default function CompliancePage() {
             <div className="flex items-center gap-3">
               <DataSourceBadge source={state.summarySource} />
             </div>
-            <ComplianceSummaryCards summary={state.summary} />
+            <ComplianceSummaryCards summary={state.summary} source={state.summarySource} />
             <div className="flex items-center gap-3">
               <DataSourceBadge source={state.entriesSource} />
             </div>

@@ -1,12 +1,19 @@
 export type RiskLevel = "HIGH" | "MEDIUM" | "LOW" | "TRIVIAL";
 
+/** Risk after shared normalizeRiskLevel — missing/unknown never becomes LOW. */
+export type UiRiskLevel = RiskLevel | "UNKNOWN";
+
 export interface ProjectHealth {
   score: number;
-  delta: number;
-  verified: boolean;
+  /** Null when no historical baseline is available (never invent 0). */
+  delta: number | null;
+  /** Gate clean when pending===0 && drift===0 — not crypto "Verified". */
+  gateClean: boolean;
   driftCount: number;
   pendingCount: number;
-  currentRisk: RiskLevel;
+  currentRisk: UiRiskLevel;
+  /** Always true: score is computeUiHealthScore, not an engine metric. */
+  scoreDerived: true;
 }
 
 export interface RecentChange {
@@ -16,7 +23,7 @@ export interface RecentChange {
   author: string;
   timeAgo: string;
   fileCount: number;
-  risk: RiskLevel;
+  risk: UiRiskLevel;
   prNumber?: number;
   prStatus?: "Open" | "Merged" | "Closed";
 }
@@ -32,23 +39,29 @@ export interface DashboardData {
   recentChanges: RecentChange[];
 }
 
-export type LedgerStatus = "COMMITTED" | "PENDING" | "ROLLED_BACK";
+/** Exhaustive status: unknown wire entry_type maps to OTHER (never forced COMMITTED). */
+export type LedgerStatus = "COMMITTED" | "PENDING" | "ROLLED_BACK" | "OTHER";
 
 export interface LedgerEntry {
   txId: string;
   category: string;
   status: LedgerStatus;
+  /** Raw entry_type from the wire when status is OTHER. */
+  entryTypeRaw?: string;
   summary: string;
   reason: string;
   author: string;
   timeAgo: string;
   files: { path: string; additions: number | null; deletions: number | null; isBinary?: boolean }[];
-  hotspotsCrossed: number;
-  testsRun: number;
-  flakes: number;
-  risk: RiskLevel;
-  signature: string;
-  publicKey: string;
+  /** Null when list response has no detail metrics (never invent 0). */
+  hotspotsCrossed: number | null;
+  testsRun: number | null;
+  flakes: number | null;
+  risk: UiRiskLevel;
+  signature?: string;
+  publicKey?: string;
+  /** Real verification_status from the engine, not derived from testsRun. */
+  verificationStatus?: string | null;
   prNumber?: number;
   prStatus?: "Open" | "Merged" | "Closed";
 }
@@ -56,9 +69,11 @@ export interface LedgerEntry {
 export interface Hotspot {
   id: string;
   filePath: string;
-  riskLevel: RiskLevel;
+  /** Normalized risk; missing wire risk → UNKNOWN (never invent MEDIUM). */
+  riskLevel: UiRiskLevel;
   riskScore: number;
-  lastTouchedAt: string;
+  /** Null when wire omits timestamp — UI shows "—", never invents "now". */
+  lastTouchedAt: string | null;
   contributor?: string;
   changeCount: number;
   rank: number;

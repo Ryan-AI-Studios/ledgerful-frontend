@@ -59,7 +59,10 @@ export default function HotspotsPage() {
           </span>
           <span className="text-[0.625rem] text-[var(--color-text-muted)] flex items-center gap-1">
             <Clock className="w-3 h-3" />
-            Last touched: {new Date(row.lastTouchedAt).toLocaleDateString()}
+            Last touched:{" "}
+            {row.lastTouchedAt
+              ? new Date(row.lastTouchedAt).toLocaleDateString()
+              : "—"}
           </span>
         </div>
       ),

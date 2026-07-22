@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { useProject } from "@/lib/ProjectContext";
 import { StatusDot } from "@/components/StatusDot";
+import { DataSourceBadge } from "@/components/DataSourceBadge";
 import { fetchStatus, StatusResponse } from "@/lib/status-data";
+import { DataSource } from "@/lib/fallback";
 import { cn } from "@/lib/utils";
 import {
   AlertCircle,
@@ -73,7 +75,7 @@ function buildChecks(data: StatusResponse): StatusCheck[] {
 type StatusPageState =
   | { status: "loading" }
   | { status: "error"; message: string }
-  | { status: "ready"; checks: StatusCheck[] };
+  | { status: "ready"; checks: StatusCheck[]; source: DataSource };
 
 export default function StatusPage() {
   const { project } = useProject();
@@ -81,7 +83,13 @@ export default function StatusPage() {
 
   const load = () => {
     fetchStatus()
-      .then((data) => setState({ status: "ready", checks: buildChecks(data) }))
+      .then((result) =>
+        setState({
+          status: "ready",
+          checks: buildChecks(result.data),
+          source: result.source,
+        }),
+      )
       .catch(() =>
         setState({
           status: "error",
@@ -98,6 +106,12 @@ export default function StatusPage() {
   return (
     <PageLayout title="Status">
       <div className="space-y-6">
+        {state.status === "ready" && (
+          <div className="flex items-center gap-3">
+            <DataSourceBadge source={state.source} />
+          </div>
+        )}
+
         <div className="bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-lg p-6">
           <div className="flex items-center gap-4">
             <StatusDot status={project.status} />
@@ -193,10 +207,21 @@ export default function StatusPage() {
             </ul>
           )}
 
-          <button className="mt-4 inline-flex items-center gap-2 px-3 py-2 rounded-md bg-[var(--color-primary)] text-[var(--color-text-inverse)] text-sm font-semibold hover:bg-[var(--color-primary-muted)] transition-colors duration-100">
-            <RefreshCw className="w-4 h-4" aria-hidden="true" />
-            Run doctor
-          </button>
+          <div className="mt-4 flex flex-col items-start gap-1">
+            <button
+              type="button"
+              disabled
+              aria-disabled="true"
+              aria-label="Run doctor (via CLI only)"
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-[var(--color-primary)] text-[var(--color-text-inverse)] text-sm font-semibold opacity-50 cursor-not-allowed"
+            >
+              <RefreshCw className="w-4 h-4" aria-hidden="true" />
+              Run doctor
+            </button>
+            <p className="text-xs text-[var(--color-text-muted)]">
+              Via CLI: <code className="font-mono">ledgerful doctor</code>
+            </p>
+          </div>
         </div>
       </div>
     </PageLayout>
