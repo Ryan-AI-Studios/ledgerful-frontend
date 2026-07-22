@@ -10,7 +10,9 @@
     "test:unit": "vitest run",
     "contract:refresh": "node scripts/refresh-openapi.mjs",
     "contract:generate": "node scripts/gen-api-types.mjs",
-    "contract:check": "npm run contract:generate && git diff --exit-code src/lib/api/generated.d.ts && node scripts/check-wire-interfaces.mjs"
+    "contract:check": "npm run contract:generate && git diff --exit-code src/lib/api/generated.d.ts && node scripts/check-wire-interfaces.mjs",
+    "test:telemetry-ingest": "deno test --allow-env supabase/functions/telemetry-ingest/handler_test.ts",
+    "check:telemetry-ingest-pins": "node scripts/check-telemetry-ingest-pins.mjs"
   },
   "dependencies": {
     "@playwright/test": "^1.61.1",
@@ -35,6 +37,7 @@
     "jsdom": "^29.1.1",
     "knip": "^6.26.0",
     "openapi-typescript": "7.13.0",
+    "supabase": "^2.109.1",
     "tailwindcss": "^4.3.2",
     "typescript": "^5",
     "vitest": "^4.1.10"

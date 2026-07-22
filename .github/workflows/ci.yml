@@ -65,6 +65,39 @@ jobs:
           retention-days: 1
           include-hidden-files: true
 
+  telemetry-ingest:
+    name: telemetry-ingest
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2.0.3
+        with:
+          # Must understand lockfile version 5 (Deno ≥2.2); pin matches local 2.9.x LTS
+          deno-version: v2.9.3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Pin check (versioned imports + deno.lock present)
+        run: npm run check:telemetry-ingest-pins
+
+      - name: Deno lock integrity (frozen)
+        run: deno cache --frozen --lock=supabase/functions/telemetry-ingest/deno.lock supabase/functions/telemetry-ingest/index.ts
+
+      - name: Telemetry ingest unit tests (fail-closed matrix)
+        run: npm run test:telemetry-ingest
+
   bundle-scan:
     name: security/bundle-scan
     needs: build

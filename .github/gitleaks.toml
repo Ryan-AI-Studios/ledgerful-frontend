@@ -30,3 +30,12 @@ paths = [
   '''\.next\/cache/\.rscinfo''',
   '''\.next\/server/server-reference-manifest\.json''',
 ]
+
+# Track 0077: intentionally public bar-raising telemetry token (open CLI binary;
+# not a secret). Documented in coordination.md §6.1 + phase0-memo. Real controls
+# are fail-closed global quotas + spend caps.
+[[allowlists]]
+description = "0077 public bar-raising telemetry ingest token (not a secret)"
+regexes = [
+  '''lf-tel-v1-7c4e9b2a1f8d3e6a0c5b9d4e8f1a2b3c''',
+]
