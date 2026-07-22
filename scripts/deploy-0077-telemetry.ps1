@@ -35,7 +35,14 @@ npx supabase secrets set `
 
 npx supabase functions deploy telemetry-ingest --project-ref $ProjectRef
 
-npx supabase db push --project-ref $ProjectRef
+# Migrations need a linked project + DB password (not --project-ref).
+if ($env:SUPABASE_DB_PASSWORD -or $env:supabase_database_password) {
+  $dbPass = if ($env:SUPABASE_DB_PASSWORD) { $env:SUPABASE_DB_PASSWORD } else { $env:supabase_database_password }
+  npx supabase link --project-ref $ProjectRef -p $dbPass
+  npx supabase db push --linked -p $dbPass --yes
+} else {
+  Write-Host "Skip db push: set SUPABASE_DB_PASSWORD or supabase_database_password to apply migrations."
+}
 
 Write-Host "Deployed (step a/b). Smoke unauthenticated:"
 Write-Host "  # optional mode: 2xx/4xx schema; require mode: 401"

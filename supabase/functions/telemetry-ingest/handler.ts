@@ -543,11 +543,12 @@ export function validatePayload(payload: unknown): JsonResult & {
 export function serviceRoleKey(env: {
   get(key: string): string | undefined;
 }): string {
-  // Prefer project secret SERVICE_ROLE_KEY (avoids reserved SUPABASE_ prefix
-  // injection issues on Edge). Accept SUPABASE_SERVICE_ROLE_KEY for sb_secret_ model.
+  // Prefer the platform-injected JWT service role key (SUPABASE_SERVICE_ROLE_KEY).
+  // Custom SERVICE_ROLE_KEY may hold a new-format sb_secret_ value that supabase-js
+  // cannot use for PostgREST inserts — fall back to it only if the platform key is absent.
   return (
-    env.get("SERVICE_ROLE_KEY")?.trim() ||
     env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() ||
+    env.get("SERVICE_ROLE_KEY")?.trim() ||
     ""
   );
 }
