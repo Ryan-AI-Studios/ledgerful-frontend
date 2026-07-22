@@ -33,13 +33,10 @@ async function dismissOnboardingIfPresent(p) {
   const close = p.getByRole("button", { name: /close|dismiss/i });
   const skip = p.getByRole("button", { name: /skip|not now|done/i });
   if ((await p.getByText("LEDGERFUL ONBOARDING").count()) > 0) {
-    // Click through or close
-    const xBtn = p.locator('button').filter({ hasText: /^$/ }).first();
-    // Prefer the modal X / Escape
+    // Prefer Escape, then Next through, then explicit close/skip
     await p.keyboard.press("Escape");
     await p.waitForTimeout(300);
     if ((await p.getByText("LEDGERFUL ONBOARDING").count()) > 0) {
-      // Click through Next until gone or max 6 steps
       for (let i = 0; i < 6; i++) {
         if ((await p.getByText("LEDGERFUL ONBOARDING").count()) === 0) break;
         const next = p.getByRole("button", { name: /next|done|finish|get started/i });
