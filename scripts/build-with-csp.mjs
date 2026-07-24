@@ -36,7 +36,17 @@ function runNextBuild() {
 }
 
 function shouldUpdateManifest() {
-  return process.env.UPDATE_CSP_MANIFEST === "1";
+  if (process.env.UPDATE_CSP_MANIFEST !== "1") return false;
+  if (
+    process.env.CI === "true" ||
+    process.env.VERCEL === "1" ||
+    process.env.VERCEL === "true"
+  ) {
+    throw new Error(
+      "UPDATE_CSP_MANIFEST=1 is local-only. CI/Vercel must use the committed .csp/csp-script-hashes.json (fail-on-drift).",
+    );
+  }
+  return true;
 }
 
 async function main() {

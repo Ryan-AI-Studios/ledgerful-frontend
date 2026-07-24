@@ -13,10 +13,19 @@ describe("isLoopbackHost", () => {
     expect(isLoopbackHost("[::1]")).toBe(true);
   });
 
+  it("accepts IPv4-mapped IPv6 loopback (::ffff:127.0.0.0/8)", () => {
+    expect(isLoopbackHost("::ffff:127.0.0.1")).toBe(true);
+    expect(isLoopbackHost("[::ffff:127.0.0.1]")).toBe(true);
+    expect(isLoopbackHost("::ffff:7f00:1")).toBe(true);
+    expect(isLoopbackHost("0:0:0:0:0:ffff:127.0.0.1")).toBe(true);
+  });
+
   it("rejects non-loopback hosts", () => {
     expect(isLoopbackHost("example.com")).toBe(false);
     expect(isLoopbackHost("192.168.1.1")).toBe(false);
     expect(isLoopbackHost("8.8.8.8")).toBe(false);
+    expect(isLoopbackHost("::ffff:192.168.1.1")).toBe(false);
+    expect(isLoopbackHost("[::ffff:c0a8:101]")).toBe(false);
   });
 });
 
@@ -39,6 +48,10 @@ describe("assertApiBaseAllowed", () => {
     ).not.toThrow();
     expect(() =>
       assertApiBaseAllowed("http://[::1]:52001", undefined),
+    ).not.toThrow();
+    // IPv4-mapped IPv6 loopback — Rust IpAddr::is_loopback parity
+    expect(() =>
+      assertApiBaseAllowed("http://[::ffff:127.0.0.1]:52001", undefined),
     ).not.toThrow();
   });
 

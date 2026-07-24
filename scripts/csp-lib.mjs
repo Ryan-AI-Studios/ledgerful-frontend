@@ -3,6 +3,7 @@
  * Used by build-with-csp.mjs and check-csp.mjs.
  */
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
@@ -167,7 +168,34 @@ export function apiOriginFromUrl(apiUrl = DEFAULT_API_URL) {
 }
 
 /**
+ * Resolve the connect-src API origin from env (NEXT_PUBLIC_LEDGERFUL_API_URL).
+ * @param {NodeJS.ProcessEnv | Record<string, string | undefined>} [env]
+ */
+export function apiOriginFromEnv(env = process.env) {
+  return apiOriginFromUrl(env.NEXT_PUBLIC_LEDGERFUL_API_URL ?? DEFAULT_API_URL);
+}
+
+/**
+ * Synchronously load the committed CSP union from `.csp/csp-script-hashes.json`.
+ * Used by vercel.ts so header generation and csp:check share one reader.
+ * @param {string} [root]
+ * @returns {string[]}
+ */
+export function loadCommittedUnionSync(root = process.cwd()) {
+  const hashFile = projectPaths(root).hashFile;
+  const raw = readFileSync(hashFile, "utf8");
+  const manifest = JSON.parse(raw);
+  if (!Array.isArray(manifest.union) || manifest.union.length === 0) {
+    throw new Error(
+      `committed .csp/csp-script-hashes.json has empty or missing union (${hashFile})`,
+    );
+  }
+  return manifest.union;
+}
+
+/**
  * Build the Vercel-hosted CSP header value.
+ * Single source of truth for vercel.ts and check-csp.mjs.
  * @param {string[]} unionHashes bare `sha256-...` tokens (no quotes)
  * @param {string} apiOrigin connect-src extra origin
  */
