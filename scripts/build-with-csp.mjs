@@ -91,15 +91,33 @@ async function main() {
         `(${generated.union.length} unique hashes, ${Object.keys(generated.routes).length} routes).`,
     );
   } else {
+    // Write diagnostic copy for CI artifact / local diff (never used by vercel.ts).
+    const generatedPath = path.join(paths.hashDirectory, "csp-script-hashes.generated.json");
+    await writeFile(generatedPath, `${JSON.stringify(generated, null, 2)}\n`, "utf8");
     const hint =
       "CSP script-hash manifest drifted from the committed copy.\n" +
-      "Run with UPDATE_CSP_MANIFEST=1 to refresh, then commit `.csp/csp-script-hashes.json`:\n" +
-      "  PowerShell:  $env:UPDATE_CSP_MANIFEST='1'; npm run build\n" +
-      "  bash:        UPDATE_CSP_MANIFEST=1 npm run build\n" +
+      `Wrote diagnostic: ${generatedPath}\n` +
+      "Refresh with Linux CI parity (Node 24, no local .env*):\n" +
+      "  docker run --rm -v \"${PWD}:/app\" -w /app node:24-bookworm bash /app/scripts/linux-csp-refresh.sh\n" +
+      "Or local: UPDATE_CSP_MANIFEST=1 npm run build (not allowed when CI/VERCEL is set).\n" +
       "Do not silently overwrite — vercel.ts and the engine vendored copy read the committed file.";
     if (!committed) {
       throw new Error(`No committed CSP manifest at ${paths.hashFile}.\n${hint}`);
     }
+    // Log compact route-level diff for CI logs.
+    const committedRoutes = Object.keys(committed.routes || {}).sort();
+    const generatedRoutes = Object.keys(generated.routes || {}).sort();
+    const routeSet = new Set([...committedRoutes, ...generatedRoutes]);
+    const diffs = [];
+    for (const route of [...routeSet].sort()) {
+      const a = JSON.stringify(committed.routes?.[route] ?? null);
+      const b = JSON.stringify(generated.routes?.[route] ?? null);
+      if (a !== b) diffs.push(route);
+    }
+    console.error(
+      `CSP drift: ${diffs.length} route(s) differ (sample: ${diffs.slice(0, 8).join(", ")}). ` +
+        `union committed=${committed.union?.length ?? 0} generated=${generated.union.length}`,
+    );
     throw new Error(hint);
   }
 
