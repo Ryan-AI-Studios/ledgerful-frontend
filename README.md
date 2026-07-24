@@ -21,6 +21,18 @@ Production builds require a **loopback** API base by default. To bake a non-loop
 npm run build
 ```
 
+## CSP hash manifest
+
+Production builds run a double `next build` and fail if inline-script hashes drift from committed `.csp/csp-script-hashes.json`.
+CI (Linux) is the source of truth for that file. On Windows, refresh with Docker:
+
+```bash
+docker run --rm -v \"${PWD}:/app\" -w /app node:22-bookworm bash /app/scripts/linux-csp-refresh.sh
+```
+
+Then commit `.csp/csp-script-hashes.json` (and re-vendor the engine copy under `ledgerful/src/commands/web/server/` when shipping together).
+
+
 `npm run build` runs the static export through a CSP hash pipeline: it builds twice, hashes every inline `<script>` in `out/`, checks same-machine determinism, and **diff-checks** the result against the committed manifest at `.csp/csp-script-hashes.json` (fail-on-drift; never silently overwrites). Vercel headers (`vercel.ts`) and the engine vendored copy read that committed file only.
 
 When inline scripts change and the manifest drifts:
