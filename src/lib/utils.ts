@@ -13,18 +13,7 @@ export function resetInMemoryToken(): void {
 
 export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
-
-  if (inMemoryToken) return inMemoryToken;
-
-  const fromUrl = new URLSearchParams(window.location.search).get("token");
-  if (fromUrl) {
-    inMemoryToken = fromUrl;
-    const cleanUrl = window.location.pathname + window.location.hash;
-    window.history.replaceState(null, "", cleanUrl);
-    return fromUrl;
-  }
-
-  return null;
+  return inMemoryToken;
 }
 
 export function setAuthToken(token: string): void {

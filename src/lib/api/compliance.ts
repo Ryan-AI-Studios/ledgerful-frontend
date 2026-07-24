@@ -1,6 +1,5 @@
-import { apiGet, ApiError } from "../api";
+import { apiGet, apiFetch, ApiError } from "../api";
 import { ComplianceSummary, SignatureEntry } from "@/lib/types";
-import { buildApiUrl } from "../utils";
 import type { ExtractResponse } from "./contract-types";
 
 // ComplianceSummaryResponse matches the UI type directly (some mock-only fields are absent live).
@@ -30,7 +29,7 @@ export async function fetchSignatureEntries(): Promise<SignatureEntry[]> {
 }
 
 export async function triggerSoc2Export(): Promise<void> {
-  const response = await fetch(buildApiUrl("/compliance/export"));
+  const response = await apiFetch("/compliance/export");
   if (!response.ok) {
     let message = `SOC2 export failed (HTTP ${response.status})`;
     try {
