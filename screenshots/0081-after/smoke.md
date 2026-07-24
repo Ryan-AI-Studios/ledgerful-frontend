@@ -12,6 +12,10 @@
 - Headers: hash CSP (sha256 present), **no HSTS**, X-Frame-Options DENY, XCTO nosniff, COOP same-origin, Permissions-Policy deny list
 - Playwright routes (same 11): **0 CSP violations**, hasHsts=false all routes
 
-## Phase 0 vercel.ts timing residual
-- Committed-manifest design: vercel.ts only reads git-committed `.csp/csp-script-hashes.json` (no same-build generation dependency)
-- Production proof of headers delivery is Vercel preview/CI on the PR
+## Phase 0 vercel.ts timing / delivery proof
+- Committed-manifest design: `vercel.ts` only reads git-committed `.csp/csp-script-hashes.json` (no same-build generation dependency; sidesteps vercel.ts vs buildCommand ordering ambiguity)
+- Header delivery proof for this track:
+  - Static host smoke above reproduces the `vercel.ts` header set (CSP hashes, HSTS, Permissions-Policy, COOP, X-CTO/XFO/Referrer)
+  - Daemon `--spa-dir` path proves engine parity (hash CSP, **no HSTS**)
+  - GitHub Actions `build` on **windows-latest** (PR #24) exercises `npm run build` → double-build + fail-on-drift + `csp:check` against the committed manifest
+  - No Vercel deployment API entries for this PR path; live Vercel header capture is optional post-merge residual if a project deployment is wired later
