@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 52001",
-    "build": "next build",
+    "build": "node scripts/build-with-csp.mjs",
+    "csp:check": "node scripts/check-csp.mjs",
     "start": "next start",
     "lint": "eslint",
     "test:unit": "vitest run",
@@ -32,23 +33,29 @@
     "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vercel/config": "^0.5.5",
     "eslint": "^10.7.0",
     "eslint-config-next": "16.2.11",
     "jsdom": "^29.1.1",
     "knip": "^6.26.0",
     "openapi-typescript": "7.13.0",
+    "parse5": "^8.0.1",
     "supabase": "^2.109.1",
     "tailwindcss": "^4.3.2",
     "typescript": "^5",
     "vitest": "^4.1.10"
   },
   "overrides": {
-    "postcss": "^8.5.14",
+    "postcss": "^8.5.18",
+    "path-to-regexp": "6.3.0",
+    "minimatch": "^10.2.3",
+    "brace-expansion": "^5.0.8",
     "js-yaml": "^4.3.0",
     "sharp": "^0.35.3",
     "@redocly/openapi-core": {
-      "brace-expansion": "^2.0.2",
-      "js-yaml": "^4.3.0"
+      "brace-expansion": "^5.0.8",
+      "js-yaml": "^4.3.0",
+      "minimatch": "^10.2.3"
     }
   }
 }
