@@ -23,31 +23,20 @@ npm run build
 
 ## CSP hash manifest
 
-Production builds run a double `next build` and fail if inline-script hashes drift from committed `.csp/csp-script-hashes.json`.
-CI (Linux) is the source of truth for that file. On Windows, refresh with Docker:
+`npm run build` runs the static export through a CSP hash pipeline: double `next build`, hash every inline `<script>` in `out/`, check same-machine determinism, and **diff-check** against committed `.csp/csp-script-hashes.json` (fail-on-drift; never silently overwrites). `vercel.ts` and the engine vendored copy read that committed file only.
 
-```bash
-docker run --rm -v \"${PWD}:/app\" -w /app node:22-bookworm bash /app/scripts/linux-csp-refresh.sh
-```
-
-Then commit `.csp/csp-script-hashes.json` (and re-vendor the engine copy under `ledgerful/src/commands/web/server/` when shipping together).
-
-
-`npm run build` runs the static export through a CSP hash pipeline: it builds twice, hashes every inline `<script>` in `out/`, checks same-machine determinism, and **diff-checks** the result against the committed manifest at `.csp/csp-script-hashes.json` (fail-on-drift; never silently overwrites). Vercel headers (`vercel.ts`) and the engine vendored copy read that committed file only.
-
-When inline scripts change and the manifest drifts:
+The CI **build** job is **windows-latest** — when refreshing hashes for CI, regenerate on Windows without local `.env*` (Next inlines `NEXT_PUBLIC_*` into flight payloads):
 
 ```powershell
-# PowerShell
-$env:UPDATE_CSP_MANIFEST='1'; npm run build
+Get-ChildItem .env* -ErrorAction SilentlyContinue | Rename-Item -NewName { $_.Name + ".__cspbak" }
+$env:UPDATE_CSP_MANIFEST = "1"
+npm run build
+Get-ChildItem *.env*.__cspbak, .env*.__cspbak -ErrorAction SilentlyContinue | ForEach-Object {
+  Rename-Item $_ ($_.Name -replace "\.__cspbak$", "")
+}
 ```
 
-```bash
-# bash
-UPDATE_CSP_MANIFEST=1 npm run build
-```
-
-Then commit `.csp/csp-script-hashes.json` (and re-vendor the engine copy if the engine ships the SPA). Run `npm run csp:check` to verify coverage and that `script-src` never includes `'unsafe-inline'`.
+Then commit `.csp/csp-script-hashes.json` (and re-vendor `ledgerful/src/commands/web/server/csp_script_hashes.json` when shipping with the engine). `UPDATE_CSP_MANIFEST=1` is refused when `CI` or `VERCEL` is set. Run `npm run csp:check` to verify coverage and that `script-src` never includes `'unsafe-inline'`.
 
 ## Community
 
