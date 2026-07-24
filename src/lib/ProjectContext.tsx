@@ -31,15 +31,33 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   const [allProjects, setAllProjects] = useState<Project[]>([]);
   const [projectsSource, setProjectsSource] = useState<DataSource>("live");
   const [loadError, setLoadError] = useState<string | null>(null);
-  const hasToken = Boolean(getAuthToken());
-  const [isLoaded, setIsLoaded] = useState(hasToken ? false : true);
+  // DoD-6: start false/true; seed token + subscribe on mount (not lazy init).
+  const [hasToken, setHasToken] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(true);
   const [authRetry, setAuthRetry] = useState(0);
+
+  useEffect(() => {
+    const tokenPresent = Boolean(getAuthToken());
+    // seed external module token into state once on mount (DoD-6); getAuthToken is pure post-0080
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- DoD-6 mount seed from pure getAuthToken
+    setHasToken(tokenPresent);
+    if (tokenPresent) setIsLoaded(false);
+    const onInvalid = () => {
+      setHasToken(false);
+      setIsLoaded(true);
+    };
+    window.addEventListener("ledgerful:session-invalid", onInvalid);
+    return () => window.removeEventListener("ledgerful:session-invalid", onInvalid);
+  }, []);
 
   useEffect(() => {
     if (!hasToken) {
       return;
     }
     let cancelled = false;
+    // Mark loading while projects resolve (covers onAuthed path; seed path also sets false above).
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- projects fetch gate for isLoaded
+    setIsLoaded(false);
     fetchProjects()
       .then((result) => {
         if (cancelled) return;
@@ -59,6 +77,10 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         }
       })
       .catch((err) => {
+        if (cancelled) return;
+        // Token reset + TokenPrompt re-show are handled by apiFetch session
+        // invalidation (ledgerful:session-invalid). Keep catch safe: set load
+        // error state without fighting the unmount.
         if (isApiError(err) && (err.status === 401 || err.status === 403)) {
           setLoadError("Authentication failed. Please check your token.");
           setAllProjects([]);
@@ -84,7 +106,15 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   }, []);
 
   if (!hasToken) {
-    return <TokenPrompt onAuthed={() => setAuthRetry((n) => n + 1)} />;
+    return (
+      <TokenPrompt
+        onAuthed={() => {
+          setHasToken(true);
+          setIsLoaded(false);
+          setAuthRetry((n) => n + 1);
+        }}
+      />
+    );
   }
 
   return (

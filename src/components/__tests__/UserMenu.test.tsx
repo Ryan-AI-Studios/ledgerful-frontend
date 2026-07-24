@@ -1,6 +1,11 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { UserMenu } from "../UserMenu";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  getAuthToken,
+  resetInMemoryToken,
+  setAuthToken,
+} from "@/lib/utils";
 
 // fetchSession is called on mount and now returns WithSource<UserSession>
 vi.mock("@/lib/session-data", () => ({
@@ -16,6 +21,14 @@ vi.mock("@/lib/session-data", () => ({
 }));
 
 describe("UserMenu Component", () => {
+  beforeEach(() => {
+    resetInMemoryToken();
+  });
+
+  afterEach(() => {
+    resetInMemoryToken();
+  });
+
   it("renders the trigger button with user initial", async () => {
     render(<UserMenu />);
     const trigger = await screen.findByLabelText("User menu");
@@ -53,5 +66,25 @@ describe("UserMenu Component", () => {
     
     fireEvent.mouseDown(document.body);
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  });
+
+  it("Sign out clears token and dispatches ledgerful:session-invalid", async () => {
+    setAuthToken("menu-session-token");
+    const dispatchSpy = vi.spyOn(window, "dispatchEvent");
+
+    render(<UserMenu />);
+    const trigger = await screen.findByLabelText("User menu");
+    fireEvent.click(trigger);
+
+    fireEvent.click(screen.getByRole("menuitem", { name: /sign out/i }));
+
+    expect(getAuthToken()).toBeNull();
+    const invalidEvents = dispatchSpy.mock.calls
+      .map((c) => c[0] as Event)
+      .filter((e) => e instanceof Event && e.type === "ledgerful:session-invalid");
+    expect(invalidEvents.length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+
+    dispatchSpy.mockRestore();
   });
 });

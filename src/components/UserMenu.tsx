@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { fetchSession } from "@/lib/session-data";
 import { UserSession } from "@/lib/types";
+import { resetInMemoryToken } from "@/lib/utils";
 import { DataSourceBadge } from "./DataSourceBadge";
 import { User, Settings, LogOut } from "lucide-react";
 import Link from "next/link";
@@ -186,6 +187,10 @@ export function UserMenu() {
             className="w-[calc(100%-8px)] flex items-center gap-2 px-3 py-2 text-sm text-[var(--color-danger)] hover:bg-[var(--color-surface-alt)] focus:bg-[var(--color-surface-alt)] focus:outline-none transition-colors duration-100 mx-1 rounded-md text-left"
             onClick={() => {
               setIsOpen(false);
+              resetInMemoryToken();
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("ledgerful:session-invalid"));
+              }
             }}
           >
             <LogOut className="w-4 h-4" />

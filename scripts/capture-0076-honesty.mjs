@@ -3,14 +3,9 @@ import { mkdir } from "node:fs/promises";
 
 const base = process.env.CAPTURE_BASE_URL ?? "http://localhost:52001";
 const out = "screenshots/0076-after";
+const CAPTURE_TOKEN = "playwright-0076-capture";
 
 await mkdir(out, { recursive: true });
-
-/** Full page loads reset module memory — always hand off token via query string. */
-function withToken(path) {
-  const sep = path.includes("?") ? "&" : "?";
-  return `${base}${path}${sep}token=playwright-0076-capture`;
-}
 
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({
@@ -27,6 +22,20 @@ await context.addInitScript(() => {
   }
 });
 const page = await context.newPage();
+
+/**
+ * Full page loads reset module memory — drive the real TokenPrompt form on
+ * each navigation rather than a URL-token bypass.
+ */
+async function gotoAuthed(path) {
+  await page.goto(`${base}${path}`, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  const signIn = page.getByRole("heading", { name: "Sign in" });
+  if ((await signIn.count()) > 0) {
+    await page.getByPlaceholder("Auth token").fill(CAPTURE_TOKEN);
+    await page.getByRole("button", { name: "Sign in" }).click();
+    await page.waitForTimeout(400);
+  }
+}
 
 async function dismissOnboardingIfPresent(p) {
   // Onboarding can cover the dashboard health card; dismiss if present.
@@ -55,7 +64,7 @@ async function dismissOnboardingIfPresent(p) {
 }
 
 async function capture(name, path, interact) {
-  await page.goto(withToken(path), { waitUntil: "domcontentloaded", timeout: 60_000 });
+  await gotoAuthed(path);
   await page.waitForTimeout(1400);
   await dismissOnboardingIfPresent(page);
   if (interact) await interact(page);
