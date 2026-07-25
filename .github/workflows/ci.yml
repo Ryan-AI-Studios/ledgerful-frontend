@@ -98,6 +98,53 @@ jobs:
       - name: Telemetry ingest unit tests (fail-closed matrix)
         run: npm run test:telemetry-ingest
 
+  knip:
+    name: knip
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run knip (unused files/exports/deps)
+        run: npm run knip
+
+  provenance-check:
+    name: provenance-check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Provenance check on newly added dependencies
+        env:
+          # PR: base SHA; push to main: previous commit (github.event.before) or HEAD~1
+          BASE_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || (github.event.before != '0000000000000000000000000000000000000000' && github.event.before || 'HEAD~1') }}
+        run: node scripts/provenance-check.mjs --new-only
+
   bundle-scan:
     name: security/bundle-scan
     needs: build

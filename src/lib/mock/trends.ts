@@ -17,8 +17,6 @@ function generateMockTrends(days: number): TrendPoint[] {
 
 const MOCK_TRENDS_90 = generateMockTrends(90);
 
-export const MOCK_TRENDS: TrendPoint[] = MOCK_TRENDS_90;
-
 export function fetchMockTrends(days = 90): Promise<TrendPoint[]> {
   const start = Math.max(0, MOCK_TRENDS_90.length - days);
   return Promise.resolve(MOCK_TRENDS_90.slice(start));

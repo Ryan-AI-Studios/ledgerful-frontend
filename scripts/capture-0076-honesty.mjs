@@ -1,4 +1,4 @@
-import { chromium } from "playwright";
+import { chromium } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 
 const base = process.env.CAPTURE_BASE_URL ?? "http://localhost:52001";

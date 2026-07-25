@@ -67,8 +67,8 @@ docs/tracks-12-13-review.md
 docs/design.md
 docs/product.md
 
-# internal ops scripts (not for public)
-scripts/apply-branch-protection.ps1
+# Branch protection script is tracked (0083): public repo; contexts documented inline.
+# (Previously gitignored as private-ops; removed so DoD-2 ships with the track.)
 
 # ledgerful derived state
 /.ledgerful/
