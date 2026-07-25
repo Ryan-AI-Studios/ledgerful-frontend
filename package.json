@@ -2,6 +2,9 @@
   "name": "ledgerful-frontend",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "dev": "next dev --port 52001",
     "build": "node scripts/build-with-csp.mjs",
@@ -9,23 +12,27 @@
     "start": "next start",
     "lint": "eslint",
     "test:unit": "vitest run",
+    "knip": "knip",
     "contract:refresh": "node scripts/refresh-openapi.mjs",
     "contract:generate": "node scripts/gen-api-types.mjs",
     "contract:check": "npm run contract:generate && git diff --exit-code src/lib/api/generated.d.ts && node scripts/check-wire-interfaces.mjs",
     "test:telemetry-ingest": "deno test --allow-env supabase/functions/telemetry-ingest/handler_test.ts",
-    "check:telemetry-ingest-pins": "node scripts/check-telemetry-ingest-pins.mjs"
+    "check:telemetry-ingest-pins": "node scripts/check-telemetry-ingest-pins.mjs",
+    "provenance:check": "node scripts/provenance-check.mjs",
+    "provenance:check:new": "node scripts/provenance-check.mjs --new-only"
   },
   "dependencies": {
-    "@playwright/test": "^1.61.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.24.0",
     "next": "16.2.11",
+    "parse5": "^8.0.1",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4.3.2",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
@@ -39,7 +46,6 @@
     "jsdom": "^29.1.1",
     "knip": "^6.26.0",
     "openapi-typescript": "7.13.0",
-    "parse5": "^8.0.1",
     "supabase": "^2.109.1",
     "tailwindcss": "^4.3.2",
     "typescript": "^5",

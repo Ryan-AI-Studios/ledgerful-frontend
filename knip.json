@@ -3,17 +3,17 @@
   "next": true,
   "entry": [
     "scripts/*.{js,mjs}",
-    "supabase/functions/**/index.ts"
-  ],
-  "ignore": [
-    "src/lib/api/trends.ts"
+    "supabase/functions/**/index.ts",
+    "supabase/functions/**/handler_test.ts"
   ],
   "ignoreDependencies": [
-    "openapi-typescript"
+    "openapi-typescript",
+    "supabase"
   ],
   "ignoreIssues": {
     "src/lib/api.ts": ["exports"],
     "src/lib/api/contract-types.ts": ["types"],
-    "src/lib/types.ts": ["types"]
+    "src/lib/types.ts": ["types"],
+    "supabase/functions/telemetry-ingest/handler.ts": ["exports", "types"]
   }
 }
