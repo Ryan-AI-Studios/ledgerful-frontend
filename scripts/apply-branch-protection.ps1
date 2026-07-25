@@ -89,7 +89,7 @@ $protectionObject = [ordered]@{
 $protectionBody = $protectionObject | ConvertTo-Json -Depth 6 -Compress:$false
 
 Write-Host "Branch: ${owner}/${repo}@${branch}"
-Write-Host "enforce_admins (from live, default true on read failure): $enforceAdmins"
+Write-Host "enforce_admins (from live GET; abort if unreadable): $enforceAdmins"
 Write-Host "Required checks ($($requiredContexts.Count)):"
 foreach ($ctx in $requiredContexts) {
   Write-Host "  - $ctx"
