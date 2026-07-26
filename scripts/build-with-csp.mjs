@@ -54,14 +54,13 @@ async function main() {
   await mkdir(paths.hashDirectory, { recursive: true });
 
   runNextBuild();
-  // Prefer .html body for ServeDir trailing-slash routes (see spa-dir-index-html.mjs).
-  const n1 = await ensureSpaDirIndexHtml(paths.outDir);
-  if (n1 > 0) console.log(`spa-dir index.html: wrote ${n1} after first build`);
+  // Hash extraction must run on the raw Next export *before* spa-dir index.html
+  // copies — those copies duplicate route bodies and change the routes map key
+  // layout even when the script-hash *union* is identical, which fails CI drift
+  // checks against a pre-copy committed manifest.
   const first = await extractManifest(paths.outDir);
 
   runNextBuild();
-  const n2 = await ensureSpaDirIndexHtml(paths.outDir);
-  if (n2 > 0) console.log(`spa-dir index.html: wrote ${n2} after second build`);
   const second = await extractManifest(paths.outDir);
 
   if (!manifestsEqual(first, second)) {
@@ -125,6 +124,14 @@ async function main() {
         `union committed=${committed.union?.length ?? 0} generated=${generated.union.length}`,
     );
     throw new Error(hint);
+  }
+
+  // After hashes are validated, materialize ServeDir-friendly index.html copies
+  // (see spa-dir-index-html.mjs). Content is byte-identical to the source .html
+  // so the committed hash union remains valid.
+  const nIndex = await ensureSpaDirIndexHtml(paths.outDir);
+  if (nIndex > 0) {
+    console.log(`spa-dir index.html: wrote ${nIndex} file(s) for trailing-slash ServeDir`);
   }
 
   // Post-build CI checks (unsafe-inline guard + coverage against committed file).
