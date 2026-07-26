@@ -125,6 +125,32 @@ export type paths = {
         readonly patch?: never;
         readonly trace?: never;
     };
+    readonly "/api/events": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        /**
+         * `GET /api/events` — authenticated SSE stream of [`DaemonEvent`].
+         * @description Wire format:
+         *     - `event: daemon`
+         *     - `data: <json DaemonEvent camelCase>`
+         *     - Keep-alive comments every [`SSE_KEEPALIVE`]
+         *
+         *     Auth: inherits `token_layer` (Bearer). Missing/invalid token → 403 before
+         *     the stream opens.
+         */
+        readonly get: operations["getEvents"];
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
     readonly "/api/hotspots": {
         readonly parameters: {
             readonly query?: never;
@@ -370,7 +396,7 @@ export type paths = {
         };
         /**
          * `GET /api/sync/status` — local M0 sync state.
-         * @description **Feature gate:** the route is **always registered** (track 0013 DoD-1).
+         * @description **Feature gate:** the route is **always registered**.
          *     When built **with** `sync`, the handler reads `SyncState` from the ledger
          *     DB and returns real sync metadata. When built **without** `sync`, it
          *     returns a `501 Not Implemented` — the schema documents the route, and the
@@ -603,6 +629,18 @@ export type components = {
             readonly version: string;
         };
         /**
+         * @description Narrow daemon status event pushed over `GET /api/events` (SSE).
+         *
+         *     Drift counts + readiness only — deliberately excludes `model_reachable`
+         *     probes and `is_demo` (constant for a daemon session). See track 0085.
+         */
+        readonly DaemonEvent: {
+            readonly graphReady: boolean;
+            readonly indexReady: boolean;
+            readonly pendingTransactions: number;
+            readonly unauditedDrift: number;
+        };
+        /**
          * @description Frontend-facing hotspot DTO decoupled from the internal `Hotspot` domain
          *     struct. The internal struct (`intelligence::Hotspot`) is coupled to the
          *     impact math module; this DTO gives the API a stable contract that the
@@ -727,7 +765,7 @@ export type components = {
          * @description RFC 7807 problem-detail object. Additional members are allowed; this shape
          *     supplies the core fields required by the track contract.
          *
-         *     Track 0013: `ToSchema` + `pub(crate)` so the OpenAPI can document error
+         *     `ToSchema` + `pub(crate)` so the OpenAPI can document error
          *     response bodies (e.g. the 501 from `/api/sync/status` when built without
          *     the `sync` feature).
          */
@@ -776,6 +814,12 @@ export type components = {
             readonly embedding_model_reachable: boolean;
             readonly graph_ready: boolean;
             readonly index_ready: boolean;
+            /**
+             * @description `true` when the repo was created by `ledgerful demo` (DEMO_MARKER
+             *     present). The dashboard renders a DEMO banner so synthetic repos
+             *     self-identify in the UI. Additive; non-demo repos serialize `false`.
+             */
+            readonly is_demo?: boolean;
             readonly pending_transactions: number;
             readonly unaudited_drift: number;
         };
@@ -783,8 +827,8 @@ export type components = {
          * @description `SyncStatusResponse` DTO — local M0 sync state.
          *
          *     Deliberately **not** gated on `#[cfg(feature = "sync")]` so the OpenAPI
-         *     schema can document the route in all builds (schema/runtime consistency,
-         *     track 0013 DoD-1). Only the sync-specific *logic* (reading `SyncState`
+         *     schema can document the route in all builds (schema/runtime consistency).
+         *     Only the sync-specific *logic* (reading `SyncState`
          *     from the ledger DB) is feature-gated; the DTO and the route are always
          *     present. When built without `sync`, the handler returns a clean
          *     `501 Not Implemented` (see `sync_status_handler`).
@@ -1007,6 +1051,33 @@ export interface operations {
                 content: {
                     readonly "application/json": readonly components["schemas"]["AffectedContract"][];
                 };
+            };
+        };
+    };
+    readonly getEvents: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description SSE stream of DaemonEvent frames (event name `daemon`) */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "text/event-stream": components["schemas"]["DaemonEvent"];
+                };
+            };
+            /** @description Missing or invalid Bearer token */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

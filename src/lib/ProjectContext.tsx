@@ -9,6 +9,7 @@ import {
   useEffect,
 } from "react";
 import { Project, activeProject as defaultProject, fetchProjects } from "./projects";
+import { SESSION_INVALID_EVENT } from "./events";
 import { DataSource, isApiError } from "./fallback";
 import { getAuthToken } from "./utils";
 import { TokenPrompt } from "@/components/auth/TokenPrompt";
@@ -46,8 +47,8 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       setHasToken(false);
       setIsLoaded(true);
     };
-    window.addEventListener("ledgerful:session-invalid", onInvalid);
-    return () => window.removeEventListener("ledgerful:session-invalid", onInvalid);
+    window.addEventListener(SESSION_INVALID_EVENT, onInvalid);
+    return () => window.removeEventListener(SESSION_INVALID_EVENT, onInvalid);
   }, []);
 
   useEffect(() => {
@@ -79,7 +80,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       .catch((err) => {
         if (cancelled) return;
         // Token reset + TokenPrompt re-show are handled by apiFetch session
-        // invalidation (ledgerful:session-invalid). Keep catch safe: set load
+        // invalidation (SESSION_INVALID_EVENT). Keep catch safe: set load
         // error state without fighting the unmount.
         if (isApiError(err) && (err.status === 401 || err.status === 403)) {
           setLoadError("Authentication failed. Please check your token.");

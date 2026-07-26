@@ -6,7 +6,7 @@
     "license": {
       "name": ""
     },
-    "version": "0.1.6"
+    "version": "0.2.0"
   },
   "paths": {
     "/api/changes": {
@@ -163,6 +163,31 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/events": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "`GET /api/events` — authenticated SSE stream of [`DaemonEvent`].",
+        "description": "Wire format:\n- `event: daemon`\n- `data: <json DaemonEvent camelCase>`\n- Keep-alive comments every [`SSE_KEEPALIVE`]\n\nAuth: inherits `token_layer` (Bearer). Missing/invalid token → 403 before\nthe stream opens.",
+        "operationId": "getEvents",
+        "responses": {
+          "200": {
+            "description": "SSE stream of DaemonEvent frames (event name `daemon`)",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/DaemonEvent"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or invalid Bearer token"
           }
         }
       }
@@ -648,7 +673,7 @@
           "sync"
         ],
         "summary": "`GET /api/sync/status` — local M0 sync state.",
-        "description": "**Feature gate:** the route is **always registered** (track 0013 DoD-1).\nWhen built **with** `sync`, the handler reads `SyncState` from the ledger\nDB and returns real sync metadata. When built **without** `sync`, it\nreturns a `501 Not Implemented` — the schema documents the route, and the\nruntime honors it: no documented-but-unserved route, no dangling handler.",
+        "description": "**Feature gate:** the route is **always registered**.\nWhen built **with** `sync`, the handler reads `SyncState` from the ledger\nDB and returns real sync metadata. When built **without** `sync`, it\nreturns a `501 Not Implemented` — the schema documents the route, and the\nruntime honors it: no documented-but-unserved route, no dangling handler.",
         "operationId": "getSyncStatus",
         "responses": {
           "200": {
@@ -1052,6 +1077,32 @@
           },
           "version": {
             "type": "string"
+          }
+        }
+      },
+      "DaemonEvent": {
+        "type": "object",
+        "description": "Narrow daemon status event pushed over `GET /api/events` (SSE).\n\nDrift counts + readiness only — deliberately excludes `model_reachable`\nprobes and `is_demo` (constant for a daemon session). See track 0085.",
+        "required": [
+          "pendingTransactions",
+          "unauditedDrift",
+          "indexReady",
+          "graphReady"
+        ],
+        "properties": {
+          "graphReady": {
+            "type": "boolean"
+          },
+          "indexReady": {
+            "type": "boolean"
+          },
+          "pendingTransactions": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unauditedDrift": {
+            "type": "integer",
+            "minimum": 0
           }
         }
       },
@@ -1528,7 +1579,7 @@
       },
       "ProblemDetail": {
         "type": "object",
-        "description": "RFC 7807 problem-detail object. Additional members are allowed; this shape\nsupplies the core fields required by the track contract.\n\nTrack 0013: `ToSchema` + `pub(crate)` so the OpenAPI can document error\nresponse bodies (e.g. the 501 from `/api/sync/status` when built without\nthe `sync` feature).",
+        "description": "RFC 7807 problem-detail object. Additional members are allowed; this shape\nsupplies the core fields required by the track contract.\n\n`ToSchema` + `pub(crate)` so the OpenAPI can document error\nresponse bodies (e.g. the 501 from `/api/sync/status` when built without\nthe `sync` feature).",
         "required": [
           "type",
           "title",
@@ -1689,6 +1740,10 @@
           "index_ready": {
             "type": "boolean"
           },
+          "is_demo": {
+            "type": "boolean",
+            "description": "`true` when the repo was created by `ledgerful demo` (DEMO_MARKER\npresent). The dashboard renders a DEMO banner so synthetic repos\nself-identify in the UI. Additive; non-demo repos serialize `false`."
+          },
           "pending_transactions": {
             "type": "integer",
             "minimum": 0
@@ -1701,7 +1756,7 @@
       },
       "SyncStatusResponse": {
         "type": "object",
-        "description": "`SyncStatusResponse` DTO — local M0 sync state.\n\nDeliberately **not** gated on `#[cfg(feature = \"sync\")]` so the OpenAPI\nschema can document the route in all builds (schema/runtime consistency,\ntrack 0013 DoD-1). Only the sync-specific *logic* (reading `SyncState`\nfrom the ledger DB) is feature-gated; the DTO and the route are always\npresent. When built without `sync`, the handler returns a clean\n`501 Not Implemented` (see `sync_status_handler`).",
+        "description": "`SyncStatusResponse` DTO — local M0 sync state.\n\nDeliberately **not** gated on `#[cfg(feature = \"sync\")]` so the OpenAPI\nschema can document the route in all builds (schema/runtime consistency).\nOnly the sync-specific *logic* (reading `SyncState`\nfrom the ledger DB) is feature-gated; the DTO and the route are always\npresent. When built without `sync`, the handler returns a clean\n`501 Not Implemented` (see `sync_status_handler`).",
         "properties": {
           "device_id": {
             "type": [
@@ -1919,6 +1974,10 @@
     {
       "name": "status",
       "description": "Daemon health status"
+    },
+    {
+      "name": "events",
+      "description": "Authenticated SSE push channel for daemon status / ledger drift"
     },
     {
       "name": "projects",

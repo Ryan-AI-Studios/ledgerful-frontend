@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { fetchSession } from "@/lib/session-data";
 import { UserSession } from "@/lib/types";
+import { SESSION_INVALID_EVENT } from "@/lib/events";
 import { resetInMemoryToken } from "@/lib/utils";
 import { DataSourceBadge } from "./DataSourceBadge";
 import { User, Settings, LogOut } from "lucide-react";
@@ -189,7 +190,7 @@ export function UserMenu() {
               setIsOpen(false);
               resetInMemoryToken();
               if (typeof window !== "undefined") {
-                window.dispatchEvent(new CustomEvent("ledgerful:session-invalid"));
+                window.dispatchEvent(new CustomEvent(SESSION_INVALID_EVENT));
               }
             }}
           >

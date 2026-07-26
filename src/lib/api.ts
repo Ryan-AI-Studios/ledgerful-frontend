@@ -1,3 +1,4 @@
+import { SESSION_INVALID_EVENT } from "./events";
 import { buildApiUrl, getAuthToken, resetInMemoryToken } from "./utils";
 
 export class ApiError extends Error {
@@ -26,8 +27,9 @@ interface ErrorBody {
  * Generation-aware 401/403 invalidation: only clear the session when the token
  * used for *this* request is still the active one. Skips stale stragglers after
  * re-auth and dedupes concurrent same-token 401 bursts to a single reset.
+ * Shared by REST (`apiFetch`) and the SSE client (`sse.ts`).
  */
-function maybeInvalidateSession(
+export function maybeInvalidateSession(
   status: number,
   tokenUsedForThisRequest: string | null,
 ): void {
@@ -36,7 +38,7 @@ function maybeInvalidateSession(
   if (getAuthToken() !== tokenUsedForThisRequest) return;
   resetInMemoryToken();
   if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent("ledgerful:session-invalid"));
+    window.dispatchEvent(new CustomEvent(SESSION_INVALID_EVENT));
   }
 }
 
