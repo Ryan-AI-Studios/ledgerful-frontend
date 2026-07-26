@@ -21,6 +21,7 @@ import {
   manifestsEqual,
   projectPaths,
 } from "./csp-lib.mjs";
+import { ensureSpaDirIndexHtml } from "./spa-dir-index-html.mjs";
 
 const paths = projectPaths();
 
@@ -53,9 +54,14 @@ async function main() {
   await mkdir(paths.hashDirectory, { recursive: true });
 
   runNextBuild();
+  // Prefer .html body for ServeDir trailing-slash routes (see spa-dir-index-html.mjs).
+  const n1 = await ensureSpaDirIndexHtml(paths.outDir);
+  if (n1 > 0) console.log(`spa-dir index.html: wrote ${n1} after first build`);
   const first = await extractManifest(paths.outDir);
 
   runNextBuild();
+  const n2 = await ensureSpaDirIndexHtml(paths.outDir);
+  if (n2 > 0) console.log(`spa-dir index.html: wrote ${n2} after second build`);
   const second = await extractManifest(paths.outDir);
 
   if (!manifestsEqual(first, second)) {

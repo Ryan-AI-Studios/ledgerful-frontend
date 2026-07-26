@@ -7,9 +7,12 @@ export function TokenPrompt({ onAuthed }: { onAuthed?: () => void }) {
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const trimmed = value.trim();
+    // Prefer FormData so paste + submit works even if controlled-state
+    // and the native input value briefly diverge (password managers, etc.).
+    const fromForm = String(new FormData(e.currentTarget).get("token") ?? "").trim();
+    const trimmed = fromForm || value.trim();
     if (!trimmed) {
       setError("Token is required.");
       return;
@@ -27,15 +30,21 @@ export function TokenPrompt({ onAuthed }: { onAuthed?: () => void }) {
           Sign in
         </h1>
         <p className="mb-4 text-sm text-[var(--color-text-secondary)]">
-          Paste the auth token printed by{" "}
+          Paste the auth token from{" "}
           <code className="rounded bg-[var(--color-surface)] px-1 py-0.5 text-xs">
-            ledgerful web start
+            .ledgerful/web-session-token
+          </code>{" "}
+          (written by{" "}
+          <code className="rounded bg-[var(--color-surface)] px-1 py-0.5 text-xs">
+            ledgerful web start --print-token=false
           </code>
-          .
+          ). The session is memory-only — a full page refresh always asks again.
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <input
             type="password"
+            name="token"
+            autoComplete="off"
             value={value}
             onChange={(e) => setValue(e.target.value)}
             placeholder="Auth token"
@@ -43,7 +52,9 @@ export function TokenPrompt({ onAuthed }: { onAuthed?: () => void }) {
             className="w-full rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)]"
           />
           {error && (
-            <p className="text-xs text-[var(--color-danger)]">{error}</p>
+            <p className="text-xs text-[var(--color-danger)]" role="alert">
+              {error}
+            </p>
           )}
           <button
             type="submit"
@@ -52,6 +63,14 @@ export function TokenPrompt({ onAuthed }: { onAuthed?: () => void }) {
             Sign in
           </button>
         </form>
+        <p className="mt-3 text-xs text-[var(--color-text-muted)]">
+          If Sign in does nothing, check the browser console for CSP errors and restart the
+          daemon with{" "}
+          <code className="rounded bg-[var(--color-surface)] px-1 py-0.5">
+            --spa-dir …/out
+          </code>
+          , then use a fresh token (it rotates on each start).
+        </p>
       </div>
     </div>
   );

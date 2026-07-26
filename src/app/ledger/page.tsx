@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { PageLayout } from "@/components/PageLayout";
 import { DataTable, Column } from "@/components/DataTable";
 import { RiskBadge } from "@/components/RiskBadge";
@@ -16,6 +17,7 @@ type LedgerState =
   | { status: "ready"; data: LedgerEntry[]; source: DataSource };
 
 export default function LedgerPage() {
+  const router = useRouter();
   const [state, setState] = useState<LedgerState>({ status: "loading" });
   const [authorFilter, setAuthorFilter] = useState("All authors");
 
@@ -184,7 +186,13 @@ export default function LedgerPage() {
             rows={state.data.filter(e => authorFilter === "All authors" || e.author === authorFilter)}
             getRowKey={(row) => row.txId}
             onRowClick={(row) => {
-              window.location.href = `/ledger/detail?txId=${encodeURIComponent(row.txId)}`;
+              // Client-side navigation keeps the in-memory auth token (0080).
+              // Do NOT use window.location — full reloads wipe the session, and
+              // under `ledgerful web --spa-dir` `/ledger/detail/` used to fall
+              // back to index.html (wrong shell) without spa-dir index.html copies.
+              router.push(
+                `/ledger/detail?txId=${encodeURIComponent(row.txId)}`,
+              );
             }}
           />
         )}
