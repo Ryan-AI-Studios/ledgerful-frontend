@@ -22,10 +22,35 @@ describe("Sidebar", () => {
   });
 
   it("does not show when isOpen is false (via CSS class)", () => {
+    // jsdom has no real matchMedia desktop hit → treated as mobile drawer closed
     render(<Sidebar isOpen={false} onClose={mockOnClose} />);
     const sidebar = screen.getByRole("complementary", { hidden: true });
     expect(sidebar).toHaveClass("-translate-x-full");
     expect(sidebar).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("does not aria-hide the sidebar on desktop even when isOpen is false", async () => {
+    vi.useRealTimers();
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn().mockImplementation((query: string) => ({
+        matches: String(query).includes("1024"),
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+        onchange: null,
+      })),
+    );
+    render(<Sidebar isOpen={false} onClose={mockOnClose} />);
+    await waitFor(() => {
+      const sidebar = screen.getByRole("complementary");
+      expect(sidebar.getAttribute("aria-hidden")).not.toBe("true");
+    });
+    vi.unstubAllGlobals();
+    vi.useFakeTimers();
   });
 
   it("calls onClose when the Escape key is pressed", () => {

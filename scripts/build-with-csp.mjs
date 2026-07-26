@@ -21,6 +21,7 @@ import {
   manifestsEqual,
   projectPaths,
 } from "./csp-lib.mjs";
+import { ensureSpaDirIndexHtml } from "./spa-dir-index-html.mjs";
 
 const paths = projectPaths();
 
@@ -53,6 +54,10 @@ async function main() {
   await mkdir(paths.hashDirectory, { recursive: true });
 
   runNextBuild();
+  // Hash extraction must run on the raw Next export *before* spa-dir index.html
+  // copies — those copies duplicate route bodies and change the routes map key
+  // layout even when the script-hash *union* is identical, which fails CI drift
+  // checks against a pre-copy committed manifest.
   const first = await extractManifest(paths.outDir);
 
   runNextBuild();
@@ -119,6 +124,14 @@ async function main() {
         `union committed=${committed.union?.length ?? 0} generated=${generated.union.length}`,
     );
     throw new Error(hint);
+  }
+
+  // After hashes are validated, materialize ServeDir-friendly index.html copies
+  // (see spa-dir-index-html.mjs). Content is byte-identical to the source .html
+  // so the committed hash union remains valid.
+  const nIndex = await ensureSpaDirIndexHtml(paths.outDir);
+  if (nIndex > 0) {
+    console.log(`spa-dir index.html: wrote ${nIndex} file(s) for trailing-slash ServeDir`);
   }
 
   // Post-build CI checks (unsafe-inline guard + coverage against committed file).
