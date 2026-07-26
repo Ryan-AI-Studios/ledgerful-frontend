@@ -137,6 +137,17 @@ export interface StatusResponse {
   completionModelReachable: boolean;
 }
 
+/**
+ * Narrow daemon status event pushed over `GET /api/events` (SSE).
+ * CamelCase wire (utoipa / openapi DaemonEvent). No model probes / is_demo.
+ */
+export interface DaemonEvent {
+  pendingTransactions: number;
+  unauditedDrift: number;
+  indexReady: boolean;
+  graphReady: boolean;
+}
+
 export interface UserSession {
   id: string;
   name: string;

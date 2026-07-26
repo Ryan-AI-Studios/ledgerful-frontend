@@ -4,6 +4,12 @@ import type ProjectsPage from "../page";
 
 vi.mock("@/lib/DaemonStatusContext", () => ({
   useDaemonStatus: () => false,
+  useDaemonStatusDetail: () => ({
+    isDaemonOffline: false,
+    transport: "idle" as const,
+    latestEvent: null,
+    sseState: null,
+  }),
   DaemonStatusProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 

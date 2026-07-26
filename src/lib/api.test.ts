@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { apiGet, apiPost, apiFetch, ApiError, isApiError } from "./api";
 import { triggerSoc2Export } from "./api/compliance";
 import { fetchDashboardData } from "./data";
+import { SESSION_INVALID_EVENT } from "./events";
 import { fetchLedgerEntry } from "./ledger-data";
 import {
   getAuthToken,
@@ -25,7 +26,7 @@ function contentTypeHeader(init: RequestInit | undefined): string | null {
 function sessionInvalidCalls(dispatchSpy: ReturnType<typeof vi.spyOn>): Event[] {
   return dispatchSpy.mock.calls
     .map((c) => c[0] as Event)
-    .filter((e) => e instanceof Event && e.type === "ledgerful:session-invalid");
+    .filter((e) => e instanceof Event && e.type === SESSION_INVALID_EVENT);
 }
 
 describe("apiRequest", () => {

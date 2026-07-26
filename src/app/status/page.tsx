@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { useProject } from "@/lib/ProjectContext";
+import { useDaemonStatusDetail } from "@/lib/DaemonStatusContext";
 import { StatusDot } from "@/components/StatusDot";
 import { DataSourceBadge } from "@/components/DataSourceBadge";
 import { fetchStatus, StatusResponse } from "@/lib/status-data";
+import { mergeStatusWithDaemonEvent } from "@/lib/health-score";
 import { DataSource } from "@/lib/fallback";
 import { cn } from "@/lib/utils";
 import {
@@ -75,10 +77,11 @@ function buildChecks(data: StatusResponse): StatusCheck[] {
 type StatusPageState =
   | { status: "loading" }
   | { status: "error"; message: string }
-  | { status: "ready"; checks: StatusCheck[]; source: DataSource };
+  | { status: "ready"; data: StatusResponse; source: DataSource };
 
 export default function StatusPage() {
   const { project } = useProject();
+  const { latestEvent } = useDaemonStatusDetail();
   const [state, setState] = useState<StatusPageState>({ status: "loading" });
 
   const load = () => {
@@ -86,7 +89,7 @@ export default function StatusPage() {
       .then((result) =>
         setState({
           status: "ready",
-          checks: buildChecks(result.data),
+          data: result.data,
           source: result.source,
         }),
       )
@@ -102,6 +105,13 @@ export default function StatusPage() {
   useEffect(() => {
     load();
   }, []);
+
+  // Overlay SSE pending/drift/readiness; model reachability stays from REST.
+  const checks = useMemo(() => {
+    if (state.status !== "ready") return null;
+    const merged = mergeStatusWithDaemonEvent(state.data, latestEvent);
+    return buildChecks(merged);
+  }, [state, latestEvent]);
 
   return (
     <PageLayout title="Status">
@@ -166,9 +176,9 @@ export default function StatusPage() {
             </div>
           )}
 
-          {state.status === "ready" && (
+          {state.status === "ready" && checks && (
             <ul className="divide-y divide-[var(--color-border-muted)]" role="list">
-              {state.checks.map((check) => {
+              {checks.map((check) => {
                 const Icon = statusIcon[check.status];
                 return (
                   <li

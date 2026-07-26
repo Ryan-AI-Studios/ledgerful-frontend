@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { UserMenu } from "../UserMenu";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { SESSION_INVALID_EVENT } from "@/lib/events";
 import {
   getAuthToken,
   resetInMemoryToken,
@@ -68,7 +69,7 @@ describe("UserMenu Component", () => {
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
 
-  it("Sign out clears token and dispatches ledgerful:session-invalid", async () => {
+  it("Sign out clears token and dispatches SESSION_INVALID_EVENT", async () => {
     setAuthToken("menu-session-token");
     const dispatchSpy = vi.spyOn(window, "dispatchEvent");
 
@@ -81,8 +82,9 @@ describe("UserMenu Component", () => {
     expect(getAuthToken()).toBeNull();
     const invalidEvents = dispatchSpy.mock.calls
       .map((c) => c[0] as Event)
-      .filter((e) => e instanceof Event && e.type === "ledgerful:session-invalid");
+      .filter((e) => e instanceof Event && e.type === SESSION_INVALID_EVENT);
     expect(invalidEvents.length).toBeGreaterThanOrEqual(1);
+    expect(SESSION_INVALID_EVENT).toBe("ledgerful:session-invalid");
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
 
     dispatchSpy.mockRestore();

@@ -6,6 +6,7 @@ import {
   setAuthToken,
 } from "@/lib/utils";
 import { fetchDashboardData } from "@/lib/data";
+import { SESSION_INVALID_EVENT } from "@/lib/events";
 
 // Use the real ProjectProvider instead of the global setup mock
 vi.mock("@/lib/ProjectContext", async (importOriginal) => {
@@ -87,7 +88,7 @@ describe("ProjectContext session lifecycle", () => {
     expect(screen.queryByText("app content")).not.toBeInTheDocument();
   });
 
-  it("returns to TokenPrompt on ledgerful:session-invalid", async () => {
+  it("returns to TokenPrompt on SESSION_INVALID_EVENT", async () => {
     setAuthToken("live-token");
     const { ProjectProvider } = await import("@/lib/ProjectContext");
 
@@ -102,7 +103,7 @@ describe("ProjectContext session lifecycle", () => {
     });
 
     act(() => {
-      window.dispatchEvent(new CustomEvent("ledgerful:session-invalid"));
+      window.dispatchEvent(new CustomEvent(SESSION_INVALID_EVENT));
     });
 
     expect(await screen.findByRole("heading", { name: "Sign in" })).toBeInTheDocument();

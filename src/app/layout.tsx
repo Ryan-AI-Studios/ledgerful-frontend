@@ -32,11 +32,19 @@ export default function RootLayout({
       className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col bg-[var(--color-surface)] text-[var(--color-text-primary)]">
-        <DaemonStatusProvider>
-          <ProjectProvider>
+        {/*
+          ProjectProvider must wrap DaemonStatusProvider: TokenPrompt replaces
+          children until a Bearer token exists. SSE hard-stops on 401/403, so
+          mounting the stream before auth permanently kills live updates for the
+          session (token is in-memory only — every full load re-auths). Nested
+          under ProjectProvider, the SSE client mounts only after sign-in and
+          remounts cleanly after session-invalid → re-auth.
+        */}
+        <ProjectProvider>
+          <DaemonStatusProvider>
             {children}
-          </ProjectProvider>
-        </DaemonStatusProvider>
+          </DaemonStatusProvider>
+        </ProjectProvider>
       </body>
     </html>
   );

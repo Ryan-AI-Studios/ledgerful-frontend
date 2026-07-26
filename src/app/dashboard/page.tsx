@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { DashboardData } from "@/lib/types";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { DashboardData, ProjectHealth } from "@/lib/types";
 import { DataSource } from "@/lib/fallback";
 import { fetchDashboardData } from "@/lib/data";
 import { useProject } from "@/lib/ProjectContext";
+import { useDaemonStatusDetail } from "@/lib/DaemonStatusContext";
+import { mergeHealthWithDaemonEvent } from "@/lib/health-score";
 import { PageLayout } from "@/components/PageLayout";
 import { HeroCard } from "@/components/HeroCard";
 import { RecentChanges } from "@/components/RecentChanges";
@@ -23,6 +25,17 @@ type DashboardState =
 
 const ONBOARDING_KEY = "ledgerful:onboarding-completed";
 const ONBOARDING_DISMISSED_KEY = "ledgerful:onboarding-dismissed";
+
+/** Baseline when showing SSE-only hero from empty state (no REST risk/delta). */
+const SSE_EMPTY_HEALTH_BASE: ProjectHealth = {
+  score: 100,
+  delta: null,
+  gateClean: true,
+  driftCount: 0,
+  pendingCount: 0,
+  currentRisk: "UNKNOWN",
+  scoreDerived: true,
+};
 
 export default function DashboardPage() {
   const { project, allProjects, isLoaded } = useProject();
@@ -48,6 +61,8 @@ function DashboardContent({
   const [state, setState] = useState<DashboardState>({ status: "loading" });
   const [explainOpen, setExplainOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const { latestEvent } = useDaemonStatusDetail();
+  const reloadedForEventRef = useRef(false);
 
   useEffect(() => {
     if (isLoaded) {
@@ -97,6 +112,43 @@ function DashboardContent({
     load();
   }, [load]);
 
+  // Empty + SSE shows non-zero ledger activity: re-fetch once (may promote to ready).
+  useEffect(() => {
+    if (state.status !== "empty") {
+      reloadedForEventRef.current = false;
+      return;
+    }
+    if (!latestEvent) return;
+    if (
+      latestEvent.pendingTransactions === 0 &&
+      latestEvent.unauditedDrift === 0
+    ) {
+      return;
+    }
+    if (reloadedForEventRef.current) return;
+    reloadedForEventRef.current = true;
+    load();
+  }, [state.status, latestEvent, load]);
+
+  const displayHealth = useMemo(() => {
+    if (state.status === "ready") {
+      return mergeHealthWithDaemonEvent(state.data.health, latestEvent);
+    }
+    return null;
+  }, [state, latestEvent]);
+
+  // When still empty after re-fetch but SSE has pending/drift, show a minimal hero.
+  const emptyEventHealth = useMemo(() => {
+    if (state.status !== "empty" || !latestEvent) return null;
+    if (
+      latestEvent.pendingTransactions === 0 &&
+      latestEvent.unauditedDrift === 0
+    ) {
+      return null;
+    }
+    return mergeHealthWithDaemonEvent(SSE_EMPTY_HEALTH_BASE, latestEvent);
+  }, [state.status, latestEvent]);
+
   return (
     <PageLayout title="Dashboard">
       <div className="flex items-center gap-3 mb-4" aria-live="polite" aria-busy={state.status === "loading"}>
@@ -113,7 +165,15 @@ function DashboardContent({
           </>
         )}
 
-        {state.status === "empty" && <EmptyState />}
+        {state.status === "empty" &&
+          (emptyEventHealth ? (
+            <HeroCard
+              health={emptyEventHealth}
+              onExplain={() => setExplainOpen(true)}
+            />
+          ) : (
+            <EmptyState />
+          ))}
 
         {state.status === "error" && (
           <div className="bg-[var(--color-surface-alt)] border border-[var(--color-danger-muted)] rounded-lg p-6">
@@ -141,10 +201,10 @@ function DashboardContent({
           </div>
         )}
 
-        {state.status === "ready" && (
+        {state.status === "ready" && displayHealth && (
           <>
             <HeroCard
-              health={state.data.health}
+              health={displayHealth}
               onExplain={() => setExplainOpen(true)}
             />
             <div className="mt-6">
