@@ -75,6 +75,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
               setHasToken(true);
               setIsLoaded(false);
               setAuthRetry((n) => n + 1);
+              setHandoffFailedMessage(null);
             }
             setBootstrapping(false);
           })
@@ -92,6 +93,8 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       setHasToken(false);
       setIsLoaded(true);
       setBootstrapping(false);
+      // Fresh paste prompt after session invalid — do not keep handoff failure copy.
+      setHandoffFailedMessage(null);
     };
     window.addEventListener(SESSION_INVALID_EVENT, onInvalid);
     return () => {
@@ -166,6 +169,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         message={handoffFailedMessage ?? undefined}
         handoffFailed={Boolean(handoffFailedMessage)}
         onAuthed={() => {
+          setHandoffFailedMessage(null);
           setHasToken(true);
           setIsLoaded(false);
           setAuthRetry((n) => n + 1);
