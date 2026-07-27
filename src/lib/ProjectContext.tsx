@@ -37,34 +37,36 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   const [allProjects, setAllProjects] = useState<Project[]>([]);
   const [projectsSource, setProjectsSource] = useState<DataSource>("live");
   const [loadError, setLoadError] = useState<string | null>(null);
-  // Seed from module token so Strict Mode remount after a completed exchange
-  // does not flash TokenPrompt for one frame.
-  const [hasToken, setHasToken] = useState(() => Boolean(getAuthToken()));
+  // Auth UI is client-only. SSR always paints a blank shell so hydration matches
+  // the first client render (no token/hash on the server). Showing TokenPrompt
+  // in static HTML while the client bootstraps `#c=` left a ghost Sign-in form
+  // on top of the live dashboard after handoff.
+  const [mounted, setMounted] = useState(false);
+  const [hasToken, setHasToken] = useState(false);
   const [isLoaded, setIsLoaded] = useState(true);
   const [authRetry, setAuthRetry] = useState(0);
-  // Seed true when `#c=` is present or exchange is in-flight so TokenPrompt
-  // does not flash during exchange / Strict Mode remount.
-  const [bootstrapping, setBootstrapping] = useState(shouldBootstrapHandoff);
+  const [bootstrapping, setBootstrapping] = useState(false);
   const [handoffFailedMessage, setHandoffFailedMessage] = useState<string | null>(
     null,
   );
 
   useEffect(() => {
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- client-only auth gate after mount
+    setMounted(true);
+
     const tokenPresent = Boolean(getAuthToken());
-    // seed external module token into state once on mount (DoD-6); getAuthToken is pure post-0080
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- DoD-6 mount seed from pure getAuthToken
     setHasToken(tokenPresent);
 
     if (tokenPresent) {
       setIsLoaded(false);
       setBootstrapping(false);
-    } else {
+    } else if (shouldBootstrapHandoff()) {
       // Shared single-flight: remounts join in-flight exchange instead of
       // abandoning a code that was already stripped from the hash.
+      setBootstrapping(true);
       const exchange = beginHandoffExchange();
       if (exchange) {
-        setBootstrapping(true);
         void exchange
           .then(() => {
             // Success path ignores cancelled: setAuthToken already ran at module
@@ -86,6 +88,8 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       } else {
         setBootstrapping(false);
       }
+    } else {
+      setBootstrapping(false);
     }
 
     const onInvalid = () => {
@@ -155,8 +159,9 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  if (bootstrapping) {
-    // Hold an empty shell so TokenPrompt does not flash during handoff exchange.
+  // Until mount, and while handoff exchange is in flight, render nothing so
+  // static HTML does not leave a permanent Sign-in form in the DOM.
+  if (!mounted || bootstrapping) {
     return null;
   }
 
