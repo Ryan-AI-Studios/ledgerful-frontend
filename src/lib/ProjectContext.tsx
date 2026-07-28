@@ -13,6 +13,11 @@ import { SESSION_INVALID_EVENT } from "./events";
 import { DataSource, isApiError } from "./fallback";
 import { getAuthToken } from "./utils";
 import { TokenPrompt } from "@/components/auth/TokenPrompt";
+import {
+  HANDOFF_FAILED_MESSAGE,
+  beginHandoffExchange,
+  shouldBootstrapHandoff,
+} from "./session-handoff";
 
 const STORAGE_KEY = "ledgerful:active-project";
 
@@ -32,23 +37,71 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   const [allProjects, setAllProjects] = useState<Project[]>([]);
   const [projectsSource, setProjectsSource] = useState<DataSource>("live");
   const [loadError, setLoadError] = useState<string | null>(null);
-  // DoD-6: start false/true; seed token + subscribe on mount (not lazy init).
+  // Auth UI is client-only. SSR always paints a blank shell so hydration matches
+  // the first client render (no token/hash on the server). Showing TokenPrompt
+  // in static HTML while the client bootstraps `#c=` left a ghost Sign-in form
+  // on top of the live dashboard after handoff.
+  const [mounted, setMounted] = useState(false);
   const [hasToken, setHasToken] = useState(false);
   const [isLoaded, setIsLoaded] = useState(true);
   const [authRetry, setAuthRetry] = useState(0);
+  const [bootstrapping, setBootstrapping] = useState(false);
+  const [handoffFailedMessage, setHandoffFailedMessage] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
+    let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- client-only auth gate after mount
+    setMounted(true);
+
     const tokenPresent = Boolean(getAuthToken());
-    // seed external module token into state once on mount (DoD-6); getAuthToken is pure post-0080
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- DoD-6 mount seed from pure getAuthToken
     setHasToken(tokenPresent);
-    if (tokenPresent) setIsLoaded(false);
+
+    if (tokenPresent) {
+      setIsLoaded(false);
+      setBootstrapping(false);
+    } else if (shouldBootstrapHandoff()) {
+      // Shared single-flight: remounts join in-flight exchange instead of
+      // abandoning a code that was already stripped from the hash.
+      setBootstrapping(true);
+      const exchange = beginHandoffExchange();
+      if (exchange) {
+        void exchange
+          .then(() => {
+            // Success path ignores cancelled: setAuthToken already ran at module
+            // level; apply React state if this mount is still active. A Strict
+            // Mode remount joins the same promise and seeds from getAuthToken().
+            if (cancelled) return;
+            if (getAuthToken()) {
+              setHasToken(true);
+              setIsLoaded(false);
+              setAuthRetry((n) => n + 1);
+            }
+            setBootstrapping(false);
+          })
+          .catch(() => {
+            if (cancelled) return;
+            setHandoffFailedMessage(HANDOFF_FAILED_MESSAGE);
+            setBootstrapping(false);
+          });
+      } else {
+        setBootstrapping(false);
+      }
+    } else {
+      setBootstrapping(false);
+    }
+
     const onInvalid = () => {
       setHasToken(false);
       setIsLoaded(true);
+      setBootstrapping(false);
     };
     window.addEventListener(SESSION_INVALID_EVENT, onInvalid);
-    return () => window.removeEventListener(SESSION_INVALID_EVENT, onInvalid);
+    return () => {
+      cancelled = true;
+      window.removeEventListener(SESSION_INVALID_EVENT, onInvalid);
+    };
   }, []);
 
   useEffect(() => {
@@ -106,9 +159,17 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Until mount, and while handoff exchange is in flight, render nothing so
+  // static HTML does not leave a permanent Sign-in form in the DOM.
+  if (!mounted || bootstrapping) {
+    return null;
+  }
+
   if (!hasToken) {
     return (
       <TokenPrompt
+        message={handoffFailedMessage ?? undefined}
+        handoffFailed={Boolean(handoffFailedMessage)}
         onAuthed={() => {
           setHasToken(true);
           setIsLoaded(false);

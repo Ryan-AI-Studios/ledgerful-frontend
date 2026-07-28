@@ -346,6 +346,35 @@ export type paths = {
         readonly patch?: never;
         readonly trace?: never;
     };
+    readonly "/api/session/exchange": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        /**
+         * `POST /api/session/exchange` — bootstrap the SPA from a single-use handoff code.
+         * @description Unauthenticated by design (no `Authorization` header): the SPA exchanges the
+         *     fragment code (`#c=…`) for the long-lived bearer token before any other API
+         *     call. Still wrapped by outer `host_validation_layer` and `rate_limit_layer`.
+         *
+         *     Semantics (track 0090):
+         *     - Absent / expired handoff → 403 (expired entries are cleared)
+         *     - Wrong code → 403, recorded on `auth_fail_limiter`, **code not burned**
+         *     - Match → consume handoff, return `{ "token": "<session>" }`
+         *
+         *     Never logs the handoff code or session token.
+         */
+        readonly post: operations["exchangeSession"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
     readonly "/api/snapshot": {
         readonly parameters: {
             readonly query?: never;
@@ -796,6 +825,26 @@ export type components = {
         readonly SecurityBoundariesResponse: {
             readonly boundaries: unknown;
             readonly meta: unknown;
+        };
+        /**
+         * @description Request body for `POST /api/session/exchange` (track 0090).
+         *
+         *     Carries the single-use handoff code from the browser fragment (`#c=…`).
+         *     Never place this code (or the returned session token) in a URL query string.
+         */
+        readonly SessionExchangeRequest: {
+            /** @description 256-bit hex handoff code minted by `ledgerful web start --open`. */
+            readonly code: string;
+        };
+        /**
+         * @description Response body for a successful `POST /api/session/exchange`.
+         *
+         *     Returns the long-lived session bearer token for in-memory SPA use.
+         *     The handoff code is consumed on success and cannot be reused.
+         */
+        readonly SessionExchangeResponse: {
+            /** @description Session bearer token (same value as `Authorization: Bearer …`). */
+            readonly token: string;
         };
         readonly SnapshotResponse: {
             readonly graph_edges: number;
@@ -1347,6 +1396,44 @@ export interface operations {
                 content: {
                     readonly "application/json": components["schemas"]["UserSession"];
                 };
+            };
+        };
+    };
+    readonly exchangeSession: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": components["schemas"]["SessionExchangeRequest"];
+            };
+        };
+        readonly responses: {
+            /** @description Handoff accepted; session bearer token returned */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["SessionExchangeResponse"];
+                };
+            };
+            /** @description Handoff absent, expired, already consumed, or mismatched */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Auth-failure rate limit exceeded */
+            readonly 429: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
