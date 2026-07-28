@@ -2,8 +2,21 @@
 
 import { useState } from "react";
 import { setAuthToken } from "@/lib/utils";
+import { HANDOFF_FAILED_MESSAGE } from "@/lib/session-handoff";
 
-export function TokenPrompt({ onAuthed }: { onAuthed?: () => void }) {
+export interface TokenPromptProps {
+  onAuthed?: () => void;
+  /** Explanatory banner when automatic `#c=` handoff failed or expired. */
+  message?: string;
+  /** When true, surfaces the failed-handoff copy path (DoD-6). */
+  handoffFailed?: boolean;
+}
+
+export function TokenPrompt({
+  onAuthed,
+  message,
+  handoffFailed = false,
+}: TokenPromptProps) {
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -23,12 +36,23 @@ export function TokenPrompt({ onAuthed }: { onAuthed?: () => void }) {
     onAuthed?.();
   };
 
+  const banner = message ?? (handoffFailed ? HANDOFF_FAILED_MESSAGE : null);
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--color-surface)]">
       <div className="w-full max-w-sm rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-6 shadow-lg">
         <h1 className="mb-2 text-lg font-semibold text-[var(--color-text-primary)]">
           Sign in
         </h1>
+        {banner && (
+          <p
+            className="mb-3 rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text-secondary)]"
+            role="status"
+            data-testid="handoff-failed-message"
+          >
+            {banner}
+          </p>
+        )}
         <p className="mb-4 text-sm text-[var(--color-text-secondary)]">
           Paste the auth token from{" "}
           <code className="rounded bg-[var(--color-surface)] px-1 py-0.5 text-xs">
@@ -36,9 +60,14 @@ export function TokenPrompt({ onAuthed }: { onAuthed?: () => void }) {
           </code>{" "}
           (written by{" "}
           <code className="rounded bg-[var(--color-surface)] px-1 py-0.5 text-xs">
-            ledgerful web start --print-token=false
+            ledgerful web start
           </code>
-          ). The session is memory-only — a full page refresh always asks again.
+          ). Use{" "}
+          <code className="rounded bg-[var(--color-surface)] px-1 py-0.5 text-xs">
+            --print-token=true
+          </code>{" "}
+          only if you need the token printed to the terminal. The session is
+          memory-only — a full page refresh always asks again.
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <input
