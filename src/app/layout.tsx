@@ -1,19 +1,23 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { ProjectProvider } from "@/lib/ProjectContext";
 import { DaemonStatusProvider } from "@/lib/DaemonStatusContext";
 
-const inter = Inter({
+// Vendored SIL OFL variable fonts under src/fonts/ — build must not hit
+// fonts.gstatic.com / fonts.googleapis.com (0177 offline embed reliability).
+const inter = localFont({
+  src: "../fonts/Inter-Variable.woff2",
   variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  display: "swap",
+  weight: "100 900",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const jetbrainsMono = localFont({
+  src: "../fonts/JetBrainsMono-Variable.woff2",
   variable: "--font-jetbrains-mono",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  display: "swap",
+  weight: "100 800",
 });
 
 export const metadata: Metadata = {
