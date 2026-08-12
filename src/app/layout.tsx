@@ -10,12 +10,14 @@ const inter = localFont({
   src: "../fonts/Inter-Variable.woff2",
   variable: "--font-inter",
   display: "swap",
+  weight: "100 900",
 });
 
 const jetbrainsMono = localFont({
   src: "../fonts/JetBrainsMono-Variable.woff2",
   variable: "--font-jetbrains-mono",
   display: "swap",
+  weight: "100 800",
 });
 
 export const metadata: Metadata = {
