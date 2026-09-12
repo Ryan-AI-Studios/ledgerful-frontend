@@ -50,6 +50,8 @@ export interface LedgerEntry {
   entryTypeRaw?: string;
   summary: string;
   reason: string;
+  reasonKind?: string;
+  riskSource?: string;
   author: string;
   timeAgo: string;
   files: { path: string; additions: number | null; deletions: number | null; isBinary?: boolean }[];

@@ -366,6 +366,9 @@ export type paths = {
          *     - Wrong code → 403, recorded on `auth_fail_limiter`, **code not burned**
          *     - Match → consume handoff, return `{ "token": "<session>" }`
          *
+         *     Track 0239: if `Origin` is **present** and not loopback → 403. Missing Origin
+         *     still succeeds (curl / some same-origin clients).
+         *
          *     Never logs the handoff code or session token.
          */
         readonly post: operations["exchangeSession"];
@@ -769,8 +772,10 @@ export type components = {
             readonly outcome_notes?: string | null;
             readonly public_key?: string | null;
             readonly reason: string;
+            readonly reason_kind?: string | null;
             readonly related_tickets?: string | null;
             readonly risk?: string | null;
+            readonly risk_source?: string | null;
             readonly signature?: string | null;
             readonly summary: string;
             readonly trace_id?: string | null;
@@ -786,6 +791,7 @@ export type components = {
         readonly LedgerSearchQuery: {
             /** Format: int64 */
             readonly days?: number | null;
+            readonly include_rollback?: boolean | null;
             readonly limit?: number | null;
             readonly offset?: number | null;
             readonly q?: string | null;
@@ -937,7 +943,7 @@ export type components = {
          *     passRatePercent, recentFailures }` sorted ascending by step command.
          *
          *     `id` is the step's stable identifier (its `command` — the verify plan step
-         *     `src/verify/plan.rs::VerificationStep` has no separate id field, and
+         *     `src/verify/plan/mod.rs::VerificationStep` has no separate id field, and
          *     `verification_results` only stores `command`). `name` is the friendly
          *     label: the step's `description` from the most recent `verification_runs.
          *     plan_json` that contains a step with that command, falling back to
@@ -1230,6 +1236,7 @@ export interface operations {
                 readonly days?: number | null;
                 readonly limit?: number | null;
                 readonly offset?: number | null;
+                readonly include_rollback?: boolean | null;
             };
             readonly header?: never;
             readonly path?: never;
@@ -1421,7 +1428,7 @@ export interface operations {
                     readonly "application/json": components["schemas"]["SessionExchangeResponse"];
                 };
             };
-            /** @description Handoff absent, expired, already consumed, or mismatched */
+            /** @description Handoff absent, expired, already consumed, mismatched, or non-loopback Origin */
             readonly 403: {
                 headers: {
                     readonly [name: string]: unknown;
