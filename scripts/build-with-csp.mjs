@@ -123,6 +123,11 @@ async function main() {
       `CSP drift: ${diffs.length} route(s) differ (sample: ${diffs.slice(0, 8).join(", ")}). ` +
         `union committed=${committed.union?.length ?? 0} generated=${generated.union.length}`,
     );
+    for (const route of diffs.slice(0, 8)) {
+      console.error(
+        `  ${route} committed=${JSON.stringify(committed.routes?.[route] ?? null)} generated=${JSON.stringify(generated.routes?.[route] ?? null)}`,
+      );
+    }
     throw new Error(hint);
   }
 
