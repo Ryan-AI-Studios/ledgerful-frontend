@@ -25,8 +25,8 @@ function contentTypeHeader(init: RequestInit | undefined): string | null {
 
 function sessionInvalidCalls(dispatchSpy: ReturnType<typeof vi.spyOn>): Event[] {
   return dispatchSpy.mock.calls
-    .map((c) => c[0] as Event)
-    .filter((e) => e instanceof Event && e.type === SESSION_INVALID_EVENT);
+    .map((c: unknown[]) => c[0] as Event)
+    .filter((e: Event) => e instanceof Event && e.type === SESSION_INVALID_EVENT);
 }
 
 describe("apiRequest", () => {

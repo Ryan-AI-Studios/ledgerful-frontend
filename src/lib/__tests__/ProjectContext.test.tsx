@@ -31,7 +31,7 @@ const fetchProjects = vi.fn(async () => ({
 }));
 
 vi.mock("@/lib/projects", () => ({
-  fetchProjects: (...args: unknown[]) => fetchProjects(...args),
+  fetchProjects: () => fetchProjects(),
   activeProject: {
     id: "ledgerful",
     name: "ledgerful",
