@@ -41,6 +41,8 @@ function toLedgerEntry(item: LedgerWire[number]): LedgerEntry {
     entryTypeRaw,
     summary: item.summary,
     reason: item.reason,
+    reasonKind: item.reason_kind ?? undefined,
+    riskSource: item.risk_source ?? undefined,
     author: item.author,
     timeAgo: formatTimeAgo(item.committed_at),
     files: [],

@@ -6,7 +6,7 @@
     "license": {
       "name": ""
     },
-    "version": "0.2.1"
+    "version": "0.2.14"
   },
   "paths": {
     "/api/changes": {
@@ -453,6 +453,17 @@
               ],
               "minimum": 0
             }
+          },
+          {
+            "name": "include_rollback",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
           }
         ],
         "responses": {
@@ -630,7 +641,7 @@
           "session"
         ],
         "summary": "`POST /api/session/exchange` — bootstrap the SPA from a single-use handoff code.",
-        "description": "Unauthenticated by design (no `Authorization` header): the SPA exchanges the\nfragment code (`#c=…`) for the long-lived bearer token before any other API\ncall. Still wrapped by outer `host_validation_layer` and `rate_limit_layer`.\n\nSemantics (track 0090):\n- Absent / expired handoff → 403 (expired entries are cleared)\n- Wrong code → 403, recorded on `auth_fail_limiter`, **code not burned**\n- Match → consume handoff, return `{ \"token\": \"<session>\" }`\n\nNever logs the handoff code or session token.",
+        "description": "Unauthenticated by design (no `Authorization` header): the SPA exchanges the\nfragment code (`#c=…`) for the long-lived bearer token before any other API\ncall. Still wrapped by outer `host_validation_layer` and `rate_limit_layer`.\n\nSemantics (track 0090):\n- Absent / expired handoff → 403 (expired entries are cleared)\n- Wrong code → 403, recorded on `auth_fail_limiter`, **code not burned**\n- Match → consume handoff, return `{ \"token\": \"<session>\" }`\n\nTrack 0239: if `Origin` is **present** and not loopback → 403. Missing Origin\nstill succeeds (curl / some same-origin clients).\n\nNever logs the handoff code or session token.",
         "operationId": "exchangeSession",
         "requestBody": {
           "content": {
@@ -654,7 +665,7 @@
             }
           },
           "403": {
-            "description": "Handoff absent, expired, already consumed, or mismatched"
+            "description": "Handoff absent, expired, already consumed, mismatched, or non-loopback Origin"
           },
           "429": {
             "description": "Auth-failure rate limit exceeded"
@@ -1513,6 +1524,12 @@
           "reason": {
             "type": "string"
           },
+          "reason_kind": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "related_tickets": {
             "type": [
               "string",
@@ -1520,6 +1537,12 @@
             ]
           },
           "risk": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "risk_source": {
             "type": [
               "string",
               "null"
@@ -1592,6 +1615,12 @@
             ],
             "format": "int64",
             "minimum": 0
+          },
+          "include_rollback": {
+            "type": [
+              "boolean",
+              "null"
+            ]
           },
           "limit": {
             "type": [
@@ -1950,7 +1979,7 @@
       },
       "VerificationStepResponse": {
         "type": "object",
-        "description": "`GET /api/verify/steps` — per-step aggregates across all history.\n\nReturns a bare JSON array of `{ id, name, lastRunAt, averageDurationMs,\npassRatePercent, recentFailures }` sorted ascending by step command.\n\n`id` is the step's stable identifier (its `command` — the verify plan step\n`src/verify/plan.rs::VerificationStep` has no separate id field, and\n`verification_results` only stores `command`). `name` is the friendly\nlabel: the step's `description` from the most recent `verification_runs.\nplan_json` that contains a step with that command, falling back to\n`command` when no plan_json is available, fails to parse, or has no\nmatching step. `plan_json` is a serialized `VerificationPlan` (see\n`verify::engine::persist_verify_report`); parse errors on any single row\nare skipped so one malformed run cannot fail the whole endpoint.\n\n`recentFailures` counts failures within the last 10 verification runs\n(by `verification_runs.id DESC`). Flagged as an assumption.",
+        "description": "`GET /api/verify/steps` — per-step aggregates across all history.\n\nReturns a bare JSON array of `{ id, name, lastRunAt, averageDurationMs,\npassRatePercent, recentFailures }` sorted ascending by step command.\n\n`id` is the step's stable identifier (its `command` — the verify plan step\n`src/verify/plan/mod.rs::VerificationStep` has no separate id field, and\n`verification_results` only stores `command`). `name` is the friendly\nlabel: the step's `description` from the most recent `verification_runs.\nplan_json` that contains a step with that command, falling back to\n`command` when no plan_json is available, fails to parse, or has no\nmatching step. `plan_json` is a serialized `VerificationPlan` (see\n`verify::engine::persist_verify_report`); parse errors on any single row\nare skipped so one malformed run cannot fail the whole endpoint.\n\n`recentFailures` counts failures within the last 10 verification runs\n(by `verification_runs.id DESC`). Flagged as an assumption.",
         "required": [
           "id",
           "name",

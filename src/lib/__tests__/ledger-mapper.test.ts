@@ -119,4 +119,159 @@ describe("ledger mapper honesty (FE-H7)", () => {
     expect(entry.verificationStatus).toBeNull();
     expect(entry.signature).toBe("sig");
   });
+it("maps reason_kind trailer and risk_source category on list", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => [
+        {
+          id: 4,
+          tx_id: "tx-d",
+          category: "FEATURE",
+          entry_type: "COMMITTED",
+          entity: "e",
+          entity_normalized: "e",
+          change_type: "edit",
+          summary: "s",
+          reason: "Co-authored-by: Cursor <cursoragent@cursor.com>",
+          reason_kind: "trailer",
+          is_breaking: false,
+          committed_at: "2026-01-01T00:00:00Z",
+          origin: "local",
+          author: "d",
+          risk: "HIGH",
+          risk_source: "category",
+        },
+      ],
+    } as Response);
+
+    const entries = await fetchLedger();
+    expect(entries[0].reasonKind).toBe("trailer");
+    expect(entries[0].riskSource).toBe("category");
+  });
+
+  it("omits reasonKind and riskSource when wire keys are missing or null", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => [
+        {
+          id: 5,
+          tx_id: "tx-e",
+          category: "FEATURE",
+          entry_type: "COMMITTED",
+          entity: "e",
+          entity_normalized: "e",
+          change_type: "edit",
+          summary: "s",
+          reason: "body why",
+          reason_kind: null,
+          is_breaking: false,
+          committed_at: "2026-01-01T00:00:00Z",
+          origin: "local",
+          author: "e",
+          risk: "HIGH",
+          risk_source: null,
+        },
+      ],
+    } as Response);
+
+    const entries = await fetchLedger();
+    expect(entries[0].reasonKind).toBeUndefined();
+    expect(entries[0].riskSource).toBeUndefined();
+  });
+
+  it("omits riskSource when risk is null", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => [
+        {
+          id: 6,
+          tx_id: "tx-f",
+          category: "FEATURE",
+          entry_type: "COMMITTED",
+          entity: "e",
+          entity_normalized: "e",
+          change_type: "edit",
+          summary: "s",
+          reason: "r",
+          is_breaking: false,
+          committed_at: "2026-01-01T00:00:00Z",
+          origin: "local",
+          author: "f",
+          risk: null,
+        },
+      ],
+    } as Response);
+
+    const entries = await fetchLedger();
+    expect(entries[0].risk).toBe("UNKNOWN");
+    expect(entries[0].riskSource).toBeUndefined();
+    expect(entries[0].reasonKind).toBeUndefined();
+  });
+
+  it("maps reasonKind and riskSource on detail via toLedgerEntry", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        id: 7,
+        tx_id: "tx-g",
+        category: "FEATURE",
+        entry_type: "COMMITTED",
+        entity: "e",
+        entity_normalized: "e",
+        change_type: "edit",
+        summary: "s",
+        reason: "Co-authored-by: Cursor <cursoragent@cursor.com>",
+        reason_kind: "trailer",
+        is_breaking: false,
+        committed_at: "2026-01-01T00:00:00Z",
+        origin: "local",
+        author: "g",
+        risk: "HIGH",
+        risk_source: "category",
+        files: [{ path: "a.ts", additions: 1, deletions: 0 }],
+        hotspots_crossed: 0,
+        tests_run: 0,
+        flakes: 0,
+      }),
+    } as Response);
+
+    const entry = await fetchLedgerEntry("tx-g");
+    expect(entry.reasonKind).toBe("trailer");
+    expect(entry.riskSource).toBe("category");
+    expect(entry.files).toHaveLength(1);
+  });
+
+  it("omits reasonKind and riskSource on detail when wire omits them", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        id: 8,
+        tx_id: "tx-h",
+        category: "DOCS",
+        entry_type: "COMMITTED",
+        entity: "e",
+        entity_normalized: "e",
+        change_type: "edit",
+        summary: "s",
+        reason: "body why",
+        is_breaking: false,
+        committed_at: "2026-01-01T00:00:00Z",
+        origin: "local",
+        author: "h",
+        risk: "TRIVIAL",
+        files: [],
+      }),
+    } as Response);
+
+    const entry = await fetchLedgerEntry("tx-h");
+    expect(entry.reasonKind).toBeUndefined();
+    expect(entry.riskSource).toBeUndefined();
+  });
 });
+
+
