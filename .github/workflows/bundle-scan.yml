@@ -13,9 +13,13 @@ on:
     - cron: "0 6 * * 1"
 
 jobs:
-  bundle-scan:
-    name: security/bundle-scan-manual
-    runs-on: ubuntu-latest
+  # Committed CSP hashes are produced by Windows `next build` (ci.yml).
+  # Ubuntu Next emits different inline-script bytes, so a Linux rebuild
+  # fails the CSP drift gate before gitleaks ever runs. Match CI: Windows
+  # build, then scan the artifact on Ubuntu.
+  build:
+    name: build
+    runs-on: windows-latest
     permissions:
       contents: read
     steps:
@@ -35,6 +39,30 @@ jobs:
 
       - name: Build Next.js app
         run: npm run build
+
+      - name: Upload build output for bundle scan
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: next-bundle
+          path: .next/
+          retention-days: 1
+          include-hidden-files: true
+
+  bundle-scan:
+    name: security/bundle-scan-manual
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Download build output
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: next-bundle
+          path: .next/
 
       # We run the standalone gitleaks binary (MIT-licensed) instead of
       # gitleaks/gitleaks-action@v2, which carries a commercial EULA and may

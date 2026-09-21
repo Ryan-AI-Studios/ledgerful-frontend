@@ -38,6 +38,9 @@ function runNextBuild() {
 
 function shouldUpdateManifest() {
   if (process.env.UPDATE_CSP_MANIFEST !== "1") return false;
+  // CSP_REFRESH=1 is the Linux docker/CI-parity path: Next must see CI=true
+  // (GHA emission) while still being allowed to write the committed file.
+  if (process.env.CSP_REFRESH === "1") return true;
   if (
     process.env.CI === "true" ||
     process.env.VERCEL === "1" ||

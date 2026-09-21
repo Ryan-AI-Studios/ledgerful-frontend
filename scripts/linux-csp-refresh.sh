@@ -24,8 +24,10 @@ restore() {
 trap restore EXIT
 
 export UPDATE_CSP_MANIFEST=1
+export CSP_REFRESH=1
 export NEXT_TELEMETRY_DISABLED=1
 # Match GitHub Actions: Next.js changes some emission when CI=true.
+# CSP_REFRESH lets build-with-csp.mjs write the committed file anyway.
 export CI=true
 unset VERCEL || true
 
