@@ -82,3 +82,7 @@ docs/product.md
 .env.local
 .env.*.local
 .env.keys
+
+# Agent instruction symlink (.claude -> .agents). No trailing slash: a symlink
+# is not a directory, so `.claude/` does not match it.
+.claude
