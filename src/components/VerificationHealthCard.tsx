@@ -8,6 +8,9 @@ interface VerificationHealthCardProps {
   health: VerificationHealth;
 }
 
+const ASSURANCE_DISCLAIMER =
+  "This status does not establish test-case execution or full-suite coverage.";
+
 type DegradedKind = "no_runs" | "stale" | "other";
 
 function degradedKind(health: VerificationHealth): DegradedKind {
@@ -29,7 +32,7 @@ function describeHealth(health: VerificationHealth): {
       return {
         title: "Verification healthy",
         summary:
-          "The latest recorded verification run passed and is recent enough to trust.",
+          "The latest recorded verification run passed and is within the freshness window.",
         detail:
           "This is only about verification history (`ledgerful verify`), not overall project status in the sidebar.",
       };
@@ -109,6 +112,7 @@ export function VerificationHealthCard({ health }: VerificationHealthCardProps) 
           {copy.summary}
         </p>
         <p className="mt-2 text-sm text-[var(--color-text-muted)]">{copy.detail}</p>
+        <p className="mt-2 text-sm text-[var(--color-text-muted)]">{ASSURANCE_DISCLAIMER}</p>
         {copy.action && (
           <p className="mt-3 text-sm text-[var(--color-text-primary)]">
             <span className="text-[var(--color-text-muted)]">Next step: </span>
