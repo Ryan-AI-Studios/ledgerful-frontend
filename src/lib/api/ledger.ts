@@ -1,5 +1,5 @@
 import { apiGet } from "../api";
-import { LedgerEntry, LedgerStatus } from "@/lib/types";
+import { BoundSnapshot, BoundVerificationRun, LedgerEntry, LedgerStatus } from "@/lib/types";
 import { normalizeRiskLevel } from "@/lib/risk";
 import type { ExtractResponse } from "./contract-types";
 
@@ -57,6 +57,34 @@ function toLedgerEntry(item: LedgerWire[number]): LedgerEntry {
   };
 }
 
+function mapBoundRuns(
+  runs: LedgerDetailWire["bound_runs"] | undefined,
+): BoundVerificationRun[] {
+  return (runs ?? []).map((run) => ({
+    runId: run.run_id,
+    runTimestamp: run.run_timestamp,
+    overallPass: run.overall_pass,
+    stale: run.stale,
+    partial: run.partial ?? null,
+    commands: run.commands.map((command) => ({
+      command: command.command,
+      exitCode: command.exit_code,
+      durationMs: command.duration_ms,
+    })),
+  }));
+}
+
+function mapBoundSnapshot(
+  snapshot: LedgerDetailWire["bound_snapshot"] | undefined,
+): BoundSnapshot | null {
+  if (!snapshot) return null;
+  return {
+    runTimestamp: snapshot.run_timestamp,
+    head: snapshot.head ?? null,
+    headStatus: snapshot.head_status,
+  };
+}
+
 function toLedgerEntryDetail(item: LedgerDetailWire): LedgerEntry {
   return {
     ...toLedgerEntry(item),
@@ -70,6 +98,8 @@ function toLedgerEntryDetail(item: LedgerDetailWire): LedgerEntry {
     hotspotsCrossed: item.hotspots_crossed ?? null,
     testsRun: item.tests_run ?? null,
     flakes: item.flakes ?? null,
+    boundRuns: mapBoundRuns(item.bound_runs),
+    boundSnapshot: mapBoundSnapshot(item.bound_snapshot),
   };
 }
 

@@ -11,6 +11,9 @@ interface VerificationHealthCardProps {
 const ASSURANCE_DISCLAIMER =
   "This status does not establish test-case execution or full-suite coverage.";
 
+const CHEAP_COMMAND_RECORDED =
+  "Cheap command recorded: git --version. Not a project-suite pass.";
+
 type DegradedKind = "no_runs" | "stale" | "other";
 
 function degradedKind(health: VerificationHealth): DegradedKind {
@@ -28,14 +31,17 @@ function describeHealth(health: VerificationHealth): {
   action?: string;
 } {
   switch (health.status) {
-    case "HEALTHY":
+    case "HEALTHY": {
+      const cheap = health.message?.trim() === CHEAP_COMMAND_RECORDED;
       return {
-        title: "Verification healthy",
-        summary:
-          "The latest recorded verification run passed and is within the freshness window.",
+        title: cheap ? "Cheap command recorded" : "Verification healthy",
+        summary: cheap
+          ? CHEAP_COMMAND_RECORDED
+          : "The latest recorded verification run passed and is within the freshness window.",
         detail:
           "This is only about verification history (`ledgerful verify`), not overall project status in the sidebar.",
       };
+    }
     case "FAILING":
       return {
         title: "Verification failing",

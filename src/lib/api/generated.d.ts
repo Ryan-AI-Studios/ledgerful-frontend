@@ -547,6 +547,36 @@ export type components = {
             readonly spec_file: string;
             readonly summary: string;
         };
+        /** @description History head recorded for the newest bound run. Not the current git HEAD. */
+        readonly BoundSnapshot: {
+            readonly head?: string | null;
+            /** @description `recorded` when `head` is a non-empty string. `unknown` otherwise. */
+            readonly head_status: string;
+            readonly run_timestamp: string;
+        };
+        /** @description One command row stored for a bound verification run. */
+        readonly BoundVerificationCommand: {
+            readonly command: string;
+            /** Format: int64 */
+            readonly duration_ms: number;
+            /** Format: int64 */
+            readonly exit_code: number;
+        };
+        /** @description One `verification_runs` row bound by `tx_id`. No `schemaVersion`. */
+        readonly BoundVerificationRun: {
+            readonly commands: readonly components["schemas"]["BoundVerificationCommand"][];
+            readonly overall_pass: boolean;
+            /**
+             * @description `true` when the parsed plan is longer than its result list.
+             *     `false` when `plan_json` is null or the step count equals the result count.
+             *     `null` when `plan_json` does not parse, or the parsed plan has fewer steps than results.
+             */
+            readonly partial?: boolean | null;
+            /** Format: int64 */
+            readonly run_id: number;
+            readonly run_timestamp: string;
+            readonly stale: boolean;
+        };
         readonly ChangeResponse: {
             readonly additions: number;
             readonly author: string;
@@ -752,6 +782,12 @@ export type components = {
         };
         /** @description Detail response for a single ledger transaction, including enriched fields. */
         readonly LedgerDetailResponse: components["schemas"]["LedgerEntryResponse"] & {
+            /**
+             * @description Bound `verification_runs` for this transaction. Empty means the query
+             *     succeeded and no run is bound. It does not mean the ledger fields were cleared.
+             */
+            readonly bound_runs: readonly components["schemas"]["BoundVerificationRun"][];
+            readonly bound_snapshot?: components["schemas"]["BoundSnapshot"] | null;
             readonly files: readonly components["schemas"]["ChangedFileResponse"][];
             readonly flakes: number;
             readonly hotspots_crossed: number;
@@ -909,6 +945,12 @@ export type components = {
         };
         readonly TrendsResponse: {
             readonly data: readonly components["schemas"]["TrendPointDto"][];
+            /**
+             * @description Newest stored day when `data` is empty and `project_trend_days` has a
+             *     day outside the requested window. Omitted when the table is empty or
+             *     `data` is non-empty.
+             */
+            readonly lastDay?: string | null;
         };
         readonly UserSession: {
             readonly email: string;
@@ -929,7 +971,9 @@ export type components = {
          *       with `message = "Last verification run is stale (older than 7 days)"`.
          *       (A stale failing run stays `FAILING` — failure takes precedence over
          *       staleness.)
-         *     - Otherwise → `HEALTHY`.
+         *     - Otherwise → `HEALTHY`. A passing, fresh run whose commands are all
+         *       `git --version` stays `HEALTHY` and sets `message` to the cheap-command
+         *       sentence. Any other fresh pass omits `message`.
          */
         readonly VerificationHealthResponse: {
             readonly lastRunAt?: string | null;

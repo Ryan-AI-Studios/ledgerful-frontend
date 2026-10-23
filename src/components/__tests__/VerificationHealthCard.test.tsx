@@ -68,6 +68,27 @@ describe("VerificationHealthCard", () => {
     expectDisclaimerOnce();
   });
 
+  it("titles a HEALTHY cheap command without calling it a suite pass", () => {
+    const summary =
+      "Cheap command recorded: git --version. Not a project-suite pass.";
+    render(
+      <VerificationHealthCard
+        health={{
+          status: "HEALTHY",
+          lastRunAt: "2026-10-23T12:00:00Z",
+          message: summary,
+        }}
+      />,
+    );
+
+    expect(screen.getByText("Cheap command recorded")).toBeInTheDocument();
+    expect(screen.getByText(summary)).toBeInTheDocument();
+    expect(screen.queryByText("Verification healthy")).not.toBeInTheDocument();
+    expect(screen.queryByText(/recent enough to trust/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/not overall project status/i)).toBeInTheDocument();
+    expectDisclaimerOnce();
+  });
+
   it("explains FAILING without claiming test-case coverage", () => {
     render(
       <VerificationHealthCard

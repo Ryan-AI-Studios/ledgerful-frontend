@@ -44,6 +44,45 @@ export function fetchLedger(): Promise<LedgerEntry[]> {
   ]);
 }
 
+const GIT_VERSION_DETAIL: LedgerEntry = {
+  txId: "tx-001",
+  category: "REFACTOR",
+  status: "COMMITTED",
+  summary: "Refactored token validation",
+  reason: "Consolidate session handling",
+  author: "alice",
+  timeAgo: "2h ago",
+  files: [
+    { path: "src/lib/auth.ts", additions: 45, deletions: 12 },
+    { path: "src/lib/utils.ts", additions: 8, deletions: 4 },
+  ],
+  hotspotsCrossed: 2,
+  testsRun: 1,
+  flakes: 0,
+  risk: "HIGH",
+  signature: "sig-001",
+  publicKey: "pk-001",
+  verificationStatus: null,
+  prNumber: 142,
+  prStatus: "Merged",
+  boundRuns: [
+    {
+      runId: 1,
+      runTimestamp: "2026-10-23T12:00:00Z",
+      overallPass: true,
+      stale: false,
+      partial: false,
+      commands: [{ command: "git --version", exitCode: 0, durationMs: 12 }],
+    },
+  ],
+  boundSnapshot: {
+    runTimestamp: "2026-10-23T12:00:00Z",
+    head: null,
+    headStatus: "unknown",
+  },
+};
+
 export function fetchLedgerEntry(txId: string): Promise<LedgerEntry | undefined> {
+  if (txId === GIT_VERSION_DETAIL.txId) return Promise.resolve(GIT_VERSION_DETAIL);
   return fetchLedger().then((entries) => entries.find((e) => e.txId === txId));
 }
