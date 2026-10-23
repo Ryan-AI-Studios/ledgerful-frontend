@@ -29,6 +29,7 @@ paths = [
   '''\.next\/cache/\.previewinfo''',
   '''\.next\/cache/\.rscinfo''',
   '''\.next\/server/server-reference-manifest\.json''',
+  '''\.next\/server/preview-props\.json''',
 ]
 
 # Track 0077: intentionally public bar-raising telemetry token (open CLI binary;
