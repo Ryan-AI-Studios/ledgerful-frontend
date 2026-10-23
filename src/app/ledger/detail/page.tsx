@@ -35,12 +35,18 @@ function LedgerDetailContent({ txId }: { txId: string }) {
 
   const load = useCallback(() => {
     if (!txId) {
-      setTimeout(() => setState({ status: "error", message: "No transaction ID provided." }), 0);
-      return;
+      const timer = setTimeout(
+        () => setState({ status: "error", message: "No transaction ID provided." }),
+        0,
+      );
+      return () => clearTimeout(timer);
     }
-    setTimeout(() => setState({ status: "loading" }), 0);
+    const timer = setTimeout(() => setState({ status: "loading" }), 0);
+    let active = true;
     fetchLedgerEntry(txId)
       .then((result) => {
+        clearTimeout(timer);
+        if (!active) return;
         if (!result.data) {
           setState({ status: "error", message: "Transaction not found." });
           return;
@@ -48,15 +54,21 @@ function LedgerDetailContent({ txId }: { txId: string }) {
         setState({ status: "ready", entry: result.data, source: result.source });
       })
       .catch(() => {
+        clearTimeout(timer);
+        if (!active) return;
         setState({
           status: "error",
           message: "Could not load transaction. The Ledgerful daemon may not be running.",
         });
       });
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
   }, [txId]);
 
   useEffect(() => {
-    load();
+    return load();
   }, [load]);
 
   if (state.status === "loading") {
@@ -137,20 +149,15 @@ function LedgerDetailContent({ txId }: { txId: string }) {
             label="Hotspots crossed"
             value={entry.hotspotsCrossed == null ? "—" : entry.hotspotsCrossed.toString()}
           />
-          <Metric
-            label="Tests"
-            value={
-              entry.testsRun == null && entry.flakes == null
-                ? "—"
-                : `${entry.testsRun ?? "—"} run · ${entry.flakes ?? "—"} flakes`
-            }
-          />
+          <Metric label="Commands" value={commandResultsValue(entry.testsRun, entry.flakes)} />
           <Metric label="Files changed" value={entry.files.length.toString()} />
           <Metric
             label="Verification"
             value={entry.verificationStatus?.trim() ? entry.verificationStatus : "—"}
           />
         </div>
+
+        <BoundCommands entry={entry} />
 
         <div className="border-t border-[var(--color-border-muted)] pt-6">
           <h3 className="text-[0.6875rem] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-3">
@@ -204,6 +211,71 @@ function LedgerDetailContent({ txId }: { txId: string }) {
         </div>
       </div>
     </PageLayout>
+  );
+}
+
+function commandResultsValue(testsRun: number | null, flakes: number | null): string {
+  if (testsRun == null && flakes == null) return "—";
+  const results = testsRun == null ? "—" : String(testsRun);
+  const failed = flakes == null ? "—" : String(flakes);
+  return `${results} command results · ${failed} failed runs`;
+}
+
+function BoundCommands({ entry }: { entry: LedgerEntry }) {
+  const runs = entry.boundRuns ?? [];
+  return (
+    <div className="border-t border-[var(--color-border-muted)] pt-6 mb-6">
+      <h3 className="text-[0.6875rem] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-3">
+        Bound verification commands
+      </h3>
+      {runs.length === 0 ? (
+        <p className="text-sm text-[var(--color-text-secondary)]">
+          No bound verification commands for this transaction.
+        </p>
+      ) : (
+        <ul className="divide-y divide-[var(--color-border-muted)] border border-[var(--color-border-muted)] rounded-md overflow-hidden">
+          {runs.flatMap((run) => {
+            const facts = () => (
+              <>
+                <span className="text-[var(--color-text-muted)]"> · {run.runTimestamp}</span>
+                <span> · {run.overallPass ? "pass" : "fail"}</span>
+                <span> · {run.stale ? "stale" : "not stale"}</span>
+                {run.partial === null ? <span> · partial unknown</span> : null}
+                {run.partial === true ? <span> · partial</span> : null}
+              </>
+            );
+            if (run.commands.length === 0) {
+              return [
+                <li
+                  key={`${run.runId}-empty`}
+                  className="px-4 py-2 bg-[var(--color-surface)] text-sm text-[var(--color-text-primary)]"
+                >
+                  <span className="font-mono">—</span>
+                  {facts()}
+                </li>,
+              ];
+            }
+            return run.commands.map((command, index) => (
+              <li
+                key={`${run.runId}-${index}`}
+                className="px-4 py-2 bg-[var(--color-surface)] text-sm text-[var(--color-text-primary)]"
+              >
+                <span className="font-mono">{command.command}</span>
+                <span className="text-[var(--color-text-muted)]"> · exit {command.exitCode}</span>
+                {facts()}
+              </li>
+            ));
+          })}
+        </ul>
+      )}
+      {entry.boundSnapshot ? (
+        <p className="mt-3 text-sm text-[var(--color-text-secondary)]">
+          {entry.boundSnapshot.headStatus === "recorded" && entry.boundSnapshot.head
+            ? entry.boundSnapshot.head
+            : "snapshot unknown"}
+        </p>
+      ) : null}
+    </div>
   );
 }
 

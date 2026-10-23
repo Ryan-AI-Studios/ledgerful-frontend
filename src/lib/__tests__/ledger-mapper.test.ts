@@ -51,6 +51,8 @@ describe("ledger mapper honesty (FE-H7)", () => {
     expect(entries[0].publicKey).toBeUndefined();
     expect(entries[0].verificationStatus).toBe("VALID");
     expect(entries[0].status).toBe("COMMITTED");
+    expect(entries[0].boundRuns).toBeUndefined();
+    expect(entries[0].boundSnapshot).toBeUndefined();
   });
 
   it("maps unknown entry_type to OTHER with raw preserved", async () => {
@@ -118,6 +120,71 @@ describe("ledger mapper honesty (FE-H7)", () => {
     expect(entry.hotspotsCrossed).toBe(2);
     expect(entry.verificationStatus).toBeNull();
     expect(entry.signature).toBe("sig");
+    expect(entry.boundRuns).toEqual([]);
+    expect(entry.boundSnapshot).toBeNull();
+  });
+
+  it("maps bound git --version detail without copying it onto list fields", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        id: 8,
+        tx_id: "tx-cheap",
+        category: "FEATURE",
+        entry_type: "COMMITTED",
+        entity: "e",
+        entity_normalized: "e",
+        change_type: "edit",
+        summary: "s",
+        reason: "r",
+        is_breaking: false,
+        committed_at: "2026-10-23T12:00:00Z",
+        origin: "local",
+        author: "c",
+        risk: "LOW",
+        verification_status: null,
+        files: [],
+        hotspots_crossed: 0,
+        tests_run: 1,
+        flakes: 0,
+        bound_runs: [
+          {
+            run_id: 4,
+            run_timestamp: "2026-10-23T12:00:00Z",
+            overall_pass: true,
+            stale: false,
+            partial: false,
+            commands: [{ command: "git --version", exit_code: 0, duration_ms: 12 }],
+          },
+        ],
+        bound_snapshot: {
+          run_timestamp: "2026-10-23T12:00:00Z",
+          head: null,
+          head_status: "unknown",
+        },
+      }),
+    } as Response);
+
+    const entry = await fetchLedgerEntry("tx-cheap");
+    expect(entry.testsRun).toBe(1);
+    expect(entry.flakes).toBe(0);
+    expect(entry.verificationStatus).toBeNull();
+    expect(entry.boundRuns).toEqual([
+      {
+        runId: 4,
+        runTimestamp: "2026-10-23T12:00:00Z",
+        overallPass: true,
+        stale: false,
+        partial: false,
+        commands: [{ command: "git --version", exitCode: 0, durationMs: 12 }],
+      },
+    ]);
+    expect(entry.boundSnapshot).toEqual({
+      runTimestamp: "2026-10-23T12:00:00Z",
+      head: null,
+      headStatus: "unknown",
+    });
   });
 it("maps reason_kind trailer and risk_source category on list", async () => {
     mockFetch.mockResolvedValueOnce({

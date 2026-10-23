@@ -42,6 +42,28 @@ export interface DashboardData {
 /** Exhaustive status: unknown wire entry_type maps to OTHER (never forced COMMITTED). */
 export type LedgerStatus = "COMMITTED" | "PENDING" | "ROLLED_BACK" | "OTHER";
 
+export interface BoundVerificationCommand {
+  command: string;
+  exitCode: number;
+  durationMs: number;
+}
+
+export interface BoundVerificationRun {
+  runId: number;
+  runTimestamp: string;
+  overallPass: boolean;
+  stale: boolean;
+  /** False when the plan is null or the step count matches. Null when unknown. */
+  partial: boolean | null;
+  commands: BoundVerificationCommand[];
+}
+
+export interface BoundSnapshot {
+  runTimestamp: string;
+  head: string | null;
+  headStatus: string;
+}
+
 export interface LedgerEntry {
   txId: string;
   category: string;
@@ -64,6 +86,10 @@ export interface LedgerEntry {
   publicKey?: string;
   /** Real verification_status from the engine, not derived from testsRun. */
   verificationStatus?: string | null;
+  /** Detail only. Absent on list rows. Empty array stays empty. */
+  boundRuns?: BoundVerificationRun[];
+  /** Detail only. Null when the detail has no bound runs. Absent on list rows. */
+  boundSnapshot?: BoundSnapshot | null;
   prNumber?: number;
   prStatus?: "Open" | "Merged" | "Closed";
 }
