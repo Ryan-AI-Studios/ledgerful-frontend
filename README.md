@@ -38,6 +38,25 @@ Get-ChildItem *.env*.__cspbak, .env*.__cspbak -ErrorAction SilentlyContinue | Fo
 
 Then commit `.csp/csp-script-hashes.json` (and re-vendor `ledgerful/src/commands/web/server/csp_script_hashes.json` when shipping with the engine). `UPDATE_CSP_MANIFEST=1` is refused when `CI` or `VERCEL` is set. Run `npm run csp:check` to verify coverage and that `script-src` never includes `'unsafe-inline'`.
 
+## Change evidence
+
+Open **View evidence** on a committed row in **Changes** to see the exact Git pair served by your local daemon. Choose a compatible first-parent baseline to see differences in resolved call counts. **Verification** shows the recorded selection and command outcomes for the revision when available. Demo data and older daemons retain the ordinary Changes list.
+
+The vendored [OpenAPI contract](src/lib/api/contract/openapi.json) comes from the [0608 engine merge](https://github.com/Ryan-AI-Studios/Ledgerful/blob/af430c81be0dbef01b87f11b0c3bd0968560df4f/docs/api/openapi.json). Its SHA-256 is `a9bc20e23d32425ded4c85eae28c3340a9dc7b2fef8b155cba4ceb8131c582af`. The engine documents [baseline preparation and capture](https://github.com/Ryan-AI-Studios/Ledgerful/blob/af430c81be0dbef01b87f11b0c3bd0968560df4f/docs/change-evidence.md). Refresh `src/lib/api/generated.d.ts` from the vendored bytes with `npm run contract:generate`.
+
+### Paired browser verification
+
+Use an isolated two-commit fixture and the ordinary `out/` served by its daemon on `http://127.0.0.1:52001`. Prepare and attest a first-parent baseline, then capture verification at the child revision. Use the fixture’s private token file and an independent expected JSON receipt with the full revisions, baseline digest, measured Git paths and edges, and command attempts, scopes, plan positions, and exit results. The harness covers direct and client-side navigation, reload and sign-in, narrow layout, and the live `script-src` header.
+
+```powershell
+$env:LEDGERFUL_E2E_MODE = "current"
+$env:LEDGERFUL_E2E_TOKEN_FILE = "<absolute path to the fixture token file>"
+$env:LEDGERFUL_E2E_EXPECTED = "<absolute path to the sanitized expected JSON receipt>"
+npm run test:e2e
+```
+
+Use `legacy` with a separate older-daemon fixture and its own token, `incomparable` with a stale-index fixture and the matching pair and baseline receipt, or `embedded` with a matching engine build and the current fixture receipt. The harness stores post-authentication screenshots and CSP and request receipts under `output/paired-evidence/`. It keeps request credentials and browser traces out of those artifacts.
+
 ## Community
 
 - **Questions and setup help:** [GitHub Discussions](https://github.com/Ryan-AI-Studios/ledgerful-frontend/discussions)

@@ -5,6 +5,22 @@
  */
 
 export type paths = {
+    readonly "/api/change-evidence": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get: operations["getChangeEvidence"];
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
     readonly "/api/changes": {
         readonly parameters: {
             readonly query?: never;
@@ -547,6 +563,50 @@ export type components = {
             readonly spec_file: string;
             readonly summary: string;
         };
+        /** @enum {string} */
+        readonly AgeReason: "attempt-time-invalid" | "attempt-time-future";
+        /** @enum {string} */
+        readonly AgeStatus: "current" | "stale" | "unknown";
+        /** @enum {string} */
+        readonly AttemptKind: "executed" | "dry-run" | "refused";
+        /** @enum {string} */
+        readonly AttemptStatus: "recorded" | "partial" | "planned" | "refused" | "run-record-lost";
+        readonly BaselineCandidate: {
+            readonly base: string;
+            readonly name: string;
+            /** Format: date-time */
+            readonly observedAt: string;
+            readonly payloadDigest: string;
+        };
+        readonly BaselineCandidates: {
+            readonly complete: boolean;
+            readonly items: readonly components["schemas"]["BaselineCandidate"][];
+            /** @enum {string} */
+            readonly status: "ready";
+        } | {
+            readonly reasonCode: components["schemas"]["CandidateReason"];
+            /** @enum {string} */
+            readonly status: "unavailable";
+        };
+        /** @description Identity bound to a baseline payload. */
+        readonly BaselineIdentity: {
+            /** Format: int32 */
+            readonly baselineSchema: number;
+            readonly edgeSources: readonly string[];
+            readonly indexHeadHash?: string | null;
+            readonly inputCompleteness: components["schemas"]["InputCompleteness"];
+            readonly inputDigest: string;
+            readonly ledgerfulVersion: string;
+            readonly parserVersion: string;
+            readonly payloadKind: string;
+            readonly scope: components["schemas"]["BaselineScope"];
+        };
+        /** @description Scope of a baseline. v1 writes only `{"kind":"repo"}`. */
+        readonly BaselineScope: {
+            readonly kind: string;
+        };
+        /** @enum {string} */
+        readonly BaselineVerdict: "baseline-missing" | "baseline-unattested" | "baseline-wrong-parent" | "baseline-digest-mismatch" | "baseline-incompatible" | "not-prepared" | "live-proof-unavailable" | "historical-head" | "head-moved" | "dirty-worktree" | "index-stale" | "config-changed" | "proof-stale" | "proof-time-invalid" | "proof-time-future";
         /** @description History head recorded for the newest bound run. Not the current git HEAD. */
         readonly BoundSnapshot: {
             readonly head?: string | null;
@@ -576,6 +636,16 @@ export type components = {
             readonly run_id: number;
             readonly run_timestamp: string;
             readonly stale: boolean;
+        };
+        /** @enum {string} */
+        readonly CandidateReason: "candidates-unavailable";
+        readonly ChangeEvidenceCapability: {
+            readonly displayName?: string | null;
+            readonly reasonCode?: string | null;
+            readonly repoScope?: string | null;
+            /** Format: int32 */
+            readonly schemaVersion: number;
+            readonly status: string;
         };
         readonly ChangeResponse: {
             readonly additions: number;
@@ -610,11 +680,55 @@ export type components = {
             readonly is_binary?: boolean;
             readonly path: string;
         };
+        readonly ChangesListResponse: components["schemas"]["ChangeResponse"] & {
+            readonly evidenceKey?: components["schemas"]["EvidenceKey"] | null;
+        };
         readonly ChangesQuery: {
             /** Format: int64 */
             readonly days?: number | null;
             readonly working_tree?: boolean | null;
         };
+        readonly ComparableComparison: {
+            readonly baselineCoverage: components["schemas"]["EdgeCoverage"];
+            readonly baselineIdentity: components["schemas"]["BaselineIdentity"];
+            readonly counts: components["schemas"]["DeltaCounts"];
+            readonly currentCoverage: components["schemas"]["EdgeCoverage"];
+            readonly currentIdentity: components["schemas"]["BaselineIdentity"];
+            readonly items: readonly components["schemas"]["DeltaItem"][];
+            readonly notes: readonly string[];
+            readonly regression: components["schemas"]["Regression"];
+            readonly regressionReasons: readonly string[];
+            readonly sample: components["schemas"]["ComparisonSample"];
+        };
+        readonly Comparison: {
+            /** @enum {string} */
+            readonly status: "selection-required";
+        } | (components["schemas"]["ComparableComparison"] & {
+            /** Format: date-time */
+            readonly capturedAt: string;
+            /** Format: date-time */
+            readonly liveCheckedAt: string;
+        } & {
+            /** @enum {string} */
+            readonly status: "comparable";
+        }) | (components["schemas"]["IncomparableComparison"] & {
+            /** @enum {string} */
+            readonly status: "incomparable";
+        }) | {
+            readonly reasonCode: components["schemas"]["ComparisonReason"];
+            /** @enum {string} */
+            readonly status: "unavailable";
+        };
+        readonly ComparisonReason: components["schemas"]["BaselineVerdict"] | components["schemas"]["PreparationRefusal"];
+        readonly ComparisonSample: {
+            readonly complete: boolean;
+            readonly omitted: number;
+        };
+        /**
+         * @description Completeness state, serialized as `COMPLETE` / `INCOMPLETE`.
+         * @enum {string}
+         */
+        readonly CompletenessState: "COMPLETE" | "INCOMPLETE";
         /**
          * @description `GET /api/compliance/signatures` — per-entry signature status for the
          *     recent ledger.
@@ -703,6 +817,106 @@ export type components = {
             readonly unauditedDrift: number;
         };
         /**
+         * @description Per-edge classification.
+         * @enum {string}
+         */
+        readonly DeltaClass: "added" | "removed" | "worsened" | "improved" | "unchanged";
+        /** @description Per-class counts. Sums to the size of the union. */
+        readonly DeltaCounts: {
+            /** Format: int64 */
+            readonly added: number;
+            /** Format: int64 */
+            readonly improved: number;
+            /** Format: int64 */
+            readonly removed: number;
+            /** Format: int64 */
+            readonly unchanged: number;
+            /** Format: int64 */
+            readonly worsened: number;
+        };
+        /** @description One changed (or, with `--all`, unchanged) edge. */
+        readonly DeltaItem: {
+            /** Format: int32 */
+            readonly baselineWeight?: number | null;
+            readonly class: components["schemas"]["DeltaClass"];
+            /** Format: int32 */
+            readonly currentWeight?: number | null;
+            readonly edgeKey: components["schemas"]["EdgeKey"];
+        };
+        /** @description Raw counts read from the index. These are row counts, not claims. */
+        readonly EdgeCoverage: {
+            /** Format: int64 */
+            readonly edgesAmbiguous: number;
+            /** Format: int64 */
+            readonly edgesCapped: number;
+            /** Format: int64 */
+            readonly edgesResolvedCrossFile: number;
+            /** Format: int64 */
+            readonly edgesResolvedIntraFile: number;
+            /** Format: int64 */
+            readonly edgesUnresolved: number;
+            /** Format: int64 */
+            readonly filesIndexed: number;
+            /** Format: int64 */
+            readonly filesParseFailed: number;
+        };
+        /** @description Stable per-item identity: the normalized path pair. */
+        readonly EdgeKey: {
+            readonly dstPath: string;
+            readonly srcPath: string;
+        };
+        readonly EvidenceKey: {
+            readonly base: string;
+            readonly head: string;
+            readonly repoScope: string;
+        };
+        readonly EvidenceProblemSchema: {
+            readonly reasonCode: string;
+            /** Format: int32 */
+            readonly status: number;
+            readonly title: string;
+            readonly type: string;
+        };
+        readonly EvidenceResponse: {
+            readonly base: string;
+            readonly baselineCandidates: components["schemas"]["BaselineCandidates"];
+            readonly baselineDigest?: string | null;
+            readonly baselineName?: string | null;
+            readonly comparison: components["schemas"]["Comparison"];
+            readonly displayName: string;
+            readonly git: components["schemas"]["GitSection"];
+            readonly head: string;
+            readonly repoScope: string;
+            /** Format: int32 */
+            readonly schemaVersion: number;
+            readonly verification: components["schemas"]["VerificationSection"];
+        };
+        /** @enum {string} */
+        readonly GitPartialReason: "unsupported-tree-path";
+        /** @enum {string} */
+        readonly GitReason: "not-prepared" | "git-files-unavailable";
+        readonly GitSection: {
+            readonly files: readonly components["schemas"]["PreparedFile"][];
+            readonly omitted: number;
+            /** @enum {string} */
+            readonly status: "ready";
+            readonly total: number;
+        } | {
+            readonly files: readonly components["schemas"]["PreparedFile"][];
+            readonly omitted?: number | null;
+            readonly reasonCode?: components["schemas"]["GitPartialReason"] | null;
+            /** @enum {string} */
+            readonly status: "partial";
+            readonly total?: number | null;
+        } | {
+            readonly reasonCode: components["schemas"]["GitReason"];
+            /** @enum {string} */
+            readonly status: "unavailable";
+        };
+        readonly HistorySample: {
+            readonly complete: boolean;
+        };
+        /**
          * @description Frontend-facing hotspot DTO decoupled from the internal `Hotspot` domain
          *     struct. The internal struct (`intelligence::Hotspot`) is coupled to the
          *     impact math module; this DTO gives the API a stable contract that the
@@ -752,6 +966,22 @@ export type components = {
             readonly days?: number | null;
             readonly limit?: number | null;
         };
+        readonly IncomparableComparison: {
+            readonly baselineIdentity: components["schemas"]["BaselineIdentity"];
+            readonly currentInputReasons: readonly string[];
+            readonly incomparableReasons: readonly components["schemas"]["IncomparableReason"][];
+            readonly notes: readonly string[];
+        };
+        /**
+         * @description Why a comparison is not comparable. Emitted sorted by token.
+         * @enum {string}
+         */
+        readonly IncomparableReason: "BASELINE_DIGEST_MISMATCH" | "BASELINE_INCOMPLETE" | "CURRENT_INCOMPLETE" | "EDGE_SOURCES_MISMATCH" | "PARSER_VERSION_MISMATCH" | "SCHEMA_MISMATCH" | "SCOPE_MISMATCH";
+        /** @description Completeness verdict plus its sorted reason tokens. */
+        readonly InputCompleteness: {
+            readonly reasons: readonly string[];
+            readonly state: components["schemas"]["CompletenessState"];
+        };
         readonly KgEdge: {
             /** Format: double */
             readonly confidence?: number | null;
@@ -780,6 +1010,8 @@ export type components = {
             readonly nodes: readonly components["schemas"]["KgNode"][];
             readonly truncated: boolean;
         };
+        /** @enum {string} */
+        readonly Label: "git --version" | "withheld";
         /** @description Detail response for a single ledger transaction, including enriched fields. */
         readonly LedgerDetailResponse: components["schemas"]["LedgerEntryResponse"] & {
             /**
@@ -832,6 +1064,39 @@ export type components = {
             readonly offset?: number | null;
             readonly q?: string | null;
         };
+        /** @enum {string} */
+        readonly NotRecordedReason: "revision-not-captured";
+        readonly Outcome: {
+            /** Format: int64 */
+            readonly durationMs: number;
+            /** Format: int32 */
+            readonly exitCode: number;
+            /** Format: int64 */
+            readonly index: number;
+            readonly timedOut: boolean;
+        };
+        readonly Prediction: {
+            readonly impactFreshness?: components["schemas"]["SurfaceFreshnessStatus"] | null;
+            readonly state: components["schemas"]["PredictionState"];
+            /** Format: int64 */
+            readonly warningCount: number;
+        };
+        /** @enum {string} */
+        readonly PredictionState: "ran" | "skipped" | "disabled" | "not-applicable";
+        /** @enum {string} */
+        readonly PreparationRefusal: "unsupported-input-encoding" | "unsupported-tree-path" | "index-generation-mismatch" | "index-parser-version-mismatch" | "index-input-stamp-missing" | "index-input-stamp-mismatch" | "index-input-hash-mismatch" | "index-input-unavailable";
+        readonly PreparedFile: {
+            /** Format: int64 */
+            readonly additions?: number | null;
+            /** Format: int64 */
+            readonly deletions?: number | null;
+            readonly isBinary?: boolean | null;
+            readonly kind: components["schemas"]["PreparedFileKind"];
+            readonly oldPath?: string | null;
+            readonly path: string;
+        };
+        /** @enum {string} */
+        readonly PreparedFileKind: "added" | "deleted" | "modified" | "rewrite";
         /**
          * @description RFC 7807 problem-detail object. Additional members are allowed; this shape
          *     supplies the core fields required by the track contract.
@@ -848,6 +1113,7 @@ export type components = {
             readonly type: string;
         };
         readonly ProjectResponse: {
+            readonly changeEvidence?: components["schemas"]["ChangeEvidenceCapability"] | null;
             /** Format: int32 */
             readonly health_score: number;
             readonly id: string;
@@ -864,9 +1130,41 @@ export type components = {
              */
             readonly validation_warnings: readonly string[];
         };
+        /**
+         * @description Three-valued regression verdict. Never a boolean.
+         * @enum {string}
+         */
+        readonly Regression: "none" | "present" | "unknown";
+        readonly Sample: {
+            readonly complete: boolean;
+            readonly omitted: number;
+        };
+        /** @enum {string} */
+        readonly Scope: "fast" | "full" | "refused";
         readonly SecurityBoundariesResponse: {
             readonly boundaries: unknown;
             readonly meta: unknown;
+        };
+        /**
+         * @description How the run was assembled. Not a claim that the selection is sufficient.
+         * @enum {string}
+         */
+        readonly SelectionBasis: "full-requested" | "scoped-selection" | "fast-no-test-step" | "fallback-full" | "refused" | "explicit-steps" | "manual-command" | "unknown";
+        readonly SelectionEvidence: {
+            readonly basis: components["schemas"]["SelectionBasis"];
+            readonly limitationCodes: readonly string[];
+            readonly omissions: readonly string[];
+            readonly prediction: components["schemas"]["Prediction"];
+            /** Format: int32 */
+            readonly schemaVersion: number;
+            readonly steps: readonly components["schemas"]["SelectionStep"][];
+        };
+        readonly SelectionStep: {
+            readonly command: components["schemas"]["Label"];
+            /** Format: int64 */
+            readonly index: number;
+            readonly kind: components["schemas"]["StepKindJson"];
+            readonly state: components["schemas"]["StepState"];
         };
         /**
          * @description Request body for `POST /api/session/exchange` (track 0090).
@@ -914,6 +1212,12 @@ export type components = {
             readonly pending_transactions: number;
             readonly unaudited_drift: number;
         };
+        /** @enum {string} */
+        readonly StepKindJson: "test-run" | "non-test" | "unknown";
+        /** @enum {string} */
+        readonly StepState: "planned" | "passed" | "failed" | "not-run" | "unknown";
+        /** @enum {string} */
+        readonly SurfaceFreshnessStatus: "available" | "stale" | "unavailable";
         /**
          * @description `SyncStatusResponse` DTO — local M0 sync state.
          *
@@ -952,11 +1256,33 @@ export type components = {
              */
             readonly lastDay?: string | null;
         };
+        /** @enum {string} */
+        readonly UnavailableReason: "attempts-unavailable";
         readonly UserSession: {
             readonly email: string;
             readonly id: string;
             readonly name: string;
             readonly role: string;
+        };
+        readonly VerificationAttempt: {
+            readonly ageReason?: components["schemas"]["AgeReason"] | null;
+            readonly ageStatus: components["schemas"]["AgeStatus"];
+            /** Format: uuid */
+            readonly attemptId: string;
+            readonly attemptKind: components["schemas"]["AttemptKind"];
+            /** Format: date-time */
+            readonly observedFrom: string | null;
+            /** Format: date-time */
+            readonly observedTo: string | null;
+            readonly outcomes?: readonly components["schemas"]["Outcome"][] | null;
+            /** Format: int64 */
+            readonly runId?: number | null;
+            readonly sample?: components["schemas"]["Sample"] | null;
+            readonly scopeExecuted?: components["schemas"]["Scope"] | null;
+            readonly scopeRequested?: components["schemas"]["Scope"] | null;
+            readonly selectionEvidence?: components["schemas"]["SelectionEvidence"] | null;
+            readonly state: components["schemas"]["AttemptStatus"];
+            readonly txId?: string | null;
         };
         /**
          * @description `GET /api/verify/health` — overall verification health derived from the
@@ -979,6 +1305,20 @@ export type components = {
             readonly lastRunAt?: string | null;
             readonly message?: string | null;
             readonly status: string;
+        };
+        readonly VerificationSection: {
+            readonly attempts: readonly components["schemas"]["VerificationAttempt"][];
+            readonly sample: components["schemas"]["HistorySample"];
+            /** @enum {string} */
+            readonly status: "recorded";
+        } | {
+            readonly reasonCode: components["schemas"]["NotRecordedReason"];
+            /** @enum {string} */
+            readonly status: "not-recorded";
+        } | {
+            readonly reasonCode: components["schemas"]["UnavailableReason"];
+            /** @enum {string} */
+            readonly status: "unavailable";
         };
         /**
          * @description `GET /api/verify/steps` — per-step aggregates across all history.
@@ -1030,6 +1370,91 @@ export type components = {
 };
 export type $defs = Record<string, never>;
 export interface operations {
+    readonly getChangeEvidence: {
+        readonly parameters: {
+            readonly query: {
+                /** @description Opaque serving repository scope UUID */
+                readonly repoScope: string;
+                /** @description Full lowercase SHA-1 commit ID */
+                readonly head: string;
+                /** @description Full lowercase SHA-1 only-parent commit ID */
+                readonly base: string;
+                /** @description Exact attested baseline name; requires baselineDigest */
+                readonly baselineName?: string;
+                /** @description Exact blake3 payload digest; requires baselineName */
+                readonly baselineDigest?: string;
+            };
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Validated exact-pair evidence */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["EvidenceResponse"];
+                };
+            };
+            /** @description Invalid evidence query */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["EvidenceProblemSchema"];
+                };
+            };
+            /** @description Authorization or policy denied */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Exact pair unavailable */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["EvidenceProblemSchema"];
+                };
+            };
+            /** @description Rate limited */
+            readonly 429: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Inconsistent evidence infrastructure */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["EvidenceProblemSchema"];
+                };
+            };
+            /** @description Evidence serving unavailable or request budget exhausted */
+            readonly 503: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["EvidenceProblemSchema"];
+                };
+            };
+        };
+    };
     readonly listChanges: {
         readonly parameters: {
             readonly query?: {
@@ -1048,7 +1473,7 @@ export interface operations {
                     readonly [name: string]: unknown;
                 };
                 content: {
-                    readonly "application/json": readonly components["schemas"]["ChangeResponse"][];
+                    readonly "application/json": readonly components["schemas"]["ChangesListResponse"][];
                 };
             };
         };

@@ -1,3 +1,5 @@
+import type { EvidenceCapability, EvidenceKey } from "./api/change-evidence-decoder";
+
 export type RiskLevel = "HIGH" | "MEDIUM" | "LOW" | "TRIVIAL";
 
 /** Risk after shared normalizeRiskLevel — missing/unknown never becomes LOW. */
@@ -32,6 +34,8 @@ export interface ChangeEntry extends RecentChange {
   filesChanged: number;
   additions: number;
   deletions: number;
+  evidenceKey?: EvidenceKey;
+  evidenceIdentityInvalid?: boolean;
 }
 
 export interface DashboardData {
@@ -143,6 +147,7 @@ export interface Project {
   lastScanAt: string | null;
   healthScore: number;
   validationWarnings: string[];
+  changeEvidence?: EvidenceCapability;
   githubRepo?: string;
   integrationStatus?: "CONNECTED" | "DISCONNECTED" | "PENDING";
 }

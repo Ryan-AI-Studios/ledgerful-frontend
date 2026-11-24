@@ -1,0 +1,359 @@
+{
+  "schemaVersion": 1,
+  "repoScope": "d059b03c-da15-43eb-9d08-aacbdbd093c4",
+  "displayName": "fixture-execution",
+  "head": "4ec470cd00133e978dbbe91145208c09c77d8b42",
+  "base": "56b04d4ec5416a2844135c752e4950820bcf0932",
+  "baselineName": "parent",
+  "baselineDigest": "blake3:3eef362d5f90d875be25445ad38b6c2f501a6276053d2b4f3d27aecef85210bf",
+  "git": {
+    "status": "partial",
+    "files": [
+      {
+        "kind": "added",
+        "path": "src/add.rs",
+        "additions": null,
+        "deletions": null,
+        "isBinary": null
+      },
+      {
+        "kind": "modified",
+        "path": "src/calls.rs",
+        "additions": null,
+        "deletions": null,
+        "isBinary": null
+      },
+      {
+        "kind": "modified",
+        "path": "src/lib.rs",
+        "additions": null,
+        "deletions": null,
+        "isBinary": null
+      },
+      {
+        "kind": "deleted",
+        "path": "src/remove.rs",
+        "additions": null,
+        "deletions": null,
+        "isBinary": null
+      }
+    ]
+  },
+  "baselineCandidates": {
+    "status": "ready",
+    "items": [
+      {
+        "name": "parent",
+        "payloadDigest": "blake3:3eef362d5f90d875be25445ad38b6c2f501a6276053d2b4f3d27aecef85210bf",
+        "base": "56b04d4ec5416a2844135c752e4950820bcf0932",
+        "observedAt": "2026-11-24T11:37:28.843271300Z"
+      }
+    ],
+    "complete": true
+  },
+  "comparison": {
+    "status": "comparable",
+    "capturedAt": "2026-11-24T11:37:30.556256800Z",
+    "liveCheckedAt": "2026-11-24T11:40:03.456183Z",
+    "baselineIdentity": {
+      "baselineSchema": 1,
+      "payloadKind": "fileDependencyEdges",
+      "scope": {
+        "kind": "repo"
+      },
+      "parserVersion": "1",
+      "edgeSources": [
+        "native"
+      ],
+      "ledgerfulVersion": "0.2.18 (19cdb2689d9f)",
+      "indexHeadHash": "56b04d4ec5416a2844135c752e4950820bcf0932",
+      "inputDigest": "blake3:8a2f2c196fbb40bebff68ff95483ff0e9529c27e64f95a6443458d81d5cbfcf0",
+      "inputCompleteness": {
+        "state": "COMPLETE",
+        "reasons": []
+      }
+    },
+    "currentIdentity": {
+      "baselineSchema": 1,
+      "payloadKind": "fileDependencyEdges",
+      "scope": {
+        "kind": "repo"
+      },
+      "parserVersion": "1",
+      "edgeSources": [
+        "native"
+      ],
+      "ledgerfulVersion": "0.2.18 (19cdb2689d9f)",
+      "indexHeadHash": "4ec470cd00133e978dbbe91145208c09c77d8b42",
+      "inputDigest": "blake3:83e4ba8167ecb85ee5529eb4ef0d30bad8befd686dd26d668dddaf4f36e9e7d7",
+      "inputCompleteness": {
+        "state": "COMPLETE",
+        "reasons": []
+      }
+    },
+    "baselineCoverage": {
+      "filesIndexed": 5,
+      "filesParseFailed": 0,
+      "edgesResolvedCrossFile": 3,
+      "edgesResolvedIntraFile": 0,
+      "edgesAmbiguous": 0,
+      "edgesUnresolved": 0,
+      "edgesCapped": 0
+    },
+    "currentCoverage": {
+      "filesIndexed": 5,
+      "filesParseFailed": 0,
+      "edgesResolvedCrossFile": 4,
+      "edgesResolvedIntraFile": 0,
+      "edgesAmbiguous": 0,
+      "edgesUnresolved": 0,
+      "edgesCapped": 0
+    },
+    "regression": "present",
+    "regressionReasons": [],
+    "notes": [
+      "RESOLVED_EDGES_REMOVED"
+    ],
+    "counts": {
+      "added": 1,
+      "removed": 1,
+      "worsened": 1,
+      "improved": 0,
+      "unchanged": 1
+    },
+    "items": [
+      {
+        "edgeKey": {
+          "srcPath": "src/add.rs",
+          "dstPath": "src/target.rs"
+        },
+        "class": "added",
+        "baselineWeight": null,
+        "currentWeight": 1
+      },
+      {
+        "edgeKey": {
+          "srcPath": "src/calls.rs",
+          "dstPath": "src/target.rs"
+        },
+        "class": "worsened",
+        "baselineWeight": 1,
+        "currentWeight": 2
+      },
+      {
+        "edgeKey": {
+          "srcPath": "src/remove.rs",
+          "dstPath": "src/target.rs"
+        },
+        "class": "removed",
+        "baselineWeight": 1,
+        "currentWeight": null
+      }
+    ],
+    "sample": {
+      "complete": true,
+      "omitted": 0
+    }
+  },
+  "verification": {
+    "status": "recorded",
+    "attempts": [
+      {
+        "attemptId": "1ff893e4-2057-4a54-b83b-8ed143265abe",
+        "attemptKind": "executed",
+        "observedFrom": "2026-11-24T11:37:33.946213400Z",
+        "observedTo": "2026-11-24T11:37:34.257087500Z",
+        "ageStatus": "current",
+        "state": "recorded",
+        "scopeRequested": "full",
+        "scopeExecuted": "full",
+        "runId": 3,
+        "txId": "07451b3e-043e-4a20-8299-824ffb2ef8cf",
+        "selectionEvidence": {
+          "schemaVersion": 1,
+          "basis": "manual-command",
+          "prediction": {
+            "state": "not-applicable",
+            "warningCount": 0
+          },
+          "steps": [
+            {
+              "index": 0,
+              "command": "git --version",
+              "kind": "unknown",
+              "state": "passed"
+            }
+          ],
+          "omissions": [
+            "no-test-command-planned"
+          ],
+          "limitationCodes": [
+            "impact-freshness-not-evaluated",
+            "prediction-not-run",
+            "selection-soundness-not-established"
+          ]
+        },
+        "outcomes": [
+          {
+            "index": 0,
+            "exitCode": 0,
+            "durationMs": 85,
+            "timedOut": false
+          }
+        ],
+        "sample": {
+          "complete": true,
+          "omitted": 0
+        }
+      },
+      {
+        "attemptId": "b66b2147-342d-4515-abf8-63c9f26cf591",
+        "attemptKind": "dry-run",
+        "observedFrom": "2026-11-24T11:37:33.679714800Z",
+        "observedTo": "2026-11-24T11:37:33.856054400Z",
+        "ageStatus": "current",
+        "state": "planned",
+        "scopeRequested": "fast",
+        "scopeExecuted": "fast",
+        "selectionEvidence": {
+          "schemaVersion": 1,
+          "basis": "fast-no-test-step",
+          "prediction": {
+            "state": "skipped",
+            "warningCount": 0
+          },
+          "steps": [],
+          "omissions": [
+            "no-test-command-planned"
+          ],
+          "limitationCodes": [
+            "impact-freshness-not-evaluated",
+            "prediction-not-run",
+            "selection-soundness-not-established"
+          ]
+        },
+        "outcomes": [],
+        "sample": {
+          "complete": true,
+          "omitted": 0
+        }
+      },
+      {
+        "attemptId": "fa07cfc0-9bf6-4a17-bb38-ddc3904a6b4e",
+        "attemptKind": "executed",
+        "observedFrom": "2026-11-24T11:37:33.199763900Z",
+        "observedTo": "2026-11-24T11:37:33.534691100Z",
+        "ageStatus": "current",
+        "state": "recorded",
+        "scopeRequested": "full",
+        "scopeExecuted": "full",
+        "runId": 2,
+        "selectionEvidence": {
+          "schemaVersion": 1,
+          "basis": "manual-command",
+          "prediction": {
+            "state": "not-applicable",
+            "warningCount": 0
+          },
+          "steps": [
+            {
+              "index": 0,
+              "command": "withheld",
+              "kind": "unknown",
+              "state": "failed"
+            }
+          ],
+          "omissions": [
+            "no-test-command-planned"
+          ],
+          "limitationCodes": [
+            "impact-freshness-not-evaluated",
+            "prediction-not-run",
+            "selection-soundness-not-established"
+          ]
+        },
+        "outcomes": [
+          {
+            "index": 0,
+            "exitCode": 128,
+            "durationMs": 98,
+            "timedOut": false
+          }
+        ],
+        "sample": {
+          "complete": true,
+          "omitted": 0
+        }
+      },
+      {
+        "attemptId": "727770a8-a3a1-479d-8bc4-60ea3005f1d6",
+        "attemptKind": "executed",
+        "observedFrom": "2026-11-24T11:37:30.920417200Z",
+        "observedTo": "2026-11-24T11:37:32.927008600Z",
+        "ageStatus": "current",
+        "state": "partial",
+        "scopeRequested": "full",
+        "scopeExecuted": "full",
+        "runId": 1,
+        "selectionEvidence": {
+          "schemaVersion": 1,
+          "basis": "explicit-steps",
+          "prediction": {
+            "state": "not-applicable",
+            "warningCount": 0
+          },
+          "steps": [
+            {
+              "index": 0,
+              "command": "git --version",
+              "kind": "unknown",
+              "state": "passed"
+            },
+            {
+              "index": 1,
+              "command": "withheld",
+              "kind": "unknown",
+              "state": "failed"
+            },
+            {
+              "index": 2,
+              "command": "git --version",
+              "kind": "unknown",
+              "state": "not-run"
+            }
+          ],
+          "omissions": [
+            "no-test-command-planned",
+            "steps-not-run"
+          ],
+          "limitationCodes": [
+            "impact-freshness-not-evaluated",
+            "prediction-not-run",
+            "selection-soundness-not-established"
+          ]
+        },
+        "outcomes": [
+          {
+            "index": 0,
+            "exitCode": 0,
+            "durationMs": 89,
+            "timedOut": false
+          },
+          {
+            "index": 1,
+            "exitCode": 124,
+            "durationMs": 1000,
+            "timedOut": true
+          }
+        ],
+        "sample": {
+          "complete": true,
+          "omitted": 0
+        }
+      }
+    ],
+    "sample": {
+      "complete": true
+    }
+  }
+}
