@@ -1,5 +1,6 @@
 import { ChangeEntry } from "@/lib/types";
 
+// Example rows lack the full revision identity supplied by a live daemon.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function fetchChanges(_days = 7): Promise<ChangeEntry[]> {
   return Promise.resolve([

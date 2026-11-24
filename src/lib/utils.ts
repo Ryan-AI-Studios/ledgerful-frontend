@@ -6,9 +6,15 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 let inMemoryToken: string | null = null;
+let authGeneration = 0;
+
+export function getAuthGeneration(): number {
+  return authGeneration;
+}
 
 export function resetInMemoryToken(): void {
   inMemoryToken = null;
+  authGeneration++;
 }
 
 export function getAuthToken(): string | null {
@@ -18,6 +24,7 @@ export function getAuthToken(): string | null {
 
 export function setAuthToken(token: string): void {
   inMemoryToken = token;
+  authGeneration++;
 }
 
 export function buildApiUrl(

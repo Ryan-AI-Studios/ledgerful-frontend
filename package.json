@@ -12,6 +12,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:unit": "vitest run",
+    "test:e2e": "playwright test --config=playwright.config.ts --workers=1",
     "knip": "knip",
     "contract:refresh": "node scripts/refresh-openapi.mjs",
     "contract:generate": "node scripts/gen-api-types.mjs",

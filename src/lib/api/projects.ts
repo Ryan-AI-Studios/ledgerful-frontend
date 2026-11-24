@@ -1,11 +1,13 @@
 import { apiGet } from "../api";
 import { Project } from "@/lib/types";
 import type { ExtractResponse } from "./contract-types";
+import { decodeCapability } from "./change-evidence-decoder";
 
 type ProjectWire = ExtractResponse<"/api/projects", "get">;
 
-export async function fetchProjects(): Promise<Project[]> {
-  const data = await apiGet<ProjectWire>("/projects");
+export async function fetchProjects(signal?: AbortSignal): Promise<Project[]> {
+  const data = await apiGet<ProjectWire>("/projects", undefined,
+    signal ? { signal, strictJson: true } : undefined);
   if (!Array.isArray(data)) {
     throw new Error("Invalid projects response: expected array");
   }
@@ -18,5 +20,6 @@ export async function fetchProjects(): Promise<Project[]> {
     lastScanAt: p.last_scan_at,
     healthScore: p.health_score,
     validationWarnings: p.validation_warnings ?? [],
+    ...(p.changeEvidence != null ? { changeEvidence: decodeCapability(p.changeEvidence) } : {}),
   }));
 }

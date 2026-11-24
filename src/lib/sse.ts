@@ -1,6 +1,6 @@
 import { maybeInvalidateSession } from "./api";
 import type { DaemonEvent } from "./types";
-import { buildApiUrl, getAuthToken } from "./utils";
+import { buildApiUrl, getAuthGeneration, getAuthToken } from "./utils";
 
 export type { DaemonEvent };
 
@@ -276,6 +276,7 @@ export function connectDaemonEvents(
 
     const url = buildUrl();
     const token = getToken();
+    const generation = getAuthGeneration();
     controller = new AbortController();
     const signal = controller.signal;
 
@@ -307,7 +308,7 @@ export function connectDaemonEvents(
 
     // Auth hard-stop (DoD-4): invalidate session, do not reconnect.
     if (res.status === 401 || res.status === 403) {
-      maybeInvalidateSession(res.status, token);
+      maybeInvalidateSession(res.status, token, generation);
       setState("auth_failed");
       return;
     }

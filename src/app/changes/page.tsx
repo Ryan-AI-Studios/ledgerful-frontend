@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useId, useRef } from "react";
 import { PageLayout } from "@/components/PageLayout";
 import { DataTable, Column } from "@/components/DataTable";
 import { RiskBadge } from "@/components/RiskBadge";
 import { DataSourceBadge } from "@/components/DataSourceBadge";
+import { ChangeEvidencePanel } from "@/components/ChangeEvidencePanel";
 import { ChangeEntry, fetchChanges } from "@/lib/changes-data";
+import { changeRowKey } from "@/lib/api/changes";
 import { DataSource } from "@/lib/fallback";
 import { AlertCircle, RefreshCw, ArrowRight } from "lucide-react";
 
@@ -21,8 +23,29 @@ export default function ChangesPage() {
   const [state, setState] = useState<ChangesState>({ status: "loading" });
   const [daysIndex, setDaysIndex] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const panelId = useId();
+  const listControl = useRef<HTMLSelectElement>(null);
+  const evidenceTriggers = useRef(new Map<string, HTMLButtonElement>());
   const days = DAY_STEPS[daysIndex] ?? DAY_STEPS[DAY_STEPS.length - 1];
   const canLoadMore = daysIndex < DAY_STEPS.length - 1;
+  const selected = state.status === "ready"
+    ? state.data.find((row) => changeRowKey(row) === selectedKey)
+    : undefined;
+
+  useEffect(() => {
+    if (!selectedKey || selected || state.status === "loading") return;
+    const reset = setTimeout(() => {
+      setSelectedKey((current) => current === selectedKey ? null : current);
+      listControl.current?.focus();
+    }, 0);
+    return () => clearTimeout(reset);
+  }, [selectedKey, selected, state.status]);
+
+  function closeEvidence() {
+    if (selectedKey) evidenceTriggers.current.get(selectedKey)?.focus();
+    setSelectedKey(null);
+  }
 
   const load = useCallback((daysWindow: number, mode: "replace" | "more") => {
     if (mode === "replace") {
@@ -110,6 +133,30 @@ export default function ChangesPage() {
         </span>
       ),
     },
+    {
+      key: "evidence",
+      header: "Evidence",
+      width: "132px",
+      cell: (row) => {
+        const key = changeRowKey(row);
+        const expanded = selectedKey === key;
+        return (
+          <button
+            type="button"
+            ref={(button) => {
+              if (button) evidenceTriggers.current.set(key, button);
+              else evidenceTriggers.current.delete(key);
+            }}
+            aria-expanded={expanded}
+            aria-controls={panelId}
+            onClick={() => setSelectedKey(expanded ? null : key)}
+            className="whitespace-nowrap rounded-md border border-[var(--color-border)] px-2.5 py-1.5 text-sm font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-surface-raised)] focus-visible:outline-2 focus-visible:outline-[var(--color-primary)]"
+          >
+            {expanded ? "Hide evidence" : "View evidence"}
+          </button>
+        );
+      },
+    },
   ];
 
   return (
@@ -136,6 +183,7 @@ export default function ChangesPage() {
             <select
               className="h-8 px-2 rounded-md bg-[var(--color-surface)] border border-[var(--color-border-muted)] text-sm text-[var(--color-text-primary)]"
               aria-label="Time range"
+              ref={listControl}
               value={String(days)}
               onChange={(e) => {
                 const nextDays = Number(e.target.value);
@@ -177,11 +225,18 @@ export default function ChangesPage() {
             </div>
           </div>
         ) : (
-          <DataTable
-            columns={columns}
-            rows={state.data}
-            getRowKey={(row) => row.id}
-          />
+          <>
+            <DataTable columns={columns} rows={state.data} getRowKey={changeRowKey} />
+            {selected ? (
+              <ChangeEvidencePanel
+                key={changeRowKey(selected)}
+                row={selected}
+                source={state.source}
+                panelId={panelId}
+                onClose={closeEvidence}
+              />
+            ) : <div id={panelId} hidden />}
+          </>
         )}
 
         <div className="mt-4 flex items-center gap-3">
